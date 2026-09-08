@@ -2,7 +2,7 @@
   "rewrites": [
     {
       "source": "/uploads/(.*)",
-      "destination": "https://bake-house.site.je/uploads/$1"
+      "destination": "https://frontendbackehouse.onrender.com/uploads/$1"
     },
     {
       "source": "/(.*)",
