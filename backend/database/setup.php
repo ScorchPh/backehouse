@@ -27,12 +27,22 @@ try {
 echo "<h1>🎂 BAKE HOUSE - Database Setup & Seeder</h1>";
 echo "<p>Connected to MySQL server on " . DB_HOST . ":" . DB_PORT . " as <strong>" . DB_USER . "</strong>.</p>";
 
+$isReset = isset($_GET['reset']) && ($_GET['reset'] === '1' || $_GET['reset'] === 'true');
+
+if ($isReset) {
+    echo "<p style='color: #d9534f;'>⚠️ <strong>Reset Triggered:</strong> Wiping all existing tables and records...</p>";
+    $pdo->exec("SET FOREIGN_KEY_CHECKS = 0;");
+    $pdo->exec("DROP TABLE IF EXISTS `order_items`, `orders`, `custom_cakes`, `messages`, `products`, `users`;");
+    $pdo->exec("SET FOREIGN_KEY_CHECKS = 1;");
+    echo "<p>🗑️ Existing records cleared.</p>";
+}
+
 // 1. Verify Database
 try {
     $pdo->exec("CREATE DATABASE IF NOT EXISTS `" . DB_NAME . "` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;");
     $pdo->exec("USE `" . DB_NAME . "`;");
 } catch (Exception $e) {
-    // Some managed cloud databases like Aiven defaultdb don't allow CREATE DATABASE, which is normal
+    // Managed cloud databases like Aiven defaultdb don't allow CREATE DATABASE
 }
 echo "<p>✅ Database <strong>`" . DB_NAME . "`</strong> ready.</p>";
 
@@ -376,4 +386,6 @@ if ($stmtOrderCheck->fetchColumn() == 0) {
 
 echo "<h3>🎉 Database Setup Completed Successfully!</h3>";
 echo "<p>You can now test the API and frontend!</p>";
+echo "<hr style='margin: 20px 0;'>";
+echo "<p><a href='?reset=1' style='display:inline-block; background:#d9534f; color:#fff; padding:10px 18px; text-decoration:none; border-radius:6px; font-weight:bold;' onclick='return confirm(\"⚠️ Are you sure you want to WIPE and RESTART all database records back to default?\");'>🔄 Restart / Reset Database to Fresh State</a></p>";
 ?>
