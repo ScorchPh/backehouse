@@ -79,7 +79,7 @@ export const productService = {
     const formData = new FormData();
     formData.append('image', file);
 
-    const apiBaseUrl = import.meta.env.VITE_API_URL || 'https://frontendbackehouse.onrender.com/api';
+    const apiBaseUrl = import.meta.env.VITE_API_URL || 'https://backehouse.onrender.com/api';
     const response = await fetch(`${apiBaseUrl}/products/upload_image.php`, {
       method: 'POST',
       body: formData,

@@ -2,7 +2,7 @@
   "rewrites": [
     {
       "source": "/uploads/(.*)",
-      "destination": "https://frontendbackehouse.onrender.com/uploads/$1"
+      "destination": "https://backehouse.onrender.com/uploads/$1"
     },
     {
       "source": "/(.*)",

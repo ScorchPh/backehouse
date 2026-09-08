@@ -10,7 +10,7 @@
  * ============================================================================
  */
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://frontendbackehouse.onrender.com/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://backehouse.onrender.com/api';
 
 /**
  * Core request wrapper
