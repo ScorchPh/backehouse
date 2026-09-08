@@ -16,8 +16,9 @@ header('Content-Type: text/html; charset=utf-8');
 require_once __DIR__ . '/../config/db.php';
 
 try {
-    $pdo = new PDO("mysql:host=" . DB_HOST . ";port=" . DB_PORT . ";charset=utf8mb4", DB_USER, DB_PASS, [
-        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION
+    $pdo = new PDO("mysql:host=" . DB_HOST . ";port=" . DB_PORT . ";dbname=" . DB_NAME . ";charset=utf8mb4", DB_USER, DB_PASS, [
+        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+        PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT => false
     ]);
 } catch (PDOException $e) {
     die("<h2>Database Connection Failed</h2><p>Could not connect to MySQL server: " . htmlspecialchars($e->getMessage()) . "</p>");
@@ -26,10 +27,14 @@ try {
 echo "<h1>🎂 BAKE HOUSE - Database Setup & Seeder</h1>";
 echo "<p>Connected to MySQL server on " . DB_HOST . ":" . DB_PORT . " as <strong>" . DB_USER . "</strong>.</p>";
 
-// 1. Create Database
-$pdo->exec("CREATE DATABASE IF NOT EXISTS `" . DB_NAME . "` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;");
-$pdo->exec("USE `" . DB_NAME . "`;");
-echo "<p>✅ Database <strong>`" . DB_NAME . "`</strong> created/verified.</p>";
+// 1. Verify Database
+try {
+    $pdo->exec("CREATE DATABASE IF NOT EXISTS `" . DB_NAME . "` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;");
+    $pdo->exec("USE `" . DB_NAME . "`;");
+} catch (Exception $e) {
+    // Some managed cloud databases like Aiven defaultdb don't allow CREATE DATABASE, which is normal
+}
+echo "<p>✅ Database <strong>`" . DB_NAME . "`</strong> ready.</p>";
 
 // 2. Create Users Table
 $pdo->exec("
