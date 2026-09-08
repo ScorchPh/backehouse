@@ -1,0 +1,261 @@
+.reports-page {
+  padding: 35px;
+}
+
+/* Header */
+
+.reports-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+}
+
+.reports-header h1 {
+  margin: 0;
+  font-size: 30px;
+  color: #3d2415;
+}
+
+.reports-header p {
+  margin-top: 6px;
+  color: #777;
+}
+
+.report-period {
+  padding: 11px 15px;
+  border: 1px solid #ddd;
+  border-radius: 7px;
+  background: white;
+  font-size: 14px;
+}
+
+/* Summary */
+
+.reports-summary {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+  margin-bottom: 25px;
+}
+
+.report-card {
+  background: white;
+  padding: 22px;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.report-card span {
+  display: block;
+  color: #777;
+  font-size: 14px;
+  margin-bottom: 8px;
+}
+
+.report-card strong {
+  display: block;
+  font-size: 25px;
+  color: #3d2415;
+  margin-bottom: 6px;
+}
+
+.report-card small {
+  color: #4b8b55;
+  font-size: 12px;
+}
+
+/* Content */
+
+.reports-content {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 25px;
+  margin-bottom: 25px;
+}
+
+.reports-panel {
+  background: white;
+  border-radius: 12px;
+  padding: 25px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.panel-heading {
+  margin-bottom: 25px;
+}
+
+.panel-heading h2 {
+  margin: 0;
+  color: #3d2415;
+  font-size: 20px;
+}
+
+.panel-heading p {
+  margin-top: 5px;
+  color: #888;
+  font-size: 13px;
+}
+
+/* Sales */
+
+.sales-chart {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.sales-row {
+  display: grid;
+  grid-template-columns: 75px 1fr 90px;
+  align-items: center;
+  gap: 12px;
+}
+
+.sales-month {
+  font-size: 13px;
+  color: #666;
+}
+
+.sales-bar-container {
+  height: 12px;
+  background: #f1e9e2;
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+.sales-bar {
+  height: 100%;
+  background: #8b4513;
+  border-radius: 20px;
+}
+
+.sales-row strong {
+  font-size: 13px;
+  color: #3d2415;
+  text-align: right;
+}
+
+/* Top Products */
+
+.top-product {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 15px 0;
+  border-bottom: 1px solid #eee;
+}
+
+.top-product:last-child {
+  border-bottom: none;
+}
+
+.product-rank {
+  width: 30px;
+  height: 30px;
+  background: #f5e7d8;
+  color: #8b4513;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 13px;
+}
+
+.top-product-info {
+  flex: 1;
+}
+
+.top-product-info strong {
+  display: block;
+  color: #3d2415;
+  font-size: 14px;
+}
+
+.top-product-info small {
+  display: block;
+  color: #999;
+  margin-top: 3px;
+  font-size: 12px;
+}
+
+.product-revenue {
+  color: #8b4513;
+  font-size: 13px;
+}
+
+/* Order Status */
+
+.order-status-panel {
+  margin-bottom: 25px;
+}
+
+.status-report {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 15px;
+}
+
+.status-report-item {
+  padding: 18px;
+  background: #faf8f5;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.status-report-item span {
+  display: block;
+  color: #777;
+  font-size: 13px;
+  margin-bottom: 8px;
+}
+
+.status-report-item strong {
+  color: #3d2415;
+  font-size: 22px;
+}
+
+/* Responsive */
+
+@media (max-width: 1000px) {
+  .reports-summary {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .reports-content {
+    grid-template-columns: 1fr;
+  }
+
+  .status-report {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 650px) {
+  .reports-page {
+    padding: 20px;
+  }
+
+  .reports-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+  }
+
+  .reports-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .status-report {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .sales-row {
+    grid-template-columns: 65px 1fr;
+  }
+
+  .sales-row strong {
+    display: none;
+  }
+}

@@ -1,0 +1,194 @@
+.contact{
+    min-height:100vh;
+    background:#FFF8F0;
+    padding:100px 20px;
+}
+
+.contact-header{
+    max-width:800px;
+    margin:auto;
+    text-align:center;
+}
+
+.contact-header h1{
+    font-size:3rem;
+    color:#8B4513;
+    margin-bottom:20px;
+}
+
+.contact-header p{
+    font-size:1.1rem;
+    color:#555;
+    line-height:1.8;
+}
+/* ===========================
+   CONTACT INFORMATION
+=========================== */
+
+.contact-info{
+    max-width:1200px;
+    margin:70px auto;
+    display:flex;
+    justify-content:center;
+    gap:30px;
+    flex-wrap:wrap;
+}
+
+.info-card{
+    flex:1;
+    min-width:240px;
+    background:#fff;
+    padding:30px;
+    border-radius:15px;
+    box-shadow:0 8px 20px rgba(0,0,0,.08);
+    text-align:center;
+    transition:.3s;
+}
+
+.info-card:hover{
+    transform:translateY(-8px);
+}
+
+.info-card h3{
+    color:#8B4513;
+    margin-bottom:15px;
+}
+
+.info-card p{
+    color:#555;
+    line-height:1.8;
+}
+/* ===========================
+   CONTACT FORM
+=========================== */
+
+.contact-form-section{
+    max-width:800px;
+    margin:80px auto;
+    text-align:center;
+}
+
+.contact-form-section h2{
+    color:#8B4513;
+    margin-bottom:15px;
+}
+
+.contact-form-section p{
+    color:#555;
+    margin-bottom:35px;
+    line-height:1.8;
+}
+
+.contact-form{
+    display:flex;
+    flex-direction:column;
+    gap:20px;
+}
+
+.contact-form input,
+.contact-form textarea{
+    width:100%;
+    padding:16px 20px;
+    border:1px solid #ddd;
+    border-radius:10px;
+    font-size:1rem;
+    outline:none;
+    transition:.3s;
+    font-family:inherit;
+}
+
+.contact-form input:focus,
+.contact-form textarea:focus{
+    border-color:#8B4513;
+    box-shadow:0 0 8px rgba(139,69,19,.2);
+}
+
+.contact-form textarea{
+    resize:vertical;
+}
+
+.contact-form button{
+    width:220px;
+    margin:10px auto 0;
+    padding:15px;
+    background:#8B4513;
+    color:#fff;
+    border:none;
+    border-radius:10px;
+    font-size:1rem;
+    cursor:pointer;
+    transition:.3s;
+}
+
+.contact-form button:hover{
+    background:#6f3610;
+}
+/* ===========================
+   GOOGLE MAP
+=========================== */
+
+.map-section{
+    max-width:1200px;
+    margin:80px auto;
+    text-align:center;
+}
+
+.map-section h2{
+    color:#8B4513;
+    margin-bottom:15px;
+}
+
+.map-section p{
+    color:#555;
+    margin-bottom:30px;
+    line-height:1.8;
+}
+
+.map-container{
+    overflow:hidden;
+    border-radius:15px;
+    box-shadow:0 8px 20px rgba(0,0,0,.12);
+}
+
+.map-container iframe{
+    display:block;
+}
+/* ===========================
+   SOCIAL MEDIA
+=========================== */
+
+.social-section{
+    max-width:800px;
+    margin:80px auto;
+    text-align:center;
+}
+
+.social-section h2{
+    color:#8B4513;
+    margin-bottom:15px;
+}
+
+.social-section p{
+    color:#555;
+    margin-bottom:30px;
+    line-height:1.8;
+}
+
+.social-links{
+    display:flex;
+    justify-content:center;
+    gap:25px;
+    flex-wrap:wrap;
+}
+
+.social-links a{
+    text-decoration:none;
+    color:#8B4513;
+    font-weight:600;
+    font-size:1.05rem;
+    transition:.3s;
+}
+
+.social-links a:hover{
+    color:#6f3610;
+}

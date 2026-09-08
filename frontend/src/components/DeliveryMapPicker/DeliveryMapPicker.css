@@ -1,0 +1,289 @@
+/**
+ * ============================================================================
+ * BAKE HOUSE - Delivery Map Picker Stylesheet (Shopee / Grab Style)
+ * ============================================================================
+ */
+
+.delivery-map-picker-card {
+    background: #FFFFFF;
+    border: 1.5px solid #E8DFD7;
+    border-radius: 16px;
+    padding: 20px;
+    margin: 15px 0 25px;
+    box-shadow: 0 4px 16px rgba(107, 66, 38, 0.06);
+}
+
+.map-picker-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 15px;
+}
+
+.map-picker-header h3 {
+    margin: 0 0 4px;
+    font-size: 1.15rem;
+    color: #54331D;
+    font-weight: 800;
+}
+
+.map-picker-header p {
+    margin: 0;
+    font-size: 0.88rem;
+    color: #7A695B;
+}
+
+.locate-me-btn {
+    background: #FAF6F0;
+    border: 1.5px solid #8B4513;
+    color: #8B4513;
+    padding: 8px 16px;
+    border-radius: 10px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.locate-me-btn:hover:not(:disabled) {
+    background: #8B4513;
+    color: #FFF;
+}
+
+.locate-me-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Search bar */
+.map-search-form {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+
+.map-search-form input {
+    flex: 1;
+    padding: 10px 14px;
+    border: 1.5px solid #D8C8BA;
+    border-radius: 10px;
+    font-size: 0.92rem;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.map-search-form input:focus {
+    border-color: #8B4513;
+}
+
+.map-search-form button {
+    background: #8B4513;
+    color: #FFF;
+    border: none;
+    padding: 10px 18px;
+    border-radius: 10px;
+    font-weight: 700;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.map-search-form button:hover:not(:disabled) {
+    background: #6F3610;
+}
+
+/* Quick Jump Chips */
+.quick-areas-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 15px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+}
+
+.quick-areas-bar span {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: #8B4513;
+    white-space: nowrap;
+}
+
+.quick-chips-scroll {
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    scrollbar-width: thin;
+}
+
+.area-chip {
+    background: #F4ECE1;
+    border: 1px solid #E0D3C3;
+    color: #54331D;
+    padding: 4px 10px;
+    border-radius: 14px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s ease;
+}
+
+.area-chip:hover {
+    background: #8B4513;
+    color: #FFF;
+    border-color: #8B4513;
+}
+
+/* Map Canvas Container */
+.leaflet-map-wrapper {
+    position: relative;
+    border-radius: 14px;
+    overflow: hidden;
+    border: 2px solid #E5D5C5;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.leaflet-map-element {
+    width: 100%;
+    height: 320px;
+    z-index: 10;
+}
+
+.map-instruction-overlay {
+    position: absolute;
+    bottom: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(255, 255, 255, 0.94);
+    backdrop-filter: blur(4px);
+    border: 1px solid #D8C8BA;
+    color: #54331D;
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    z-index: 400;
+    pointer-events: none;
+    white-space: nowrap;
+}
+
+/* Delivery Analytics ETA Banner */
+.delivery-analytics-banner {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px;
+    margin-top: 15px;
+    background: #FAF6F0;
+    border: 1px solid #EADBCE;
+    border-radius: 12px;
+    padding: 14px;
+}
+
+.analytic-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    background: #FFFFFF;
+    border-radius: 10px;
+    border: 1px solid #EAE0D5;
+}
+
+.analytic-item.highlight {
+    background: #ECFDF5;
+    border-color: #A7F3D0;
+}
+
+.analytic-icon {
+    font-size: 1.4rem;
+}
+
+.analytic-item strong {
+    display: block;
+    font-size: 0.8rem;
+    color: #6B5E54;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+}
+
+.analytic-item p {
+    margin: 2px 0 0;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #2D2016;
+}
+
+.eta-text {
+    color: #047857 !important;
+    font-weight: 800 !important;
+    font-size: 1.05rem !important;
+}
+
+/* Custom Marker CSS */
+.custom-store-marker {
+    background: transparent;
+    border: none;
+}
+
+.marker-store-pin {
+    background: #8B4513;
+    color: #FFF;
+    border: 2px solid #FFF;
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35);
+    position: relative;
+}
+
+.marker-store-pin .marker-label {
+    position: absolute;
+    bottom: -18px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #8B4513;
+    color: #FFF;
+    font-size: 9px;
+    font-weight: 800;
+    padding: 1px 6px;
+    border-radius: 6px;
+    white-space: nowrap;
+    border: 1px solid #FFF;
+}
+
+.custom-delivery-marker {
+    background: transparent;
+    border: none;
+}
+
+.marker-delivery-pin {
+    font-size: 32px;
+    position: relative;
+    cursor: grab;
+    filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.3));
+    animation: bouncePin 1.5s infinite ease-in-out;
+}
+
+@keyframes bouncePin {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-6px); }
+}
+
+@media (max-width: 768px) {
+    .leaflet-map-element {
+        height: 260px;
+    }
+
+    .delivery-analytics-banner {
+        grid-template-columns: 1fr;
+    }
+}

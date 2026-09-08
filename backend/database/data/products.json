@@ -1,0 +1,122 @@
+[
+    {
+        "id": 1,
+        "name": "Chocolate Cake",
+        "description": "Rich chocolate sponge layered with creamy chocolate frosting.",
+        "category": "Cake",
+        "price": 650,
+        "image": "/uploads/productimg/chocolate_cake.jpg",
+        "stock": 12,
+        "status": "Available",
+        "bestseller": true,
+        "created_at": "2026-08-31 00:45:24"
+    },
+    {
+        "id": 2,
+        "name": "Red Velvet Cake",
+        "description": "Soft red velvet cake with smooth cream cheese frosting.",
+        "category": "Cake",
+        "price": 720,
+        "image": "/uploads/productimg/red_velvet_cake.jpg",
+        "stock": 4,
+        "status": "Low Stock",
+        "bestseller": true,
+        "created_at": "2026-08-31 00:45:24"
+    },
+    {
+        "id": 3,
+        "name": "Cheesecake",
+        "description": "Classic New York style baked cheesecake with a buttery graham crust.",
+        "category": "Cake",
+        "price": 680,
+        "image": "/uploads/productimg/cheesecake.jpg",
+        "stock": 6,
+        "status": "Available",
+        "bestseller": false,
+        "created_at": "2026-08-31 00:45:24"
+    },
+    {
+        "id": 4,
+        "name": "Butter Croissant",
+        "description": "Flaky, buttery French croissant baked golden fresh every morning.",
+        "category": "Pastry",
+        "price": 85,
+        "image": "/uploads/productimg/butter_croissant.jpg",
+        "stock": 23,
+        "status": "Available",
+        "bestseller": true,
+        "created_at": "2026-08-31 00:45:24"
+    },
+    {
+        "id": 5,
+        "name": "Cinnamon Roll",
+        "description": "Soft cinnamon-infused dough swirled with cream cheese glaze.",
+        "category": "Pastry",
+        "price": 120,
+        "image": "/uploads/productimg/cinnamon_roll.jpg",
+        "stock": 18,
+        "status": "Available",
+        "bestseller": false,
+        "created_at": "2026-08-31 00:45:24"
+    },
+    {
+        "id": 6,
+        "name": "Blueberry Muffin",
+        "description": "Moist bakery muffin bursting with fresh sweet blueberries.",
+        "category": "Pastry",
+        "price": 95,
+        "image": "/uploads/productimg/blueberry_muffin.jpg",
+        "stock": 20,
+        "status": "Available",
+        "bestseller": false,
+        "created_at": "2026-08-31 00:45:24"
+    },
+    {
+        "id": 7,
+        "name": "Cheese Bread",
+        "description": "Soft, warm artisan bread generously filled with melted cheddar cheese.",
+        "category": "Bread",
+        "price": 45,
+        "image": "/uploads/productimg/cheese_bread.jpg",
+        "stock": 30,
+        "status": "Available",
+        "bestseller": false,
+        "created_at": "2026-08-31 00:45:24"
+    },
+    {
+        "id": 8,
+        "name": "Spanish Bread",
+        "description": "Traditional Filipino sweet rolled bread with buttery sugar filling.",
+        "category": "Bread",
+        "price": 30,
+        "image": "/uploads/productimg/spanish_bread.jpg",
+        "stock": 40,
+        "status": "Available",
+        "bestseller": false,
+        "created_at": "2026-08-31 00:45:24"
+    },
+    {
+        "id": 9,
+        "name": "Pandesal",
+        "description": "Freshly baked Filipino breakfast bread rolls with breadcrumbs.",
+        "category": "Bread",
+        "price": 25,
+        "image": "/uploads/productimg/pandesal.jpg",
+        "stock": 50,
+        "status": "Available",
+        "bestseller": false,
+        "created_at": "2026-08-31 00:45:24"
+    },
+    {
+        "id": 10,
+        "name": "Ube Cake",
+        "description": "Authentic purple yam chiffon cake with luscious halaya cream.",
+        "category": "Cake",
+        "price": 900,
+        "image": "/uploads/productimg/ube_cake.jpg",
+        "stock": 0,
+        "status": "Out of Stock",
+        "bestseller": false,
+        "created_at": "2026-08-31 00:45:24"
+    }
+]

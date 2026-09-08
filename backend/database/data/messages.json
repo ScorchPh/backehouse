@@ -1,0 +1,11 @@
+[
+    {
+        "id": 1,
+        "name": "Ana Gomez",
+        "email": "ana@example.com",
+        "subject": "Wedding Cake Inquiry",
+        "message": "Hi! Do you accommodate 3-tier custom wedding cakes for November?",
+        "created_at": "2026-08-30 00:45:24",
+        "formatted_date": "August 30, 2026 - 12:45 AM"
+    }
+]

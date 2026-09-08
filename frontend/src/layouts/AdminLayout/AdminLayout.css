@@ -1,0 +1,343 @@
+/**
+ * ============================================================================
+ * BAKE HOUSE / BakeSmart Admin Portal Stylesheet
+ * ============================================================================
+ */
+
+.bakesmart-admin-layout {
+  display: flex;
+  min-height: 100vh;
+  background-color: #FAF8F5;
+  font-family: inherit;
+  color: #2D241E;
+}
+
+/* ============================================================================
+ * 1. SIDEBAR STYLING
+ * ============================================================================ */
+.bakesmart-sidebar {
+  width: 260px;
+  background-color: #FFFFFF;
+  border-right: 1px solid #ECE6DE;
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  z-index: 100;
+}
+
+/* Brand Header */
+.bakesmart-brand {
+  padding: 24px 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 1px solid #F3EFEA;
+}
+
+.bakesmart-brand-icon {
+  width: 38px;
+  height: 38px;
+  background: linear-gradient(135deg, #E69526, #C77810);
+  color: #FFFFFF;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 10px rgba(230, 149, 38, 0.25);
+}
+
+.bakesmart-brand-text h2 {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #2A1D13;
+  letter-spacing: 0.5px;
+  line-height: 1.2;
+}
+
+.bakesmart-brand-text span {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #8C7F72;
+  letter-spacing: 1px;
+}
+
+/* Navigation List */
+.bakesmart-nav {
+  display: flex;
+  flex-direction: column;
+  padding: 20px 0;
+  gap: 4px;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.bakesmart-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 24px;
+  color: #6E645A;
+  text-decoration: none;
+  font-size: 0.95rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  border-left: 4px solid transparent;
+}
+
+.bakesmart-nav-item:hover {
+  background-color: #FBF9F6;
+  color: #2A1D13;
+}
+
+.bakesmart-nav-item.active {
+  background-color: #FAF6F0;
+  color: #2A1D13;
+  font-weight: 700;
+  border-left: 4px solid #D4973B;
+}
+
+.nav-icon {
+  font-size: 1.1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+}
+
+.nav-label {
+  font-size: 0.95rem;
+}
+
+/* Sidebar Footer */
+.bakesmart-sidebar-footer {
+  padding: 16px 20px;
+  border-top: 1px solid #F3EFEA;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background-color: #FFFFFF;
+}
+
+.bakesmart-store-link {
+  color: #8C7F72;
+  text-decoration: none;
+  font-size: 0.88rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: color 0.2s ease;
+}
+
+.bakesmart-store-link:hover {
+  color: #D4973B;
+}
+
+.bakesmart-user-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 8px;
+  border-top: 1px dashed #ECE6DE;
+}
+
+.bakesmart-user-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.bakesmart-user-name {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #2A1D13;
+}
+
+.bakesmart-user-role {
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+}
+
+.bakesmart-user-role.admin {
+  color: #DC2626;
+}
+
+.bakesmart-user-role.staff {
+  color: #2563EB;
+}
+
+.bakesmart-logout-btn {
+  background: #F8F5F0;
+  border: 1px solid #E5DFD7;
+  font-size: 1.1rem;
+  padding: 6px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.bakesmart-logout-btn:hover {
+  background: #FEE2E2;
+  border-color: #FCA5A5;
+}
+
+/* ============================================================================
+ * 2. MAIN CONTAINER & TOP OPERATIONS HEADER
+ * ============================================================================ */
+.bakesmart-main-container {
+  margin-left: 260px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  width: calc(100% - 260px);
+}
+
+/* Top Operations Header */
+.bakesmart-top-header {
+  height: 70px;
+  background-color: #FAF8F5;
+  padding: 0 40px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+
+/* Search Wrapper */
+.bakesmart-search-wrapper {
+  display: flex;
+  align-items: center;
+  background-color: #FFFFFF;
+  border: 1.5px solid #E8E2D9;
+  border-radius: 30px;
+  padding: 8px 20px;
+  width: 380px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+  transition: all 0.2s ease;
+}
+
+.bakesmart-search-wrapper:focus-within {
+  border-color: #D4973B;
+  box-shadow: 0 0 0 3px rgba(212, 151, 59, 0.15);
+}
+
+.search-icon {
+  font-size: 0.9rem;
+  margin-right: 10px;
+  opacity: 0.6;
+}
+
+.bakesmart-search-input {
+  border: none;
+  background: transparent;
+  outline: none;
+  font-size: 0.9rem;
+  width: 100%;
+  color: #2D241E;
+}
+
+.bakesmart-search-input::placeholder {
+  color: #A0968B;
+}
+
+/* Header Actions */
+.bakesmart-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+/* Live Operations Badge */
+.bakesmart-live-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: #EBF8EE;
+  color: #1E8338;
+  font-size: 0.85rem;
+  font-weight: 700;
+  padding: 6px 14px;
+  border-radius: 20px;
+  border: 1px solid #D1F0D8;
+}
+
+.live-dot {
+  width: 8px;
+  height: 8px;
+  background-color: #22C55E;
+  border-radius: 50%;
+  box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.3);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% { transform: scale(0.95); opacity: 0.8; }
+  50% { transform: scale(1.2); opacity: 1; }
+  100% { transform: scale(0.95); opacity: 0.8; }
+}
+
+.header-icon-btn {
+  background: #FFFFFF;
+  border: 1.5px solid #E8E2D9;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.header-icon-btn:hover {
+  background: #F5EFE6;
+  border-color: #D4973B;
+}
+
+.header-profile-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 2px solid #E8E2D9;
+  cursor: pointer;
+}
+
+.header-profile-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Page Body */
+.bakesmart-page-body {
+  padding: 10px 40px 40px;
+  flex: 1;
+}
+
+@media (max-width: 900px) {
+  .bakesmart-sidebar {
+    width: 210px;
+  }
+  .bakesmart-main-container {
+    margin-left: 210px;
+    width: calc(100% - 210px);
+  }
+  .bakesmart-top-header {
+    padding: 0 20px;
+  }
+  .bakesmart-search-wrapper {
+    width: 240px;
+  }
+  .bakesmart-page-body {
+    padding: 10px 20px 30px;
+  }
+}

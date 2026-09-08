@@ -1,0 +1,140 @@
+.personalize-page {
+    min-height: 100vh;
+    background: #fff8f2;
+    padding: 50px;
+}
+
+.personalize-page h1 {
+    text-align: center;
+    color: #8B4513;
+    margin-bottom: 10px;
+}
+
+.personalize-page p {
+    text-align: center;
+    color: #555;
+}
+
+.personalize-container {
+    max-width: 1200px;
+    margin: 40px auto;
+    display: flex;
+    gap: 40px;
+    align-items: flex-start;
+}
+
+.preview-section {
+    flex: 1;
+    background: white;
+    border-radius: 15px;
+    padding: 20px;
+    box-shadow: 0 5px 15px rgba(0,0,0,.1);
+}
+
+.preview-section img {
+    width: 100%;
+    border-radius: 10px;
+}
+
+.preview-info {
+    margin-top: 20px;
+}
+
+.preview-info p {
+    text-align: left;
+    margin: 10px 0;
+}
+
+.form-section {
+    flex: 1;
+    background: white;
+    padding: 25px;
+    border-radius: 15px;
+    box-shadow: 0 5px 15px rgba(0,0,0,.1);
+}
+
+.form-section label {
+    display: block;
+    margin-top: 15px;
+    margin-bottom: 8px;
+    font-weight: bold;
+}
+
+.form-section input,
+.form-section select,
+.form-section textarea {
+    width: 100%;
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    font-size: 15px;
+    box-sizing: border-box;
+}
+
+.form-section textarea {
+    resize: vertical;
+}
+
+.form-section h2 {
+    margin-top: 25px;
+    color: #8B4513;
+}
+
+.form-section button {
+    width: 100%;
+    padding: 15px;
+    margin-top: 20px;
+    background: #8B4513;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 17px;
+    cursor: pointer;
+    transition: .3s;
+}
+
+.form-section button:hover {
+    background: #6d3412;
+}
+
+/* Frosting Colors */
+
+.color-picker {
+    display: flex;
+    gap: 15px;
+    margin-top: 10px;
+}
+
+.color {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    cursor: pointer;
+    border: 3px solid transparent;
+    transition: .3s;
+}
+
+.color:hover {
+    transform: scale(1.1);
+}
+
+.color.active {
+    border: 3px solid black;
+}
+
+.white {
+    background: white;
+    border: 1px solid #ccc;
+}
+
+.pink {
+    background: #ff69b4;
+}
+
+.blue {
+    background: #3b82f6;
+}
+
+.chocolate {
+    background: #6f4e37;
+}

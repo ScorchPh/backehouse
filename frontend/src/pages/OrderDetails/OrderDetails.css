@@ -1,0 +1,522 @@
+/**
+ * ============================================================================
+ * BAKE HOUSE - Order Details & Tracking Stylesheet
+ * ============================================================================
+ */
+
+.order-details-container {
+    max-width: 1150px;
+    margin: auto;
+    padding: 40px 20px 80px;
+}
+
+/* 1. Header */
+.order-details-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 30px;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.back-link {
+    display: inline-block;
+    color: #8B4513;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 0.95rem;
+    margin-bottom: 8px;
+    transition: color 0.2s ease;
+}
+
+.back-link:hover {
+    color: #6B3710;
+}
+
+.order-details-header h1 {
+    margin: 0 0 6px;
+    font-size: 2.2rem;
+    font-weight: 800;
+    color: #2D2016;
+}
+
+.order-meta {
+    color: #7A7067;
+    font-size: 0.95rem;
+    margin: 0;
+}
+
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.status-badge-lg {
+    padding: 8px 18px;
+    border-radius: 25px;
+    font-size: 0.95rem;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+}
+
+.status-badge-lg.pending {
+    background: #FEF3C7;
+    color: #B45309;
+    border: 1.5px solid #FDE68A;
+}
+
+.status-badge-lg.confirmed {
+    background: #EFF6FF;
+    color: #1D4ED8;
+    border: 1.5px solid #BFDBFE;
+}
+
+.status-badge-lg.preparing {
+    background: #F3E8FF;
+    color: #6B21A8;
+    border: 1.5px solid #E9D5FF;
+}
+
+.status-badge-lg.for-delivery,
+.status-badge-lg.delivery {
+    background: #FEF3C7;
+    color: #B45309;
+    border: 1.5px solid #FDE68A;
+}
+
+.status-badge-lg.completed,
+.status-badge-lg.delivered {
+    background: #ECFDF5;
+    color: #047857;
+    border: 1.5px solid #A7F3D0;
+}
+
+.print-btn {
+    background: #FFFFFF;
+    border: 1.5px solid #E2DBD2;
+    padding: 8px 16px;
+    border-radius: 10px;
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: #5A4E44;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.print-btn:hover {
+    background: #F5EFEB;
+    border-color: #D4973B;
+}
+
+/* 2. Visual Tracking Stepper Card */
+.tracking-stepper-card {
+    background: #FFFFFF;
+    border-radius: 20px;
+    padding: 30px;
+    border: 1px solid #ECE3D8;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, .04);
+    margin-bottom: 30px;
+}
+
+.tracking-stepper-card h2 {
+    color: #6B4226;
+    font-size: 1.25rem;
+    font-weight: 800;
+    margin: 0 0 25px;
+}
+
+.stepper-track {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: relative;
+}
+
+.stepper-node {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    position: relative;
+    z-index: 2;
+    flex: 1;
+}
+
+.node-circle {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: #F0EAE1;
+    color: #8C8074;
+    font-weight: 800;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 3px solid #FFFFFF;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    transition: all 0.3s ease;
+    margin-bottom: 10px;
+}
+
+.stepper-node.completed .node-circle {
+    background: #6B4226;
+    color: #FFFFFF;
+}
+
+.stepper-node.current .node-circle {
+    background: #D97706;
+    color: #FFFFFF;
+    box-shadow: 0 0 0 4px rgba(217, 119, 6, 0.25);
+    animation: pulseCircle 2s infinite;
+}
+
+@keyframes pulseCircle {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.08); }
+    100% { transform: scale(1); }
+}
+
+.node-info strong {
+    display: block;
+    font-size: 0.95rem;
+    color: #2D2016;
+    margin-bottom: 2px;
+}
+
+.node-info small {
+    color: #8C8074;
+    font-size: 0.8rem;
+}
+
+.stepper-line {
+    height: 4px;
+    background: #E5DFD7;
+    flex: 1;
+    margin: -30px 10px 0;
+    position: relative;
+    z-index: 1;
+    border-radius: 4px;
+}
+
+.stepper-line.active {
+    background: #6B4226;
+}
+
+/* 3. 2-Column Grid */
+.order-details-grid {
+    display: grid;
+    grid-template-columns: 1.6fr 1fr;
+    gap: 25px;
+}
+
+.details-card {
+    background: #FFFFFF;
+    border-radius: 20px;
+    padding: 28px;
+    border: 1px solid #ECE3D8;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, .04);
+    margin-bottom: 25px;
+}
+
+.details-card h2 {
+    color: #6B4226;
+    font-size: 1.25rem;
+    font-weight: 800;
+    margin: 0 0 20px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #F3EAE0;
+}
+
+/* Items List */
+.items-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-bottom: 25px;
+}
+
+.item-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    padding-bottom: 16px;
+    border-bottom: 1px dashed #EAE3D8;
+}
+
+.item-row:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.item-img-box {
+    width: 68px;
+    height: 68px;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #F5EFEB;
+    border: 1px solid #E5DFD7;
+    flex-shrink: 0;
+}
+
+.item-img-box img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.item-details {
+    flex: 1;
+}
+
+.item-details h3 {
+    margin: 0 0 6px;
+    font-size: 1.05rem;
+    color: #2D2016;
+    font-weight: 700;
+}
+
+.item-pricing {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.9rem;
+    color: #7A7067;
+}
+
+.qty-tag {
+    background: #FAF6F0;
+    padding: 2px 8px;
+    border-radius: 8px;
+    font-weight: 700;
+    color: #6B4226;
+    border: 1px solid #ECE3D8;
+}
+
+.item-total {
+    font-size: 1.15rem;
+    color: #2D2016;
+    font-weight: 800;
+}
+
+/* Custom Specs */
+.custom-specs-box {
+    margin-top: 10px;
+    padding: 10px 14px;
+    background: #FAF6F0;
+    border-radius: 10px;
+    border-left: 4px solid #D4973B;
+    font-size: 0.85rem;
+}
+
+.custom-specs-box h4 {
+    margin: 0 0 4px;
+    color: #6B4226;
+    font-size: 0.88rem;
+}
+
+.custom-specs-box p {
+    margin: 2px 0;
+    color: #555;
+}
+
+.custom-msg {
+    color: #B45309 !important;
+}
+
+/* Price Breakdown */
+.price-breakdown {
+    background: #FAF8F5;
+    padding: 20px;
+    border-radius: 14px;
+    border: 1px solid #ECE3D8;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.breakdown-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.95rem;
+    color: #666;
+}
+
+.breakdown-row.grand-total {
+    margin-top: 6px;
+    padding-top: 12px;
+    border-top: 2px solid #E5DFD7;
+    font-size: 1.25rem;
+    color: #2D2016;
+}
+
+.grand-total strong {
+    color: #6B4226;
+}
+
+/* Info Entries (Right Column) */
+.info-entry {
+    display: flex;
+    gap: 14px;
+    margin-bottom: 16px;
+    align-items: flex-start;
+}
+
+.entry-icon {
+    font-size: 1.3rem;
+    background: #FAF6F0;
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #ECE3D8;
+    flex-shrink: 0;
+}
+
+.info-entry strong {
+    display: block;
+    font-size: 0.85rem;
+    color: #8C8074;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 2px;
+}
+
+.info-entry p {
+    margin: 0;
+    font-size: 0.98rem;
+    color: #2D2016;
+    font-weight: 600;
+}
+
+/* Help Card */
+.help-card p {
+    color: #666;
+    font-size: 0.92rem;
+    line-height: 1.6;
+    margin: 0 0 12px;
+}
+
+.help-contacts p {
+    margin: 4px 0;
+    color: #2D2016;
+    font-size: 0.92rem;
+}
+
+.reorder-btn {
+    display: block;
+    text-align: center;
+    background: #6B4226;
+    color: #FFFFFF;
+    text-decoration: none;
+    padding: 12px 20px;
+    border-radius: 10px;
+    font-weight: 700;
+    margin-top: 18px;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 8px rgba(107, 66, 38, 0.2);
+}
+
+/* Digital Receipt QR Code Card in Order Details */
+.qr-receipt-details-card {
+    text-align: center;
+    border: 2px dashed #D4A373 !important;
+}
+
+.qr-receipt-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.qr-receipt-header h2 {
+    margin: 0;
+    font-size: 1.15rem;
+}
+
+.qr-receipt-badge {
+    background: #FEF3C7;
+    color: #B45309;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.qr-receipt-desc {
+    font-size: 0.88rem;
+    color: #6B5E54;
+    line-height: 1.5;
+    margin: 0 0 16px;
+    text-align: left;
+}
+
+.qr-receipt-code-box {
+    background: #FFFFFF;
+    padding: 12px;
+    border-radius: 12px;
+    display: inline-block;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+    border: 1px solid #EADBCE;
+    margin-bottom: 10px;
+}
+
+.qr-order-code {
+    display: block;
+    font-weight: 800;
+    font-size: 0.95rem;
+    color: #54331D;
+    letter-spacing: 0.5px;
+}
+
+/* Loading & Empty states */
+.order-details-loading,
+.order-details-empty {
+    max-width: 600px;
+    margin: 80px auto;
+    text-align: center;
+    background: #FFFFFF;
+    padding: 60px 30px;
+    border-radius: 20px;
+    border: 1px solid #ECE3D8;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, .04);
+}
+
+.loading-spinner {
+    font-size: 40px;
+    margin-bottom: 15px;
+}
+
+/* Print Styling */
+@media print {
+    .navbar,
+    .print-btn,
+    .back-link,
+    .reorder-btn {
+        display: none !important;
+    }
+    .order-details-container {
+        padding: 0;
+    }
+}
+
+/* Responsive */
+@media (max-width: 850px) {
+    .order-details-grid {
+        grid-template-columns: 1fr;
+    }
+    .stepper-track {
+        flex-direction: column;
+        gap: 16px;
+    }
+    .stepper-line {
+        display: none;
+    }
+}

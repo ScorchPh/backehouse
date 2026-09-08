@@ -1,0 +1,50 @@
+[
+    {
+        "id": 1,
+        "username": "admin",
+        "first_name": "Store",
+        "last_name": "Administrator",
+        "email": "admin@bakehouse.com",
+        "contact_number": "+63 912 345 6780",
+        "password": "$2y$12$8rKGNzZFfDr/m4Q3znNclu0aovF6B7zV0eF1mVv6oTg8KLWLdb5Dq",
+        "role": "admin",
+        "avatar": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200",
+        "created_at": "2026-08-31 00:45:24"
+    },
+    {
+        "id": 2,
+        "username": "staff",
+        "first_name": "Head",
+        "last_name": "Baker",
+        "email": "staff@bakehouse.com",
+        "contact_number": "+63 912 345 6781",
+        "password": "$2y$12$yXvKd.OfKeQ6/MpzCva/Ke/ie9P4cXcm3T07or/asrVoUH0X002Na",
+        "role": "staff",
+        "avatar": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200",
+        "created_at": "2026-08-31 00:45:24"
+    },
+    {
+        "id": 3,
+        "username": "customer",
+        "first_name": "Juan",
+        "last_name": "Dela Cruz",
+        "email": "customer@bakehouse.com",
+        "contact_number": "+63 912 345 6782",
+        "password": "$2y$12$2wKqUjQUWqinL05/BsDfeuK54AfKLVoH9.625RW1rCZZARNvBmtqa",
+        "role": "customer",
+        "avatar": "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200",
+        "created_at": "2026-08-31 00:45:24"
+    },
+    {
+        "id": 4,
+        "username": "ongjohnone",
+        "first_name": "John",
+        "last_name": "Ong",
+        "email": "ongjohnone@gmail.com",
+        "contact_number": "09317988315",
+        "password": "$2y$12$r8zOuDyFydwW1Bt7XSpQWejMtuBAKEs3rCgU386u7S6ow.EUaAIje",
+        "role": "customer",
+        "avatar": "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200",
+        "created_at": "2026-09-02 05:28:42"
+    }
+]

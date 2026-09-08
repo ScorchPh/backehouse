@@ -1,0 +1,318 @@
+[
+    {
+        "id": "BH-6A97DD8214",
+        "user_id": null,
+        "customer_name": "Maria Santos (Event Host)",
+        "customer_contact": "09223344556",
+        "fulfillment_type": "Delivery",
+        "delivery_address": "Villa Teresa Subdivision, Gabi, Cordova, Cebu",
+        "delivery_coordinates": null,
+        "distance_km": null,
+        "estimated_delivery_time": "30\u201345 Minutes",
+        "scheduled_date": "2026-09-08",
+        "scheduled_time": "Afternoon (1:00 PM - 5:00 PM)",
+        "is_scheduled": true,
+        "payment_method": "GCash",
+        "subtotal": 1000,
+        "delivery_fee": 50,
+        "total": 1050,
+        "status": "Pending",
+        "created_at": "2026-09-02 08:25:40",
+        "formatted_date": "September 02, 2026",
+        "items": [
+            {
+                "id": 1,
+                "product_id": "1788337538",
+                "product_name": "Birthday Custom Cake",
+                "price": 1000,
+                "quantity": 1,
+                "customization": {
+                    "size": "10 inches",
+                    "flavor": "Red Velvet",
+                    "shape": "Heart",
+                    "color": "Pink",
+                    "occasion": "Birthday",
+                    "message": "Happy 18th Birthday Maria!",
+                    "instructions": "With gold candle and floral icing",
+                    "scheduled_date": "2026-09-08",
+                    "scheduled_time": "Afternoon (1:00 PM - 5:00 PM)"
+                }
+            }
+        ],
+        "items_summary": "Birthday Custom Cake"
+    },
+    {
+        "id": "BH-6A97D18C45",
+        "user_id": 3,
+        "customer_name": "Juan Dela Cruz",
+        "customer_contact": "+63 912 345 6782",
+        "fulfillment_type": "Delivery",
+        "delivery_address": "Bartolome Mangubat Dimataga Street, Brgy. Poblacion, Lapu-Lapu, Cebu",
+        "delivery_coordinates": {
+            "lat": 10.312846587485767,
+            "lng": 123.9485052852369
+        },
+        "distance_km": 7.4,
+        "estimated_delivery_time": "26\u201336 Minutes",
+        "payment_method": "Cash on Delivery",
+        "subtotal": 720,
+        "delivery_fee": 50,
+        "total": 770,
+        "status": "Preparing",
+        "created_at": "2026-09-02 07:34:39",
+        "formatted_date": "September 02, 2026",
+        "items": [
+            {
+                "id": 1,
+                "product_id": 2,
+                "product_name": "Red Velvet Cake",
+                "price": 720,
+                "quantity": 1,
+                "customization": null
+            }
+        ],
+        "items_summary": "Red Velvet Cake"
+    },
+    {
+        "id": "BH-6A97B8E240",
+        "user_id": 4,
+        "customer_name": "John Ong",
+        "customer_contact": "09317988315",
+        "fulfillment_type": "Delivery",
+        "delivery_address": "asdasdas, Brgy. Poblacion, Cordova, Cebu",
+        "payment_method": "Cash on Delivery",
+        "subtotal": 1440,
+        "delivery_fee": 50,
+        "total": 1490,
+        "status": "Pending",
+        "created_at": "2026-09-02 05:49:24",
+        "formatted_date": "September 02, 2026",
+        "items": [
+            {
+                "id": 1,
+                "product_id": 2,
+                "product_name": "Red Velvet Cake",
+                "price": 720,
+                "quantity": 2,
+                "customization": null
+            }
+        ],
+        "items_summary": "Red Velvet Cake"
+    },
+    {
+        "id": "BH-6A97B25B48",
+        "user_id": 3,
+        "customer_name": "Juan Dela Cruz",
+        "customer_contact": "+63 912 345 6782",
+        "fulfillment_type": "Pickup",
+        "delivery_address": "Store Pickup (Poblacion, Cordova, Cebu Bakery Branch)",
+        "payment_method": "Cash on Delivery",
+        "subtotal": 680,
+        "delivery_fee": 0,
+        "total": 680,
+        "status": "Pending",
+        "created_at": "2026-09-02 05:21:33",
+        "formatted_date": "September 02, 2026",
+        "items": [
+            {
+                "id": 1,
+                "product_id": 3,
+                "product_name": "Cheesecake",
+                "price": 680,
+                "quantity": 1,
+                "customization": null
+            }
+        ],
+        "items_summary": "Cheesecake"
+    },
+    {
+        "id": "BH-6A96232675",
+        "user_id": 3,
+        "customer_name": "Juan Dela Cruz",
+        "customer_contact": "+63 912 345 6782",
+        "fulfillment_type": "Pickup",
+        "delivery_address": "Store Pickup (Poblacion, Cordova, Cebu Bakery Branch)",
+        "payment_method": "Cash on Delivery",
+        "subtotal": 170,
+        "delivery_fee": 0,
+        "total": 170,
+        "status": "Completed",
+        "created_at": "2026-09-01 00:58:15",
+        "formatted_date": "September 01, 2026",
+        "items": [
+            {
+                "id": 1,
+                "product_id": 4,
+                "product_name": "Butter Croissant",
+                "price": 85,
+                "quantity": 2,
+                "customization": null
+            }
+        ],
+        "items_summary": "Butter Croissant"
+    },
+    {
+        "id": "BH-6A9547FA43",
+        "user_id": 3,
+        "customer_name": "Juan Dela Cruz",
+        "customer_contact": "+63 912 345 6782",
+        "fulfillment_type": "Pickup",
+        "delivery_address": "Store Pickup (Poblacion, Cordova, Cebu Bakery Branch)",
+        "payment_method": "Cash on Delivery",
+        "subtotal": 1370,
+        "delivery_fee": 0,
+        "total": 1370,
+        "status": "Pending",
+        "created_at": "2026-08-31 09:23:07",
+        "formatted_date": "August 31, 2026",
+        "items": [
+            {
+                "id": 1,
+                "product_id": 2,
+                "product_name": "Red Velvet Cake",
+                "price": 720,
+                "quantity": 1,
+                "customization": null
+            },
+            {
+                "id": 2,
+                "product_id": 1,
+                "product_name": "Chocolate Cake",
+                "price": 650,
+                "quantity": 1,
+                "customization": null
+            }
+        ],
+        "items_summary": "Red Velvet Cake +1 more"
+    },
+    {
+        "id": "BH-6A95450077",
+        "user_id": 3,
+        "customer_name": "Juan Dela Cruz",
+        "customer_contact": "+63 912 345 6782",
+        "fulfillment_type": "Pickup",
+        "delivery_address": "Store Pickup (Poblacion, Cordova, Cebu Bakery Branch)",
+        "payment_method": "Pay on Pickup",
+        "subtotal": 650,
+        "delivery_fee": 0,
+        "total": 650,
+        "status": "Completed",
+        "created_at": "2026-08-31 09:10:25",
+        "formatted_date": "August 31, 2026",
+        "items": [
+            {
+                "id": 1,
+                "product_id": 1,
+                "product_name": "Chocolate Cake",
+                "price": 650,
+                "quantity": 1,
+                "customization": null
+            }
+        ],
+        "items_summary": "Chocolate Cake"
+    },
+    {
+        "id": "BH-1008",
+        "user_id": 3,
+        "customer_name": "Juan Dela Cruz",
+        "customer_contact": "+63 912 345 6782",
+        "delivery_address": "123 Rizal St, Poblacion, Cordova, Cebu",
+        "payment_method": "Cash on Delivery",
+        "subtotal": 850,
+        "delivery_fee": 50,
+        "total": 900,
+        "status": "Pending",
+        "created_at": "2026-08-30 22:45:24",
+        "formatted_date": "August 30, 2026",
+        "items": [
+            {
+                "id": 1,
+                "product_name": "Chocolate Cake",
+                "price": 650,
+                "quantity": 1,
+                "customization": null
+            },
+            {
+                "id": 2,
+                "product_name": "Cinnamon Roll",
+                "price": 120,
+                "quantity": 2,
+                "customization": null
+            }
+        ],
+        "items_summary": "Chocolate Cake +1 more"
+    },
+    {
+        "id": "BH-6A953D8F42",
+        "user_id": null,
+        "customer_name": "ONG JOHN VINCENT",
+        "customer_contact": "+63 912 345 6782",
+        "delivery_address": "Tumoy, Brgy. Poblacion, Cordova, Cebu",
+        "payment_method": "Cash on Delivery",
+        "subtotal": 680,
+        "delivery_fee": 50,
+        "total": 730,
+        "status": "Pending",
+        "created_at": "2026-08-31 08:38:40",
+        "formatted_date": "August 31, 2026",
+        "items": [
+            {
+                "id": 1,
+                "product_id": 3,
+                "product_name": "Cheesecake",
+                "price": 680,
+                "quantity": 1,
+                "customization": null
+            }
+        ],
+        "items_summary": "Cheesecake"
+    },
+    {
+        "id": "BH-1007",
+        "user_id": null,
+        "customer_name": "Maria Santos",
+        "customer_contact": "+63 917 888 1234",
+        "delivery_address": "45 Mango Ave, Cebu City",
+        "payment_method": "GCash",
+        "subtotal": 1200,
+        "delivery_fee": 50,
+        "total": 1250,
+        "status": "For Delivery",
+        "created_at": "2026-08-30 00:45:24",
+        "formatted_date": "August 30, 2026",
+        "items": [
+            {
+                "id": 3,
+                "product_name": "Red Velvet Cake",
+                "price": 720,
+                "quantity": 1,
+                "customization": null
+            }
+        ],
+        "items_summary": "Red Velvet Cake"
+    },
+    {
+        "id": "BH-1006",
+        "user_id": null,
+        "customer_name": "Angela Reyes",
+        "customer_contact": "+63 920 555 7890",
+        "delivery_address": "78 Banilad Rd, Mandaue City",
+        "payment_method": "Cash on Delivery",
+        "subtotal": 750,
+        "delivery_fee": 50,
+        "total": 800,
+        "status": "Completed",
+        "created_at": "2026-08-29 00:45:24",
+        "formatted_date": "August 29, 2026",
+        "items": [
+            {
+                "id": 4,
+                "product_name": "Butter Croissant",
+                "price": 85,
+                "quantity": 6,
+                "customization": null
+            }
+        ],
+        "items_summary": "Butter Croissant"
+    }
+]

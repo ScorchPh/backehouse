@@ -1,0 +1,1571 @@
+/**
+ * ============================================================================
+ * BAKE HOUSE - Cashier Counter & POS Dashboard Stylesheet
+ * ============================================================================
+ */
+
+.counter-pos-page {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 90px);
+  max-height: calc(100vh - 90px);
+  gap: 16px;
+  font-family: inherit;
+  color: #2D241E;
+}
+
+/* ============================================================================
+ * 1. TOP CASHIER OPERATIONS BAR
+ * ============================================================================ */
+.pos-top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  background: #FFFFFF;
+  border: 1px solid #ECE6DE;
+  border-radius: 16px;
+  padding: 12px 20px;
+  box-shadow: 0 4px 14px rgba(84, 51, 29, 0.04);
+}
+
+.pos-bar-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.pos-register-badge {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #FBF9F6;
+  border: 1px solid #E5DFD7;
+  padding: 6px 14px;
+  border-radius: 12px;
+}
+
+.register-icon {
+  font-size: 1.4rem;
+}
+
+.pos-register-badge strong {
+  display: block;
+  font-size: 0.95rem;
+  color: #54331D;
+  font-weight: 800;
+  line-height: 1.1;
+}
+
+.pos-register-badge small {
+  font-size: 0.75rem;
+  color: #8C7F72;
+  font-weight: 600;
+}
+
+.pos-clock-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #FAF6F0;
+  border: 1px solid #F0E6D8;
+  padding: 6px 14px;
+  border-radius: 12px;
+  font-size: 0.88rem;
+  color: #6E5339;
+}
+
+.pos-clock-badge strong {
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.5px;
+}
+
+.pos-clock-badge small {
+  font-size: 0.75rem;
+  color: #9C8975;
+  border-left: 1px solid #E0D4C5;
+  padding-left: 8px;
+}
+
+/* Search Box */
+.pos-search-box {
+  flex: 1;
+  max-width: 480px;
+  display: flex;
+  align-items: center;
+  background: #FAF8F5;
+  border: 1.5px solid #E8E2D9;
+  border-radius: 30px;
+  padding: 8px 16px;
+  transition: all 0.2s ease;
+}
+
+.pos-search-box:focus-within {
+  background: #FFFFFF;
+  border-color: #D4973B;
+  box-shadow: 0 0 0 3px rgba(212, 151, 59, 0.15);
+}
+
+.pos-search-box input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  outline: none;
+  font-size: 0.9rem;
+  color: #2D241E;
+  margin-left: 8px;
+}
+
+.clear-search-btn {
+  background: none;
+  border: none;
+  color: #999;
+  cursor: pointer;
+  font-size: 0.9rem;
+  padding: 0 4px;
+}
+
+.pos-bar-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.shift-log-toggle-btn {
+  background: #FAF6F0;
+  border: 1.5px solid #EADCCB;
+  color: #54331D;
+  font-weight: 700;
+  font-size: 0.85rem;
+  padding: 8px 16px;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.shift-log-toggle-btn:hover {
+  background: #F3EBE0;
+  border-color: #D4973B;
+}
+
+.reset-register-btn {
+  background: #FFF;
+  border: 1.5px solid #E5DFD7;
+  color: #6E645A;
+  font-weight: 700;
+  font-size: 0.85rem;
+  padding: 8px 14px;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.reset-register-btn:hover {
+  background: #FEE2E2;
+  border-color: #FCA5A5;
+  color: #DC2626;
+}
+
+.parked-badge-wrapper {
+  position: relative;
+}
+
+.parked-pill {
+  background: #FEF3C7;
+  color: #92400E;
+  border: 1px solid #FCD34D;
+  font-weight: 800;
+  font-size: 0.82rem;
+  padding: 6px 12px;
+  border-radius: 16px;
+  cursor: pointer;
+}
+
+.parked-dropdown {
+  display: none;
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 6px;
+  background: #FFFFFF;
+  border: 1px solid #ECE6DE;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+  padding: 8px;
+  min-width: 200px;
+  z-index: 50;
+}
+
+.parked-badge-wrapper:hover .parked-dropdown {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.parked-dropdown button {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #FAF8F5;
+  border: 1px solid #E5DFD7;
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.parked-dropdown button:hover {
+  background: #F4ECE1;
+  border-color: #D4973B;
+}
+
+/* ============================================================================
+ * 2. TWO-COLUMN SPLIT WORKSPACE
+ * ============================================================================ */
+.pos-workspace-grid {
+  display: grid;
+  grid-template-columns: 1fr 440px;
+  gap: 16px;
+  flex: 1;
+  min-height: 0; /* Allows inner scroll */
+}
+
+/* ============================================================================
+ * LEFT PANEL: PRODUCT CATALOG SELECTION GRID
+ * ============================================================================ */
+.pos-catalog-panel {
+  display: flex;
+  flex-direction: column;
+  background: #FFFFFF;
+  border: 1px solid #ECE6DE;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 14px rgba(84, 51, 29, 0.04);
+}
+
+/* Category Filter Bar */
+.pos-category-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 18px;
+  border-bottom: 1px solid #F3EFEA;
+  overflow-x: auto;
+  background: #FAF8F5;
+}
+
+.pos-category-tab {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #FFFFFF;
+  border: 1.5px solid #E8E2D9;
+  border-radius: 20px;
+  padding: 6px 16px;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #6E645A;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.pos-category-tab:hover {
+  background: #FDFBF8;
+  border-color: #D4973B;
+  color: #2D241E;
+}
+
+.pos-category-tab.active {
+  background: linear-gradient(135deg, #54331D, #3E2413);
+  border-color: #54331D;
+  color: #FFFFFF;
+  box-shadow: 0 3px 8px rgba(84, 51, 29, 0.25);
+}
+
+.pos-category-tab.active .cat-count {
+  background: rgba(255, 255, 255, 0.25);
+  color: #FFFFFF;
+}
+
+.cat-count {
+  font-size: 0.72rem;
+  background: #F0EAE1;
+  color: #8C7F72;
+  padding: 2px 7px;
+  border-radius: 10px;
+}
+
+/* Products Scroll Area */
+.pos-products-scroll-area {
+  flex: 1;
+  padding: 16px;
+  overflow-y: auto;
+  background: #FDFCFB;
+}
+
+.pos-products-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 14px;
+}
+
+/* Product Card */
+.pos-product-card {
+  position: relative;
+  background: #FFFFFF;
+  border: 1.5px solid #ECE6DE;
+  border-radius: 14px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 2px 6px rgba(84, 51, 29, 0.03);
+  user-select: none;
+}
+
+.pos-product-card:hover:not(.out-of-stock) {
+  transform: translateY(-3px);
+  border-color: #D4973B;
+  box-shadow: 0 8px 18px rgba(212, 151, 59, 0.16);
+}
+
+.pos-product-card.in-cart {
+  border-color: #D4973B;
+  background: #FFFDF9;
+  box-shadow: 0 0 0 2px rgba(212, 151, 59, 0.2);
+}
+
+.pos-product-card.out-of-stock {
+  opacity: 0.55;
+  filter: grayscale(0.8);
+  cursor: not-allowed;
+  border-style: dashed;
+}
+
+.pos-item-qty-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: #D4973B;
+  color: #FFFFFF;
+  font-size: 0.78rem;
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: 12px;
+  z-index: 10;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.pos-card-media {
+  position: relative;
+  width: 100%;
+  height: 110px;
+  background: #F7F3EE;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.pos-card-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.pos-product-card:hover:not(.out-of-stock) .pos-card-media img {
+  transform: scale(1.05);
+}
+
+.pos-media-fallback {
+  font-size: 2.6rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pos-stock-tag {
+  position: absolute;
+  bottom: 6px;
+  left: 6px;
+  font-size: 0.68rem;
+  font-weight: 800;
+  padding: 2px 7px;
+  border-radius: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.pos-stock-tag.stock-ok {
+  background: rgba(34, 197, 94, 0.9);
+  color: #FFFFFF;
+}
+
+.pos-stock-tag.stock-low {
+  background: rgba(234, 179, 8, 0.95);
+  color: #713F12;
+}
+
+.pos-stock-tag.stock-out {
+  background: rgba(239, 68, 68, 0.9);
+  color: #FFFFFF;
+}
+
+.pos-card-info {
+  padding: 10px 12px 12px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.pos-card-category {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #9C8F84;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 2px;
+}
+
+.pos-card-title {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #2D241E;
+  line-height: 1.25;
+  margin: 0 0 8px 0;
+  flex: 1;
+}
+
+.pos-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: auto;
+}
+
+.pos-card-price {
+  font-size: 1rem;
+  font-weight: 800;
+  color: #54331D;
+}
+
+.pos-add-btn {
+  background: #FAF6F0;
+  border: 1px solid #E5DFD7;
+  color: #54331D;
+  font-weight: 800;
+  font-size: 0.78rem;
+  padding: 4px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.pos-product-card:hover:not(.out-of-stock) .pos-add-btn {
+  background: #D4973B;
+  border-color: #D4973B;
+  color: #FFFFFF;
+}
+
+/* Loading & Empty States */
+.pos-loading-state,
+.pos-empty-catalog {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  text-align: center;
+  color: #8C7F72;
+}
+
+.pos-spinner {
+  width: 38px;
+  height: 38px;
+  border: 3.5px solid #F0EAE1;
+  border-top-color: #D4973B;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin-bottom: 12px;
+}
+
+.pos-empty-catalog span {
+  font-size: 3rem;
+  margin-bottom: 8px;
+}
+
+.pos-empty-catalog h3 {
+  font-size: 1.1rem;
+  color: #2D241E;
+  margin: 0 0 6px 0;
+}
+
+.pos-empty-catalog button {
+  margin-top: 14px;
+  background: #54331D;
+  color: #FFF;
+  border: none;
+  padding: 8px 18px;
+  border-radius: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* ============================================================================
+ * RIGHT PANEL: CASHIER REGISTER & BILL
+ * ============================================================================ */
+.pos-register-panel {
+  display: flex;
+  flex-direction: column;
+  background: #FFFFFF;
+  border: 1px solid #ECE6DE;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 14px rgba(84, 51, 29, 0.04);
+}
+
+/* Register Header */
+.register-header {
+  padding: 14px 16px 12px;
+  background: #FAF8F5;
+  border-bottom: 1px solid #ECE6DE;
+}
+
+.register-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.ticket-title-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.ticket-title-group h3 {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #2D241E;
+}
+
+.active-ticket-num {
+  font-size: 0.75rem;
+  font-weight: 800;
+  background: #EADCCB;
+  color: #54331D;
+  padding: 2px 8px;
+  border-radius: 8px;
+}
+
+.register-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.hold-order-btn,
+.clear-bill-btn {
+  background: #FFFFFF;
+  border: 1px solid #E5DFD7;
+  padding: 5px 10px;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #6E645A;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.hold-order-btn:hover:not(:disabled) {
+  background: #FEF3C7;
+  border-color: #FCD34D;
+  color: #92400E;
+}
+
+.clear-bill-btn:hover:not(:disabled) {
+  background: #FEE2E2;
+  border-color: #FCA5A5;
+  color: #DC2626;
+}
+
+.hold-order-btn:disabled,
+.clear-bill-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Customer Strip */
+.customer-info-strip {
+  margin-top: 10px;
+  background: #FFFFFF;
+  border: 1px solid #E8E2D9;
+  border-radius: 10px;
+  padding: 6px 10px;
+  font-size: 0.82rem;
+}
+
+.customer-summary-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+}
+
+.customer-summary-row strong {
+  color: #54331D;
+}
+
+.edit-cust-btn {
+  background: none;
+  border: none;
+  color: #D4973B;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.customer-edit-form {
+  display: flex;
+  gap: 6px;
+}
+
+.customer-edit-form input {
+  flex: 1;
+  font-size: 0.8rem;
+  border: 1px solid #E0D6C8;
+  border-radius: 6px;
+  padding: 4px 8px;
+  outline: none;
+}
+
+.customer-edit-form button {
+  background: #54331D;
+  color: #FFF;
+  border: none;
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* Items List in Register */
+.register-items-area {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px 16px;
+  min-height: 130px;
+  max-height: 260px;
+  background: #FFFFFF;
+}
+
+.register-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 24px 12px;
+  color: #9C8F84;
+}
+
+.empty-icon-circle {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #FAF8F5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+  margin-bottom: 6px;
+}
+
+.register-empty-state h4 {
+  margin: 0 0 4px 0;
+  font-size: 0.95rem;
+  color: #2D241E;
+}
+
+.register-empty-state p {
+  margin: 0;
+  font-size: 0.8rem;
+}
+
+.register-items-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.register-item-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 10px;
+  background: #FAF8F5;
+  border: 1px solid #F0EAE1;
+  border-radius: 10px;
+  gap: 8px;
+}
+
+.item-details-cell {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.item-details-cell strong {
+  font-size: 0.86rem;
+  color: #2D241E;
+  line-height: 1.2;
+}
+
+.item-details-cell span {
+  font-size: 0.75rem;
+  color: #8C7F72;
+}
+
+.item-qty-stepper {
+  display: flex;
+  align-items: center;
+  background: #FFFFFF;
+  border: 1px solid #E5DFD7;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.item-qty-stepper button {
+  background: #FAF6F0;
+  border: none;
+  width: 24px;
+  height: 24px;
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: #54331D;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s ease;
+}
+
+.item-qty-stepper button:hover:not(:disabled) {
+  background: #EFE4D6;
+}
+
+.item-qty-stepper button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.qty-value {
+  padding: 0 8px;
+  font-size: 0.85rem;
+  font-weight: 800;
+  min-width: 22px;
+  text-align: center;
+}
+
+.item-total-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.item-total-cell strong {
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: #54331D;
+  min-width: 60px;
+  text-align: right;
+}
+
+.remove-line-btn {
+  background: none;
+  border: none;
+  color: #DC2626;
+  font-size: 0.85rem;
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 4px;
+  opacity: 0.6;
+  transition: opacity 0.15s ease;
+}
+
+.remove-line-btn:hover {
+  opacity: 1;
+  background: #FEE2E2;
+}
+
+/* Totals Box */
+.register-totals-box {
+  padding: 10px 16px;
+  background: #FAF8F5;
+  border-top: 1px solid #ECE6DE;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.summary-line {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.82rem;
+  color: #6E645A;
+}
+
+.discount-line {
+  color: #DC2626;
+  font-weight: 700;
+}
+
+.vat-note {
+  font-size: 0.75rem;
+  color: #9C8F84;
+}
+
+.summary-line.total-highlight {
+  margin-top: 4px;
+  padding-top: 6px;
+  border-top: 2px solid #E5DFD7;
+  font-size: 1.1rem;
+  color: #2D241E;
+}
+
+.total-due-amount {
+  font-size: 1.35rem;
+  font-weight: 900;
+  color: #54331D;
+}
+
+/* ============================================================================
+ * PAYMENT & CHANGE CALCULATOR
+ * ============================================================================ */
+.pos-payment-calculator {
+  padding: 12px 16px 16px;
+  background: #FFFFFF;
+  border-top: 1px solid #ECE6DE;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.payment-tabs-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+
+.payment-tab {
+  background: #FAF8F5;
+  border: 1.5px solid #E8E2D9;
+  border-radius: 10px;
+  padding: 6px 4px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #6E645A;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.2s ease;
+}
+
+.payment-tab:hover {
+  border-color: #D4973B;
+  color: #2D241E;
+}
+
+.payment-tab.active {
+  background: #54331D;
+  border-color: #54331D;
+  color: #FFFFFF;
+  box-shadow: 0 2px 6px rgba(84, 51, 29, 0.2);
+}
+
+.cash-tendered-block {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.cash-input-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.cash-label-group {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.cash-label-group label {
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: #2D241E;
+}
+
+.numpad-toggle-btn {
+  background: none;
+  border: none;
+  color: #D4973B;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.cash-input-wrapper {
+  display: flex;
+  align-items: center;
+  background: #FFFFFF;
+  border: 2px solid #D4973B;
+  border-radius: 12px;
+  padding: 6px 12px;
+  box-shadow: 0 0 0 3px rgba(212, 151, 59, 0.12);
+}
+
+.currency-prefix {
+  font-size: 1.3rem;
+  font-weight: 900;
+  color: #54331D;
+  margin-right: 6px;
+}
+
+.cash-input-field {
+  width: 100%;
+  border: none;
+  outline: none;
+  font-size: 1.35rem;
+  font-weight: 900;
+  color: #2D241E;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Touch Numpad */
+.pos-touch-numpad {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+  background: #F7F4EE;
+  padding: 8px;
+  border-radius: 12px;
+  border: 1px solid #EAE3D8;
+}
+
+.numpad-key {
+  background: #FFFFFF;
+  border: 1px solid #DDD5C7;
+  border-radius: 8px;
+  padding: 8px;
+  font-size: 1rem;
+  font-weight: 800;
+  color: #2D241E;
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  transition: all 0.1s ease;
+}
+
+.numpad-key:active {
+  transform: scale(0.95);
+  background: #F0EAE0;
+}
+
+.numpad-key.key-clear {
+  background: #FEE2E2;
+  color: #DC2626;
+  border-color: #FCA5A5;
+}
+
+.numpad-key.key-del {
+  background: #FEF3C7;
+  color: #92400E;
+  border-color: #FCD34D;
+}
+
+/* Real-Time Change Display */
+.change-display-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  transition: all 0.2s ease;
+}
+
+.change-display-card.change-ok {
+  background: linear-gradient(135deg, #ECFDF5, #D1FAE5);
+  border: 1.5px solid #6EE7B7;
+}
+
+.change-display-card.change-short {
+  background: linear-gradient(135deg, #FEF2F2, #FEE2E2);
+  border: 1.5px solid #FCA5A5;
+}
+
+.change-display-card.change-idle {
+  background: #FAF8F5;
+  border: 1px dashed #E5DFD7;
+  justify-content: center;
+  padding: 8px 12px;
+}
+
+.change-icon-circle {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #10B981;
+  color: #FFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+}
+
+.change-icon-circle.short {
+  background: #EF4444;
+}
+
+.change-text-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.change-text-group.idle span {
+  font-size: 0.78rem;
+  color: #8C7F72;
+}
+
+.change-label {
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  color: #065F46;
+}
+
+.change-amount {
+  font-size: 1.3rem;
+  font-weight: 900;
+  color: #047857;
+  line-height: 1.1;
+}
+
+.change-amount.short {
+  color: #B91C1C;
+}
+
+/* Non-Cash Block */
+.non-cash-block {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.non-cash-block label {
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: #2D241E;
+}
+
+.ref-input-field {
+  width: 100%;
+  background: #FFFFFF;
+  border: 1.5px solid #D4973B;
+  border-radius: 10px;
+  padding: 8px 12px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  outline: none;
+}
+
+/* Checkout Button */
+.pos-complete-sale-btn {
+  background: linear-gradient(135deg, #E69526, #C77810);
+  border: none;
+  border-radius: 14px;
+  padding: 12px 16px;
+  color: #FFFFFF;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  box-shadow: 0 4px 12px rgba(230, 149, 38, 0.3);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.pos-complete-sale-btn span:first-child {
+  font-size: 1rem;
+  font-weight: 900;
+  letter-spacing: 0.3px;
+}
+
+.btn-sub-hint {
+  font-size: 0.72rem;
+  opacity: 0.85;
+  font-weight: 600;
+}
+
+.pos-complete-sale-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(230, 149, 38, 0.4);
+  background: linear-gradient(135deg, #F09E2E, #D68216);
+}
+
+.pos-complete-sale-btn:disabled {
+  background: #E5DFD7;
+  color: #9C8F84;
+  box-shadow: none;
+  cursor: not-allowed;
+}
+
+.btn-spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255,255,255,0.4);
+  border-top-color: #FFFFFF;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+  margin-right: 6px;
+}
+
+/* ============================================================================
+ * 3. OFFICIAL THERMAL RECEIPT MODAL
+ * ============================================================================ */
+.receipt-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(4px);
+  z-index: 999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.receipt-modal-content {
+  background: #FFFFFF;
+  border-radius: 18px;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.35);
+  max-width: 440px;
+  width: 100%;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.receipt-modal-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 12px 16px;
+  background: #2D241E;
+  color: #FFF;
+}
+
+.print-receipt-btn {
+  background: #D4973B;
+  color: #FFF;
+  border: none;
+  border-radius: 8px;
+  padding: 6px 14px;
+  font-size: 0.85rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.print-receipt-btn:hover {
+  background: #E69526;
+}
+
+.new-sale-btn {
+  background: #22C55E;
+  color: #FFF;
+  border: none;
+  border-radius: 8px;
+  padding: 6px 14px;
+  font-size: 0.85rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.new-sale-btn:hover {
+  background: #16A34A;
+}
+
+.close-receipt-btn {
+  background: rgba(255,255,255,0.2);
+  color: #FFF;
+  border: none;
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  cursor: pointer;
+}
+
+/* Thermal Paper Layout */
+.printable-receipt-paper {
+  padding: 24px 20px;
+  background: #FFFDF9;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 0.82rem;
+  color: #111111;
+  overflow-y: auto;
+  line-height: 1.3;
+}
+
+.receipt-header {
+  text-align: center;
+}
+
+.receipt-header h2 {
+  font-size: 1.4rem;
+  font-weight: 900;
+  letter-spacing: 2px;
+  margin: 0 0 2px 0;
+  color: #000;
+}
+
+.receipt-sub {
+  font-weight: 700;
+  margin: 0 0 4px 0;
+}
+
+.receipt-header p {
+  margin: 1px 0;
+  font-size: 0.75rem;
+}
+
+.receipt-divider {
+  margin: 6px 0;
+  letter-spacing: 2px;
+  overflow: hidden;
+  text-align: center;
+}
+
+.receipt-doc-title {
+  font-size: 0.95rem;
+  font-weight: 900;
+  margin: 6px 0;
+}
+
+.receipt-meta-grid {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+  gap: 2px;
+  font-size: 0.75rem;
+}
+
+.receipt-items-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 6px 0;
+}
+
+.receipt-items-table th {
+  font-size: 0.72rem;
+  border-bottom: 1px dashed #444;
+  padding: 3px 0;
+  text-align: left;
+}
+
+.receipt-items-table td {
+  padding: 3px 0;
+  font-size: 0.75rem;
+}
+
+.th-qty, .td-qty { width: 30px; text-align: center; }
+.th-desc, .td-desc { width: 50%; }
+.th-price, .td-price { text-align: right; width: 60px; }
+.th-amount, .td-amount { text-align: right; width: 70px; font-weight: 700; }
+
+.receipt-totals-table {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 4px 0;
+}
+
+.receipt-line {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.78rem;
+}
+
+.receipt-line.grand-total {
+  font-size: 0.95rem;
+  font-weight: 900;
+}
+
+.receipt-line.highlight {
+  font-weight: 800;
+}
+
+.receipt-line.small {
+  font-size: 0.7rem;
+  color: #444;
+}
+
+.receipt-footer {
+  text-align: center;
+  margin-top: 10px;
+}
+
+.barcode-simulation {
+  font-size: 1.6rem;
+  letter-spacing: 4px;
+  margin: 8px 0 2px;
+}
+
+.barcode-number {
+  font-size: 0.75rem;
+  margin: 0 0 6px 0;
+}
+
+.thank-you-msg {
+  font-weight: 900;
+  margin: 6px 0 4px 0;
+}
+
+.receipt-footnote {
+  font-size: 0.68rem;
+  color: #555;
+  margin: 1px 0;
+}
+
+/* ============================================================================
+ * 4. SHIFT DRAWER (TODAY'S SALES LOG)
+ * ============================================================================ */
+.shift-drawer-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(2px);
+  z-index: 900;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.shift-drawer-content {
+  background: #FFFFFF;
+  width: 420px;
+  max-width: 90vw;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: -10px 0 30px rgba(0, 0, 0, 0.2);
+  animation: slideInRight 0.25s ease-out;
+}
+
+@keyframes slideInRight {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+
+.shift-drawer-header {
+  padding: 20px;
+  border-bottom: 1px solid #ECE6DE;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.shift-drawer-header h2 {
+  margin: 0 0 4px 0;
+  font-size: 1.15rem;
+  color: #54331D;
+}
+
+.shift-drawer-header p {
+  margin: 0;
+  font-size: 0.8rem;
+  color: #8C7F72;
+}
+
+.close-drawer-btn {
+  background: #FAF8F5;
+  border: 1px solid #E5DFD7;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+.shift-kpi-cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  padding: 16px 20px;
+  background: #FAF8F5;
+  border-bottom: 1px solid #ECE6DE;
+}
+
+.kpi-card {
+  background: #FFFFFF;
+  border: 1px solid #ECE6DE;
+  border-radius: 12px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+}
+
+.kpi-card span {
+  font-size: 0.75rem;
+  color: #8C7F72;
+  font-weight: 700;
+}
+
+.kpi-card strong {
+  font-size: 1.15rem;
+  color: #54331D;
+  font-weight: 900;
+}
+
+.shift-orders-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.shift-empty-state {
+  text-align: center;
+  padding: 40px 10px;
+  color: #8C7F72;
+}
+
+.shift-order-card {
+  background: #FAF8F5;
+  border: 1px solid #ECE6DE;
+  border-radius: 12px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.shift-order-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.shift-order-top strong {
+  font-size: 0.9rem;
+  color: #54331D;
+}
+
+.shift-order-time {
+  display: block;
+  font-size: 0.72rem;
+  color: #8C7F72;
+}
+
+.shift-order-price {
+  font-size: 1rem;
+  font-weight: 900;
+  color: #22C55E;
+}
+
+.shift-order-items-summary {
+  margin: 0;
+  font-size: 0.78rem;
+  color: #6E645A;
+}
+
+.shift-order-bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top: 1px dashed #E5DFD7;
+  padding-top: 6px;
+}
+
+.shift-order-cash-info {
+  font-size: 0.72rem;
+  color: #8C7F72;
+}
+
+.reprint-btn {
+  background: #FFFFFF;
+  border: 1px solid #D4973B;
+  color: #54331D;
+  font-size: 0.75rem;
+  font-weight: 800;
+  padding: 4px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.reprint-btn:hover {
+  background: #D4973B;
+  color: #FFFFFF;
+}
+
+/* ============================================================================
+ * 5. PRINT STYLESHEET (@media print) FOR THERMAL RECEIPT
+ * ============================================================================ */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+
+  .printable-receipt-paper,
+  .printable-receipt-paper * {
+    visibility: visible;
+  }
+
+  .printable-receipt-paper {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 80mm !important;
+    padding: 0 !important;
+    margin: 0 auto !important;
+    background: transparent !important;
+    color: #000 !important;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+}
+
+/* Responsive Tweaks */
+@media (max-width: 1200px) {
+  .pos-workspace-grid {
+    grid-template-columns: 1fr 380px;
+  }
+}
+
+@media (max-width: 960px) {
+  .counter-pos-page {
+    height: auto;
+    max-height: none;
+  }
+
+  .pos-workspace-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .pos-register-panel {
+    order: -1;
+  }
+}

@@ -1,0 +1,262 @@
+.order-success{
+    min-height:80vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    padding:60px 20px;
+    background:#FFF8F0;
+}
+
+.success-card{
+    width:100%;
+    max-width:650px;
+    background:#fff;
+    padding:50px;
+    border-radius:20px;
+    text-align:center;
+    box-shadow:0 12px 30px rgba(0,0,0,.08);
+}
+
+.success-icon{
+    font-size:5rem;
+    margin-bottom:20px;
+}
+
+.success-card h1{
+    color:#8B4513;
+    margin-bottom:20px;
+}
+
+.success-card p.success-intro {
+    color: #666;
+    line-height: 1.8;
+    margin-bottom: 25px;
+    font-size: 1.05rem;
+}
+
+.fulfillment-badge-container {
+    margin-bottom: 25px;
+}
+
+.fulfillment-tag {
+    display: inline-block;
+    padding: 8px 18px;
+    border-radius: 25px;
+    font-size: 0.92rem;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+}
+
+.fulfillment-tag.pickup-tag {
+    background: #FEF3C7;
+    color: #B45309;
+    border: 1px solid #FDE68A;
+}
+
+.fulfillment-tag.delivery-tag {
+    background: #EFF6FF;
+    color: #1D4ED8;
+    border: 1px solid #BFDBFE;
+}
+
+.order-details {
+    background: #FAF6F0;
+    border: 1px solid #EADBCE;
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 30px;
+    text-align: left;
+}
+
+.detail-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px dashed #E5D5C5;
+    font-size: 0.98rem;
+}
+
+.detail-row:last-child {
+    border-bottom: none;
+}
+
+.detail-row span {
+    color: #7A695B;
+    font-weight: 500;
+}
+
+.detail-row strong {
+    color: #54331D;
+    font-weight: 700;
+}
+
+.detail-row.highlight-row {
+    background: #FFF;
+    padding: 12px 16px;
+    border-radius: 10px;
+    margin: 8px 0;
+    border: 1px solid #E8DFD7;
+}
+
+.time-highlight {
+    color: #059669 !important;
+    font-size: 1.15rem;
+    font-weight: 800;
+}
+
+.status-pill {
+    background: #FEF3C7;
+    color: #B45309;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 0.88rem;
+    font-weight: 700;
+}
+
+/* Scannable Digital Receipt QR Code Card */
+.qr-receipt-card {
+    background: #FFFFFF;
+    border: 2px dashed #D4A373;
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 30px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    box-shadow: 0 4px 15px rgba(107, 66, 38, 0.06);
+}
+
+.qr-badge {
+    background: #6B4226;
+    color: #FFF;
+    padding: 4px 14px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+}
+
+.qr-code-wrapper {
+    background: #FFF;
+    padding: 12px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    display: inline-block;
+}
+
+.qr-caption {
+    margin: 14px 0 0;
+    font-size: 0.9rem;
+    color: #6B5E54;
+    max-width: 440px;
+    line-height: 1.5;
+    font-weight: 500;
+}
+
+.success-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.continue-btn,
+.orders-btn,
+.print-receipt-btn {
+    padding: 14px 24px;
+    border-radius: 10px;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: 0.25s all ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.print-receipt-btn {
+    background: #FAF6F0;
+    border: 1.5px solid #8B4513;
+    color: #8B4513;
+}
+
+.print-receipt-btn:hover {
+    background: #8B4513;
+    color: #FFF;
+    transform: translateY(-2px);
+}
+
+.orders-btn {
+    background: #8B4513;
+    border: 1.5px solid #8B4513;
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(139, 69, 19, 0.25);
+}
+
+.orders-btn:hover {
+    background: #6f3610;
+    transform: translateY(-2px);
+}
+
+.continue-btn {
+    background: #F3F4F6;
+    border: 1.5px solid #E5E7EB;
+    color: #4B5563;
+}
+
+.continue-btn:hover {
+    background: #E5E7EB;
+    color: #1F2937;
+    transform: translateY(-2px);
+}
+
+@media (max-width: 768px) {
+    .success-card {
+        padding: 30px 20px;
+    }
+
+    .success-buttons {
+        flex-direction: column;
+    }
+
+    .continue-btn,
+    .orders-btn,
+    .print-receipt-btn {
+        width: 100%;
+    }
+
+    .detail-row {
+        flex-direction: column;
+        gap: 4px;
+        align-items: flex-start;
+    }
+
+    .detail-row strong {
+        text-align: left !important;
+        max-width: 100% !important;
+    }
+}
+
+@media print {
+    .success-buttons,
+    nav,
+    footer,
+    .back-btn {
+        display: none !important;
+    }
+
+    .order-success {
+        padding: 0;
+        background: #FFF;
+    }
+
+    .success-card {
+        box-shadow: none;
+        border: 1px solid #CCC;
+        padding: 20px;
+    }
+}
