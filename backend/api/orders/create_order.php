@@ -96,8 +96,26 @@ $discountAmount = isset($data['discount_amount']) ? (float)$data['discount_amoun
 $discountType = trim($data['discount_type'] ?? '');
 $cashTendered = isset($data['cash_tendered']) ? (float)$data['cash_tendered'] : null;
 $changeAmount = isset($data['change_amount']) ? (float)$data['change_amount'] : null;
-$cashierName = trim($data['cashier_name'] ?? '');
-$orderStatus = $isCounterPOS ? ($data['status'] ?? 'Completed') : 'Pending';
+$cashierName = trim($data['cashier_name'] ?? $data['cashier'] ?? '');
+
+// Check if items contain custom cake made-to-order or is a future scheduled event
+$needsBaking = $isScheduled;
+foreach ($formattedItems as $fItem) {
+    if (!empty($fItem['customization'])) {
+        $needsBaking = true;
+        break;
+    }
+}
+
+if ($isCounterPOS) {
+    $orderStatus = $data['status'] ?? 'Completed';
+} else if ($needsBaking) {
+    $orderStatus = 'Pending'; // Needs custom kitchen baking & decorating
+} else if (strcasecmp($fulfillmentType, 'Pickup') === 0) {
+    $orderStatus = 'Ready for Pickup'; // Standard in-stock catalog products are already baked and ready for counter pickup
+} else {
+    $orderStatus = 'For Delivery'; // Standard in-stock delivery order ready for rider dispatch
+}
 
 $total = max(0, $subtotal + $deliveryFee - $discountAmount);
 $orderId = 'BH-' . strtoupper(dechex(time())) . rand(10, 99);

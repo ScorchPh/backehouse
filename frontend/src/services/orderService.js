@@ -19,10 +19,14 @@ export const orderService = {
    * Place an order from checkout
    */
   async createOrder(orderPayload) {
-    return await apiRequest('/orders/create_order.php', {
+    const res = await apiRequest('/orders/create_order.php', {
       method: 'POST',
       body: orderPayload,
     });
+    if (res && res.success !== false) {
+      window.dispatchEvent(new CustomEvent('ordersUpdated', { detail: res }));
+    }
+    return res;
   },
 
   /**
@@ -52,7 +56,7 @@ export const orderService = {
    * Allowed statuses: 'Pending', 'Confirmed', 'Preparing', 'Ready for Pickup', 'For Delivery', 'Completed', 'Cancelled', 'Denied'
    */
   async updateOrderStatus(orderId, newStatus, reason = null) {
-    return await apiRequest('/orders/update_order_status.php', {
+    const res = await apiRequest('/orders/update_order_status.php', {
       method: 'POST',
       body: {
         id: orderId,
@@ -60,6 +64,10 @@ export const orderService = {
         reason: reason,
       },
     });
+    if (res && res.success !== false) {
+      window.dispatchEvent(new CustomEvent('ordersUpdated', { detail: { id: orderId, status: newStatus, reason } }));
+    }
+    return res;
   },
 
   /**

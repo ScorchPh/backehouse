@@ -42,6 +42,12 @@ function Orders() {
 
   useEffect(() => {
     fetchOrders();
+
+    const handleOrdersUpdate = () => {
+      fetchOrders();
+    };
+    window.addEventListener("ordersUpdated", handleOrdersUpdate);
+    return () => window.removeEventListener("ordersUpdated", handleOrdersUpdate);
   }, [statusFilter, searchTerm]);
 
   const isOrderScheduled = (o) => {

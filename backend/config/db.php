@@ -60,8 +60,10 @@ function initDataStore() {
 
 /**
  * Reads a JSON file data store
+ * @param string $tableName
+ * @return array
  */
-function readDataStore($tableName) {
+function readDataStore(string $tableName): array {
     initDataStore();
     $path = DATA_DIR . '/' . $tableName . '.json';
     if (!file_exists($path)) {
@@ -74,8 +76,11 @@ function readDataStore($tableName) {
 
 /**
  * Writes data into JSON file data store
+ * @param string $tableName
+ * @param mixed $data
+ * @return void
  */
-function writeDataStore($tableName, $data) {
+function writeDataStore(string $tableName, mixed $data): void {
     initDataStore();
     $path = DATA_DIR . '/' . $tableName . '.json';
     file_put_contents($path, json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
@@ -83,8 +88,9 @@ function writeDataStore($tableName, $data) {
 
 /**
  * Helper to read JSON request body sent by fetch()
+ * @return array
  */
-function getRequestBody() {
+function getRequestBody(): array {
     $rawInput = file_get_contents('php://input');
     $decoded = json_decode($rawInput, true);
     return is_array($decoded) ? $decoded : [];
@@ -92,8 +98,11 @@ function getRequestBody() {
 
 /**
  * Helper to send formatted JSON responses
+ * @param mixed $data
+ * @param int $statusCode
+ * @return void
  */
-function sendResponse($data, $statusCode = 200) {
+function sendResponse(mixed $data, int $statusCode = 200): void {
     http_response_code($statusCode);
     echo json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
     exit();

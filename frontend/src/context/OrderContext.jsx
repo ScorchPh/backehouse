@@ -41,7 +41,7 @@ export function OrderProvider({ children }) {
     }
   }, []);
 
-  // Fetch orders on initial load and when auth changes
+  // Fetch orders on initial load, auth changes, order updates, and periodic sync
   useEffect(() => {
     refreshOrders();
 
@@ -49,8 +49,23 @@ export function OrderProvider({ children }) {
       refreshOrders();
     };
 
+    const handleOrdersUpdate = () => {
+      refreshOrders();
+    };
+
     window.addEventListener("authChange", handleAuthChange);
-    return () => window.removeEventListener("authChange", handleAuthChange);
+    window.addEventListener("ordersUpdated", handleOrdersUpdate);
+
+    // Auto-refresh periodically (every 15s) for live order updates
+    const timer = setInterval(() => {
+      refreshOrders();
+    }, 15000);
+
+    return () => {
+      window.removeEventListener("authChange", handleAuthChange);
+      window.removeEventListener("ordersUpdated", handleOrdersUpdate);
+      clearInterval(timer);
+    };
   }, [refreshOrders]);
 
   /**

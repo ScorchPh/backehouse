@@ -55,9 +55,16 @@ function Queue() {
 
   useEffect(() => {
     fetchOrders();
+    const handleOrdersUpdate = () => {
+      fetchOrders();
+    };
+    window.addEventListener("ordersUpdated", handleOrdersUpdate);
     // Auto-refresh queue every 30 seconds for live kitchen operations
     const interval = setInterval(fetchOrders, 30000);
-    return () => clearInterval(interval);
+    return () => {
+      window.removeEventListener("ordersUpdated", handleOrdersUpdate);
+      clearInterval(interval);
+    };
   }, []);
 
   const isOrderScheduled = (o) => {
@@ -314,27 +321,34 @@ function Queue() {
 
                   {/* Rapid Status Changing Action Toolbar */}
                   <div className="queue-card-actions">
-                    <div className="rapid-status-buttons">
-                      {order.status === "Pending" && (
-                        <button
-                          type="button"
-                          className="action-btn confirm"
-                          onClick={() => handleStatusChange(order, "Confirmed")}
-                          disabled={updatingId === order.id}
-                        >
-                          🔵 Confirm Order
-                        </button>
-                      )}
-
+                      {/* Direct 1-Click Fast Actions for In-Stock Items + Optional Baking */}
                       {(order.status === "Pending" || order.status === "Confirmed") && (
-                        <button
-                          type="button"
-                          className="action-btn bake"
-                          onClick={() => handleStatusChange(order, "Preparing")}
-                          disabled={updatingId === order.id}
-                        >
-                          🟣 Start Baking
-                        </button>
+                        <>
+                          <button
+                            type="button"
+                            className="action-btn ready"
+                            style={{ background: isPickup ? "#D97706" : "#2563EB", color: "#FFFFFF" }}
+                            onClick={() =>
+                              handleStatusChange(
+                                order,
+                                isPickup ? "Ready for Pickup" : "For Delivery"
+                              )
+                            }
+                            disabled={updatingId === order.id}
+                          >
+                            {isPickup ? "🏪 Ready for Pickup" : "🚚 Dispatch Delivery"}
+                          </button>
+
+                          <button
+                            type="button"
+                            className="action-btn bake"
+                            onClick={() => handleStatusChange(order, "Preparing")}
+                            disabled={updatingId === order.id}
+                            title="Send to kitchen if custom baking is required"
+                          >
+                            🟣 Start Baking
+                          </button>
+                        </>
                       )}
 
                       {order.status === "Preparing" && (
@@ -360,10 +374,9 @@ function Queue() {
                           onClick={() => handleStatusChange(order, "Completed")}
                           disabled={updatingId === order.id}
                         >
-                          🟢 Mark as Completed
+                          {isPickup ? "🟢 Mark Picked Up" : "🟢 Mark Delivered"}
                         </button>
                       )}
-                    </div>
 
                     <div className="queue-secondary-actions">
                       <button

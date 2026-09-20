@@ -110,6 +110,48 @@
 
 .nav-label {
   font-size: 0.95rem;
+  flex: 1;
+}
+
+/* Sidebar Queue Indicator Badge */
+.bakesmart-nav-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 7px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  line-height: 1;
+  background: linear-gradient(135deg, #E69526, #C77810);
+  color: #FFFFFF;
+  box-shadow: 0 2px 6px rgba(230, 149, 38, 0.35);
+  margin-left: auto;
+  transition: all 0.2s ease;
+  animation: badge-pop-in 0.3s ease-out;
+}
+
+.bakesmart-nav-item.active .bakesmart-nav-badge {
+  background: #2A1D13;
+  color: #E69526;
+  box-shadow: 0 2px 6px rgba(42, 29, 19, 0.2);
+}
+
+.bakesmart-nav-item:hover .bakesmart-nav-badge {
+  transform: scale(1.08);
+}
+
+@keyframes badge-pop-in {
+  0% {
+    transform: scale(0.6);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
 
 /* Sidebar Footer */

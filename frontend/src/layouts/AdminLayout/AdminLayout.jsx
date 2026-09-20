@@ -14,12 +14,21 @@
 import { useState, useEffect } from "react";
 import { Link, Outlet, useNavigate, useLocation } from "react-router-dom";
 import { authService } from "../../services/authService";
+import { useOrders } from "../../context/OrderContext";
 import "./AdminLayout.css";
 
 function AdminLayout() {
   const navigate = useNavigate();
   const location = useLocation();
   const [currentUser, setCurrentUser] = useState(() => authService.getCurrentUser());
+  const { orders } = useOrders();
+
+  // Active queue count (Pending, Confirmed, Preparing, Ready for Pickup, For Delivery)
+  const activeQueueCount = (orders || []).filter((o) => {
+    if (!o || !o.status) return false;
+    const s = String(o.status).toLowerCase().trim();
+    return s !== "completed" && s !== "denied" && s !== "cancelled";
+  }).length;
 
   useEffect(() => {
     const handleAuthChange = () => {
@@ -83,6 +92,11 @@ function AdminLayout() {
           >
             <span className="nav-icon">📋</span>
             <span className="nav-label">Order Queues</span>
+            {activeQueueCount > 0 && (
+              <span className="bakesmart-nav-badge queue-badge" title={`${activeQueueCount} active orders in queue`}>
+                {activeQueueCount}
+              </span>
+            )}
           </Link>
 
           <Link

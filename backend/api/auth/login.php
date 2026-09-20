@@ -35,13 +35,10 @@ if ($pdo) {
         $stmt = $pdo->prepare("
             SELECT id, username, first_name, last_name, email, contact_number, password, role, avatar, created_at 
             FROM users 
-            WHERE LOWER(username) = :username OR LOWER(email) = :email 
+            WHERE LOWER(username) = :identifier OR LOWER(email) = :identifier 
             LIMIT 1
         ");
-        $stmt->execute([
-            'username' => $usernameOrEmail,
-            'email' => $usernameOrEmail
-        ]);
+        $stmt->execute(['identifier' => $usernameOrEmail]);
         $user = $stmt->fetch();
 
         if (!$user || !password_verify($password, $user['password'])) {
