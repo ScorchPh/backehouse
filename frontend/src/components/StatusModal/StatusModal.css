@@ -1,0 +1,224 @@
+/**
+ * ============================================================================
+ * BAKE HOUSE - Status Modal Stylesheet
+ * ============================================================================
+ */
+
+.status-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(35, 23, 15, 0.65);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999999;
+  padding: 16px;
+  box-sizing: border-box;
+}
+
+.status-modal-card {
+  background: #FFFFFF;
+  width: 440px;
+  max-width: 95vw;
+  border-radius: 20px;
+  box-shadow: 0 25px 60px rgba(35, 23, 15, 0.35);
+  padding: 30px 24px 24px;
+  text-align: center;
+  position: relative;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Card Borders based on status */
+.status-modal-card.type-error {
+  border: 2px solid #EF4444;
+}
+
+.status-modal-card.type-success {
+  border: 2px solid #10B981;
+}
+
+.status-modal-card.type-warning {
+  border: 2px solid #F59E0B;
+}
+
+.status-modal-card.type-info {
+  border: 2px solid #3B82F6;
+}
+
+/* Corner Close Button */
+button.status-modal-close {
+  position: absolute !important;
+  top: 14px !important;
+  right: 14px !important;
+  width: 32px !important;
+  height: 32px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: none !important;
+  background: #FAF5F0 !important;
+  color: #8C7F72 !important;
+  border-radius: 50% !important;
+  font-size: 15px !important;
+  font-weight: 700 !important;
+  cursor: pointer !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  transition: all 0.15s ease !important;
+}
+
+button.status-modal-close:hover {
+  background: #EEDBC8 !important;
+  color: #4A2810 !important;
+}
+
+/* Big Status Icon Badge */
+.status-modal-icon {
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+  flex-shrink: 0;
+}
+
+.status-modal-icon.icon-error {
+  background: #FEE2E2;
+  border: 2px solid #FCA5A5;
+  color: #DC2626;
+}
+
+.status-modal-icon.icon-success {
+  background: #D1FAE5;
+  border: 2px solid #86EFAC;
+  color: #059669;
+}
+
+.status-modal-icon.icon-warning {
+  background: #FEF3C7;
+  border: 2px solid #FCD34D;
+  color: #D97706;
+}
+
+.status-modal-icon.icon-info {
+  background: #DBEAFE;
+  border: 2px solid #93C5FD;
+  color: #2563EB;
+}
+
+/* Title */
+.status-modal-title {
+  margin: 0 0 10px;
+  font-size: 1.35rem;
+  font-weight: 800;
+  letter-spacing: -0.2px;
+}
+
+.type-error .status-modal-title {
+  color: #991B1B;
+}
+
+.type-success .status-modal-title {
+  color: #065F46;
+}
+
+.type-warning .status-modal-title {
+  color: #92400E;
+}
+
+.type-info .status-modal-title {
+  color: #1E40AF;
+}
+
+/* Message */
+.status-modal-message {
+  margin: 0 0 24px;
+  font-size: 0.98rem;
+  color: #554439;
+  line-height: 1.55;
+  padding: 0 8px;
+}
+
+/* Action Buttons Container */
+.status-modal-actions {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+  justify-content: center;
+}
+
+/* Primary Button */
+button.status-btn-primary {
+  flex: 1 !important;
+  margin: 0 !important;
+  padding: 13px 20px !important;
+  border: none !important;
+  border-radius: 12px !important;
+  font-size: 0.98rem !important;
+  font-weight: 800 !important;
+  color: #FFFFFF !important;
+  cursor: pointer !important;
+  transition: all 0.18s ease !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+  outline: none !important;
+}
+
+button.status-btn-primary.btn-error {
+  background: #DC2626 !important;
+}
+
+button.status-btn-primary.btn-error:hover {
+  background: #B91C1C !important;
+}
+
+button.status-btn-primary.btn-success {
+  background: #059669 !important;
+}
+
+button.status-btn-primary.btn-success:hover {
+  background: #047857 !important;
+}
+
+button.status-btn-primary.btn-warning {
+  background: #D97706 !important;
+}
+
+button.status-btn-primary.btn-warning:hover {
+  background: #B45309 !important;
+}
+
+button.status-btn-primary.btn-info {
+  background: #2563EB !important;
+}
+
+button.status-btn-primary.btn-info:hover {
+  background: #1D4ED8 !important;
+}
+
+/* Secondary Button */
+button.status-btn-secondary {
+  flex: 1 !important;
+  margin: 0 !important;
+  padding: 13px 20px !important;
+  background: #FAF5F0 !important;
+  border: 1.5px solid #D8CFC5 !important;
+  border-radius: 12px !important;
+  color: #6B5E54 !important;
+  font-size: 0.98rem !important;
+  font-weight: 700 !important;
+  cursor: pointer !important;
+  transition: all 0.18s ease !important;
+  outline: none !important;
+}
+
+button.status-btn-secondary:hover {
+  background: #EDE2D7 !important;
+  color: #3D2B1F !important;
+}

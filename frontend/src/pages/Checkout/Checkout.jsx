@@ -21,6 +21,7 @@ import { authService } from "../../services/authService";
 import { cakeChatService } from "../../services/cakeChatService";
 import { useNavigate, Link } from "react-router-dom";
 import DeliveryMapPicker from "../../components/DeliveryMapPicker/DeliveryMapPicker";
+import StatusModal from "../../components/StatusModal/StatusModal";
 
 function Checkout() {
   const { cartItems, clearCart } = useCart();
@@ -56,6 +57,35 @@ function Checkout() {
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
+  // Status Modal (Clean, high-visibility dialog for errors and success)
+  const [modalState, setModalState] = useState({
+    isOpen: false,
+    type: "error", // 'error' | 'success' | 'warning' | 'info'
+    title: "",
+    message: "",
+    primaryText: "Got It",
+    secondaryText: null,
+    onPrimary: null,
+    onSecondary: null,
+  });
+
+  const showModal = (config) => {
+    setModalState({
+      isOpen: true,
+      type: config.type || "error",
+      title: config.title || "",
+      message: config.message || "",
+      primaryText: config.primaryText || "Got It",
+      secondaryText: config.secondaryText || null,
+      onPrimary: config.onPrimary || null,
+      onSecondary: config.onSecondary || null,
+    });
+  };
+
+  const closeModal = () => {
+    setModalState((prev) => ({ ...prev, isOpen: false }));
+  };
+
   const subtotal = cartItems.reduce(
     (total, item) => total + item.price * item.quantity,
     0
@@ -70,17 +100,64 @@ function Checkout() {
     setErrorMessage("");
 
     if (cartItems.length === 0) {
-      setErrorMessage("Your cart is empty. Add products from the menu first.");
+      const msg = "Your cart is empty. Add products from the menu first.";
+      setErrorMessage(msg);
+      showModal({
+        type: "warning",
+        title: "Your Cart is Empty",
+        message: "You don't have any bakery treats in your cart yet. Please select items from our menu first.",
+        primaryText: "Browse Menu",
+        onPrimary: () => {
+          closeModal();
+          navigate("/menu");
+        },
+      });
       return;
     }
 
     if (!fullName || !contactNumber) {
-      setErrorMessage("Please enter your full name and contact number.");
+      const msg = "Please enter your full name and contact number.";
+      setErrorMessage(msg);
+      showModal({
+        type: "error",
+        title: "Customer Info Required",
+        message: "Please enter your full name and contact number so our bakery staff can reach you about your order.",
+        primaryText: "Complete Contact Info",
+        onPrimary: () => {
+          closeModal();
+          setTimeout(() => {
+            const el = !fullName
+              ? document.getElementById("checkoutFullName")
+              : document.getElementById("checkoutContact");
+            if (el) {
+              el.scrollIntoView({ behavior: "smooth", block: "center" });
+              el.focus();
+            }
+          }, 100);
+        },
+      });
       return;
     }
 
     if (fulfillmentType === "Delivery" && (!street || !barangay || !city)) {
-      setErrorMessage("Please complete your delivery address fields.");
+      const msg = "Please complete your delivery address fields.";
+      setErrorMessage(msg);
+      showModal({
+        type: "error",
+        title: "Delivery Address Incomplete",
+        message: "Please enter your complete delivery address (House No. / Street, Barangay, and City) so our delivery driver can find your location.",
+        primaryText: "Complete Address",
+        onPrimary: () => {
+          closeModal();
+          setTimeout(() => {
+            const el = document.getElementById("checkoutStreet");
+            if (el) {
+              el.scrollIntoView({ behavior: "smooth", block: "center" });
+              el.focus();
+            }
+          }, 100);
+        },
+      });
       return;
     }
 
@@ -158,12 +235,30 @@ function Checkout() {
           }).catch((err) => console.warn("Auto cake chat notification note:", err));
         }
 
-        // Successful checkout: update order history, empty cart, and navigate to confirmation
+        // Successful checkout: show celebratory status modal
         addOrder(res.order);
         clearCart();
-        navigate("/order-success", { state: { order: res.order } });
+
+        showModal({
+          type: "success",
+          title: "Order Placed Successfully! 🎉",
+          message: `Thank you, ${fullName}! Your order #${res.order.id} has been received by Bake House. Our bakers are preparing your order!`,
+          primaryText: "View Order Receipt",
+          onPrimary: () => {
+            closeModal();
+            navigate("/order-success", { state: { order: res.order } });
+          },
+        });
       } else {
-        setErrorMessage(res.message || "Failed to place order. Please try again.");
+        const errorMsg = res.message || "Failed to place order. Please try again.";
+        setErrorMessage(errorMsg);
+        showModal({
+          type: "error",
+          title: "Unable to Place Order",
+          message: errorMsg,
+          primaryText: "Review & Try Again",
+          onPrimary: closeModal,
+        });
       }
     } catch (err) {
       /**
@@ -172,15 +267,20 @@ function Checkout() {
        * ======================================================================
        * If another customer completed checkout first and depleted available stock,
        * the backend rejects this order with HTTP 400 and an explanatory error message.
-       * We display this message directly to the customer so they can adjust their cart.
+       * We display this message directly to the customer in a modal dialog.
        * ======================================================================
        */
       console.warn("Order placement rejected:", err);
-      setErrorMessage(
-        err.message || "An unexpected error occurred while placing your order. Please try again."
-      );
-      // Scroll to top so the error banner is immediately visible
-      window.scrollTo({ top: 0, behavior: "smooth" });
+      const errorMsg =
+        err.message || "An unexpected error occurred while placing your order. Please try again.";
+      setErrorMessage(errorMsg);
+      showModal({
+        type: "error",
+        title: "Order Notice",
+        message: errorMsg,
+        primaryText: "Review Order",
+        onPrimary: closeModal,
+      });
     } finally {
       setLoading(false);
     }
@@ -252,6 +352,7 @@ function Checkout() {
       <section className="checkout-section">
         <h2>Customer Information</h2>
         <input
+          id="checkoutFullName"
           type="text"
           placeholder="Full Name *"
           value={fullName}
@@ -260,6 +361,7 @@ function Checkout() {
         />
 
         <input
+          id="checkoutContact"
           type="text"
           placeholder="Contact Number (+63 ...) *"
           value={contactNumber}
@@ -318,6 +420,7 @@ function Checkout() {
               House No. / Street / Subdivision / Unit *
             </label>
             <input
+              id="checkoutStreet"
               type="text"
               placeholder="e.g. Blk 4 Lot 12 Villa Teresa Subdivision, or 123 Rizal St."
               value={street}
@@ -332,6 +435,7 @@ function Checkout() {
                 Barangay *
               </label>
               <input
+                id="checkoutBarangay"
                 type="text"
                 placeholder="e.g. Poblacion, Gabi, Bangbang"
                 value={barangay}
@@ -344,6 +448,7 @@ function Checkout() {
                 City / Municipality *
               </label>
               <input
+                id="checkoutCity"
                 type="text"
                 placeholder="Cordova"
                 value={city}
@@ -489,6 +594,19 @@ function Checkout() {
       >
         {loading ? "Processing Order..." : fulfillmentType === "Pickup" ? "Place Pickup Order" : "Place Delivery Order"}
       </button>
+
+      {/* High-visibility Status Alert Dialog for Error and Success */}
+      <StatusModal
+        isOpen={modalState.isOpen}
+        type={modalState.type}
+        title={modalState.title}
+        message={modalState.message}
+        primaryText={modalState.primaryText}
+        secondaryText={modalState.secondaryText}
+        onPrimary={modalState.onPrimary}
+        onSecondary={modalState.onSecondary}
+        onClose={closeModal}
+      />
     </div>
   );
 }
