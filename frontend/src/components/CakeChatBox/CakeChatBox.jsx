@@ -5,18 +5,20 @@
  * Allows customers and bakers/admins to consult in real-time regarding custom
  * cake requests, decorations, tiers, delivery times, and flavors.
  * Features:
+ * - Only visible to authenticated customers (hidden for guests & admin/staff)
+ * - Complies strictly with React Rules of Hooks (unconditional hook execution)
  * - Automatically displays the customer's purchased custom cake order specs
  * - Real-time polling with baker online indicator
- * - Quick prompt suggestions for post-purchase clarifications
  * ============================================================================
  */
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { cakeChatService } from "../../services/cakeChatService";
 import { authService } from "../../services/authService";
 import "./CakeChatBox.css";
 
 function CakeChatBox() {
+  // 1. All State Hooks (Unconditional)
   const [currentUser, setCurrentUser] = useState(() => authService.getCurrentUser());
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([]);
@@ -25,7 +27,22 @@ function CakeChatBox() {
   const [unreadCount, setUnreadCount] = useState(0);
   const messagesEndRef = useRef(null);
 
-  // Listen for login / logout state changes in real time
+  // 2. Persistent session identifier per customer account
+  const sessionId = currentUser?.id
+    ? `session_user_${currentUser.id}`
+    : "session_guest";
+
+  // 3. Track purchased custom cake details
+  const [purchasedCake, setPurchasedCake] = useState(() => {
+    try {
+      const saved = localStorage.getItem("bh_last_purchased_cake");
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
+  });
+
+  // 4. Listen for login / logout state changes
   useEffect(() => {
     const handleAuthChange = () => {
       const user = authService.getCurrentUser();
@@ -38,22 +55,7 @@ function CakeChatBox() {
     return () => window.removeEventListener("authChange", handleAuthChange);
   }, []);
 
-  // Persistent session identifier per customer account
-  const sessionId = currentUser?.id
-    ? `session_user_${currentUser.id}`
-    : (localStorage.getItem("bh_cake_chat_session") || "session_guest");
-
-  // Track purchased custom cake details
-  const [purchasedCake, setPurchasedCake] = useState(() => {
-    try {
-      const saved = localStorage.getItem("bh_last_purchased_cake");
-      return saved ? JSON.parse(saved) : null;
-    } catch {
-      return null;
-    }
-  });
-
-  // Listen for external open commands (e.g. from OrderSuccess page or buttons)
+  // 5. Listen for external open commands
   useEffect(() => {
     const handleOpenChat = () => {
       if (authService.getCurrentUser()) {
@@ -83,17 +85,9 @@ function CakeChatBox() {
     };
   }, []);
 
-  // If customer is not logged in or has no account, DO NOT display or open the chat box
-  if (!currentUser) {
-    return null;
-  }
-
-  const customerName = currentUser.first_name
-    ? `${currentUser.first_name} ${currentUser.last_name || ''}`.trim()
-    : (currentUser.username || "Customer");
-
-  // Fetch messages from backend
-  const fetchMessages = async () => {
+  // 6. Fetch messages handler
+  const fetchMessages = useCallback(async () => {
+    if (!currentUser || currentUser.role === "admin" || currentUser.role === "staff") return;
     try {
       const res = await cakeChatService.getMessages(sessionId);
       if (res && res.success && Array.isArray(res.messages)) {
@@ -102,16 +96,19 @@ function CakeChatBox() {
     } catch (err) {
       console.warn("Could not poll cake chat messages:", err);
     }
-  };
+  }, [currentUser, sessionId]);
 
-  // Initial load and periodic polling every 4 seconds
+  // 7. Initial load and periodic polling every 4 seconds (Hooks ALWAYS called)
   useEffect(() => {
+    if (!currentUser || currentUser.role === "admin" || currentUser.role === "staff") {
+      return;
+    }
     fetchMessages();
     const interval = setInterval(fetchMessages, 4000);
     return () => clearInterval(interval);
-  }, [sessionId]);
+  }, [currentUser, fetchMessages]);
 
-  // Scroll to bottom when messages update
+  // 8. Scroll to bottom when messages update (Hook ALWAYS called)
   useEffect(() => {
     if (isOpen) {
       messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -124,15 +121,18 @@ function CakeChatBox() {
     const trimmed = inputText.trim();
     if (!trimmed || sending) return;
 
+    const senderName = currentUser?.first_name
+      ? `${currentUser.first_name} ${currentUser.last_name || ''}`.trim()
+      : (currentUser?.username || "Customer");
+
     try {
       setSending(true);
       setInputText("");
 
-      // Optimistic message update
       const tempMsg = {
         id: Date.now(),
         session_id: sessionId,
-        sender_name: customerName,
+        sender_name: senderName,
         sender_role: "customer",
         message: trimmed,
         created_at: new Date().toISOString()
@@ -141,7 +141,7 @@ function CakeChatBox() {
 
       await cakeChatService.sendMessage({
         sessionId,
-        senderName: customerName,
+        senderName,
         senderRole: "customer",
         message: trimmed,
         userId: currentUser?.id || null
@@ -158,6 +158,18 @@ function CakeChatBox() {
   const handleQuickPrompt = (promptText) => {
     setInputText(promptText);
   };
+
+  // ==========================================================================
+  // CONDITIONAL RENDER: Placed at the very end AFTER all hooks have executed
+  // ==========================================================================
+  // If not logged in, or if logged in as Admin/Staff, do not render customer chat
+  if (!currentUser || currentUser.role === "admin" || currentUser.role === "staff") {
+    return null;
+  }
+
+  const customerName = currentUser.first_name
+    ? `${currentUser.first_name} ${currentUser.last_name || ''}`.trim()
+    : currentUser.username;
 
   return (
     <div className="cake-chat-wrapper">
