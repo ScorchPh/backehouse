@@ -17,6 +17,7 @@ import { authService } from "../../services/authService";
 import "./CakeChatBox.css";
 
 function CakeChatBox() {
+  const [currentUser, setCurrentUser] = useState(() => authService.getCurrentUser());
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([]);
   const [inputText, setInputText] = useState("");
@@ -24,17 +25,23 @@ function CakeChatBox() {
   const [unreadCount, setUnreadCount] = useState(0);
   const messagesEndRef = useRef(null);
 
-  const currentUser = authService.getCurrentUser();
+  // Listen for login / logout state changes in real time
+  useEffect(() => {
+    const handleAuthChange = () => {
+      const user = authService.getCurrentUser();
+      setCurrentUser(user);
+      if (!user) {
+        setIsOpen(false);
+      }
+    };
+    window.addEventListener("authChange", handleAuthChange);
+    return () => window.removeEventListener("authChange", handleAuthChange);
+  }, []);
 
-  // Persistent session identifier per customer
-  const [sessionId] = useState(() => {
-    let stored = localStorage.getItem("bh_cake_chat_session");
-    if (!stored) {
-      stored = "session_" + Math.random().toString(36).substring(2, 9) + "_" + Date.now();
-      localStorage.setItem("bh_cake_chat_session", stored);
-    }
-    return stored;
-  });
+  // Persistent session identifier per customer account
+  const sessionId = currentUser?.id
+    ? `session_user_${currentUser.id}`
+    : (localStorage.getItem("bh_cake_chat_session") || "session_guest");
 
   // Track purchased custom cake details
   const [purchasedCake, setPurchasedCake] = useState(() => {
@@ -48,12 +55,18 @@ function CakeChatBox() {
 
   // Listen for external open commands (e.g. from OrderSuccess page or buttons)
   useEffect(() => {
-    const handleOpenChat = () => setIsOpen(true);
+    const handleOpenChat = () => {
+      if (authService.getCurrentUser()) {
+        setIsOpen(true);
+      }
+    };
     const handleCakePurchased = () => {
       try {
         const saved = localStorage.getItem("bh_last_purchased_cake");
         setPurchasedCake(saved ? JSON.parse(saved) : null);
-        setIsOpen(true); // Automatically open chat to confirm receipt of custom cake order
+        if (authService.getCurrentUser()) {
+          setIsOpen(true);
+        }
       } catch {
         setPurchasedCake(null);
       }
@@ -70,9 +83,14 @@ function CakeChatBox() {
     };
   }, []);
 
-  const customerName = currentUser
-    ? (currentUser.first_name ? `${currentUser.first_name} ${currentUser.last_name || ''}`.trim() : currentUser.username)
-    : (purchasedCake?.customerName || "Customer");
+  // If customer is not logged in or has no account, DO NOT display or open the chat box
+  if (!currentUser) {
+    return null;
+  }
+
+  const customerName = currentUser.first_name
+    ? `${currentUser.first_name} ${currentUser.last_name || ''}`.trim()
+    : (currentUser.username || "Customer");
 
   // Fetch messages from backend
   const fetchMessages = async () => {
