@@ -185,3 +185,23 @@
     opacity: 0.8;
     box-shadow: none;
 }
+
+@media (max-width: 500px) {
+    .modal-content {
+        padding: 20px 16px;
+        border-radius: 16px;
+    }
+
+    .modal-image {
+        height: 190px;
+    }
+
+    .modal-content h2 {
+        font-size: 1.35rem;
+    }
+
+    .modal-details {
+        padding: 10px 12px;
+        font-size: 0.85rem;
+    }
+}

@@ -1,17 +1,24 @@
+/**
+ * ============================================================================
+ * BAKE HOUSE - Featured Products Stylesheet (Fully Responsive)
+ * ============================================================================
+ */
+
 .featured {
-  padding: 80px 10%;
+  padding: clamp(50px, 7vw, 90px) clamp(16px, 4vw, 50px);
   background: #fff;
 }
 
 .featured-title {
   text-align: center;
-  margin-bottom: 50px;
+  margin-bottom: clamp(30px, 5vw, 50px);
 }
 
 .featured-title h2 {
-  font-size: 40px;
+  font-size: clamp(2rem, 4.5vw, 2.6rem);
   color: #5c4033;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
+  font-weight: 800;
 }
 
 .featured-title p {
@@ -19,70 +26,103 @@
   max-width: 650px;
   margin: auto;
   line-height: 1.7;
+  font-size: clamp(0.95rem, 1.8vw, 1.05rem);
 }
 
 .product-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 30px;
+  gap: clamp(18px, 3vw, 30px);
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
 .product-card {
   background: white;
   border-radius: 20px;
   overflow: hidden;
-  box-shadow: 0 10px 30px rgba(0,0,0,.08);
-  transition: .3s;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, .08);
+  transition: all .3s ease;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #F3EAE0;
 }
 
 .product-card:hover {
-  transform: translateY(-10px);
-  box-shadow: 0 18px 40px rgba(0,0,0,.15);
+  transform: translateY(-8px);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, .14);
 }
 
 .product-card img {
   width: 100%;
-  height: 250px;
+  height: 240px;
   object-fit: cover;
+  background: #FAF6F0;
 }
 
 .product-info {
-  padding: 25px;
+  padding: clamp(18px, 3vw, 25px);
+  display: flex;
+  flex-direction: column;
+  flex: 1;
 }
 
 .product-info h3 {
   color: #5c4033;
   margin-bottom: 10px;
+  font-size: 1.25rem;
+  font-weight: 700;
 }
 
 .product-info p {
   color: #666;
   line-height: 1.6;
   margin-bottom: 20px;
+  font-size: 0.92rem;
+  flex: 1;
 }
 
 .product-bottom {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 12px;
+  margin-top: auto;
 }
 
 .product-bottom span {
-  font-size: 22px;
+  font-size: 1.35rem;
   color: #d2691e;
   font-weight: bold;
 }
 
 .product-bottom button {
   border: none;
-  padding: 10px 18px;
+  padding: 10px 20px;
   background: #d2691e;
   color: white;
   border-radius: 30px;
   cursor: pointer;
+  font-weight: 600;
+  font-size: 0.95rem;
   transition: .3s;
 }
 
 .product-bottom button:hover {
   background: #b45309;
+  transform: translateY(-1px);
+}
+
+/* ==========================================================================
+   RESPONSIVE BREAKPOINTS
+   ========================================================================== */
+@media (max-width: 600px) {
+  .product-grid {
+    grid-template-columns: 1fr;
+    max-width: 380px;
+  }
+
+  .product-card img {
+    height: 210px;
+  }
 }

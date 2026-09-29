@@ -1,17 +1,24 @@
+/**
+ * ============================================================================
+ * BAKE HOUSE - Location Stylesheet (Fully Responsive)
+ * ============================================================================
+ */
+
 .location {
-  padding: 80px 10%;
-  background: #fdf8f3;
+  padding: clamp(50px, 7vw, 90px) clamp(16px, 4vw, 50px);
+  background: #FFF8F0;
 }
 
 .location-header {
   text-align: center;
-  margin-bottom: 50px;
+  margin-bottom: clamp(30px, 5vw, 50px);
 }
 
 .location-header h2 {
-  font-size: 2.5rem;
+  font-size: clamp(2rem, 4.5vw, 2.6rem);
   color: #5c4033;
   margin-bottom: 15px;
+  font-weight: 800;
 }
 
 .location-header p {
@@ -19,31 +26,38 @@
   max-width: 650px;
   margin: auto;
   line-height: 1.8;
+  font-size: clamp(0.95rem, 1.8vw, 1.05rem);
 }
 
 .location-container {
+  max-width: 1200px;
+  margin: 0 auto;
   display: grid;
   grid-template-columns: 1fr 1.5fr;
-  gap: 40px;
+  gap: clamp(20px, 4vw, 40px);
   align-items: center;
 }
 
 .location-info {
   background: white;
-  padding: 35px;
+  padding: clamp(25px, 4vw, 35px);
   border-radius: 18px;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+  border: 1px solid #F3EAE0;
 }
 
 .location-info h3 {
   color: #5c4033;
-  margin-bottom: 20px;
+  margin-bottom: 18px;
+  font-size: 1.3rem;
+  font-weight: 700;
 }
 
 .location-info p {
   color: #555;
   line-height: 1.8;
   margin-bottom: 15px;
+  font-size: 0.95rem;
 }
 
 .location-map iframe {
@@ -52,14 +66,24 @@
   border: none;
   border-radius: 18px;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+  display: block;
 }
 
-@media (max-width: 768px) {
+/* ==========================================================================
+   RESPONSIVE BREAKPOINTS
+   ========================================================================== */
+@media (max-width: 850px) {
   .location-container {
     grid-template-columns: 1fr;
   }
 
   .location-map iframe {
-    height: 300px;
+    height: 320px;
+  }
+}
+
+@media (max-width: 480px) {
+  .location-map iframe {
+    height: 250px;
   }
 }

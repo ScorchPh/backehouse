@@ -20,7 +20,7 @@ function Home() {
             cookies baked fresh every day with premium ingredients.
           </p>
 
-          <button>Shop Now</button>
+          <Link to="/menu" className="hero-btn">Shop Now</Link>
         </div>
 
         <div className="hero-image">

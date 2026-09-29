@@ -403,9 +403,30 @@
         grid-template-columns: 1fr;
     }
     .account-left {
-        padding: 30px;
+        padding: 35px 24px;
     }
     .account-right {
-        padding: 30px;
+        padding: 35px 24px;
+    }
+}
+
+@media(max-width: 500px) {
+    .account-page {
+        padding: 30px 12px;
+    }
+    .account-container {
+        border-radius: 16px;
+    }
+    .account-left {
+        padding: 24px 16px;
+    }
+    .account-left h1 {
+        font-size: 1.85rem;
+    }
+    .account-left img {
+        max-height: 180px;
+    }
+    .account-right {
+        padding: 24px 16px;
     }
 }

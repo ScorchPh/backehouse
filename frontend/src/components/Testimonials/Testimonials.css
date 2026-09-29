@@ -1,17 +1,24 @@
+/**
+ * ============================================================================
+ * BAKE HOUSE - Testimonials Stylesheet (Fully Responsive)
+ * ============================================================================
+ */
+
 .testimonials {
-  padding: 80px 10%;
+  padding: clamp(50px, 7vw, 90px) clamp(16px, 4vw, 50px);
   background: #fdf8f3;
 }
 
 .testimonials-header {
   text-align: center;
-  margin-bottom: 50px;
+  margin-bottom: clamp(30px, 5vw, 50px);
 }
 
 .testimonials-header h2 {
-  font-size: 2.5rem;
+  font-size: clamp(2rem, 4.5vw, 2.6rem);
   color: #5c4033;
   margin-bottom: 15px;
+  font-weight: 800;
 }
 
 .testimonials-header p {
@@ -19,42 +26,58 @@
   margin: auto;
   color: #666;
   line-height: 1.8;
+  font-size: clamp(0.95rem, 1.8vw, 1.05rem);
 }
 
 .testimonial-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 30px;
+  gap: clamp(18px, 3vw, 30px);
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
 .testimonial-card {
   background: white;
-  padding: 35px 30px;
+  padding: clamp(25px, 4vw, 35px) clamp(20px, 3vw, 30px);
   border-radius: 18px;
   text-align: center;
   box-shadow: 0 10px 25px rgba(0,0,0,.08);
   transition: .3s;
+  border: 1px solid #F3EAE0;
 }
 
 .testimonial-card:hover {
-  transform: translateY(-8px);
+  transform: translateY(-6px);
   box-shadow: 0 18px 35px rgba(0,0,0,.12);
 }
 
 .stars {
   color: #f4b400;
   font-size: 1.3rem;
-  margin-bottom: 20px;
+  margin-bottom: 18px;
 }
 
 .review {
   color: #555;
   line-height: 1.8;
   font-style: italic;
-  margin-bottom: 25px;
+  margin-bottom: 22px;
+  font-size: 0.95rem;
 }
 
 .testimonial-card h4 {
   color: #5c4033;
   font-size: 1.1rem;
+  font-weight: 700;
+}
+
+/* ==========================================================================
+   RESPONSIVE BREAKPOINTS
+   ========================================================================== */
+@media (max-width: 600px) {
+  .testimonial-grid {
+    grid-template-columns: 1fr;
+    max-width: 380px;
+  }
 }

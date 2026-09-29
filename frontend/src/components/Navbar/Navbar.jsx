@@ -19,6 +19,7 @@ function Navbar() {
   const { cartItems } = useCart();
   const navigate = useNavigate();
   const [currentUser, setCurrentUser] = useState(() => authService.getCurrentUser());
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     const handleAuthChange = () => {
@@ -29,8 +30,22 @@ function Navbar() {
     return () => window.removeEventListener("authChange", handleAuthChange);
   }, []);
 
+  // Close mobile drawer on Escape key press
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape") setIsMobileMenuOpen(false);
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
+  const closeMenu = () => {
+    setIsMobileMenuOpen(false);
+  };
+
   const handleLogout = () => {
     authService.logout();
+    closeMenu();
     navigate("/account");
   };
 
@@ -43,49 +58,67 @@ function Navbar() {
   return (
     <nav className="navbar">
       <div className="logo">
-        <Link to="/">BAKE HOUSE</Link>
+        <Link to="/" onClick={closeMenu}>BAKE HOUSE</Link>
       </div>
 
-      <ul className="nav-links">
+      {/* Mobile Menu Hamburger Button */}
+      <button
+        type="button"
+        className={`nav-toggle ${isMobileMenuOpen ? "open" : ""}`}
+        onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+        aria-label="Toggle navigation menu"
+        aria-expanded={isMobileMenuOpen}
+      >
+        <span className="hamburger-line"></span>
+        <span className="hamburger-line"></span>
+        <span className="hamburger-line"></span>
+      </button>
+
+      {/* Backdrop overlay for mobile menu */}
+      {isMobileMenuOpen && (
+        <div className="nav-backdrop" onClick={closeMenu} />
+      )}
+
+      <ul className={`nav-links ${isMobileMenuOpen ? "open" : ""}`}>
         <li>
-          <NavLink to="/" end className={({ isActive }) => (isActive ? "nav-item active" : "nav-item")}>
+          <NavLink to="/" end onClick={closeMenu} className={({ isActive }) => (isActive ? "nav-item active" : "nav-item")}>
             Home
           </NavLink>
         </li>
 
         <li>
-          <NavLink to="/about" className={({ isActive }) => (isActive ? "nav-item active" : "nav-item")}>
+          <NavLink to="/about" onClick={closeMenu} className={({ isActive }) => (isActive ? "nav-item active" : "nav-item")}>
             About
           </NavLink>
         </li>
 
         <li>
-          <NavLink to="/menu" className={({ isActive }) => (isActive ? "nav-item active" : "nav-item")}>
+          <NavLink to="/menu" onClick={closeMenu} className={({ isActive }) => (isActive ? "nav-item active" : "nav-item")}>
             Menu
           </NavLink>
         </li>
 
         <li>
-          <NavLink to="/personalize" className={({ isActive }) => (isActive ? "nav-item active" : "nav-item")}>
+          <NavLink to="/personalize" onClick={closeMenu} className={({ isActive }) => (isActive ? "nav-item active" : "nav-item")}>
             Personalize
           </NavLink>
         </li>
 
         <li>
-          <NavLink to="/contact" className={({ isActive }) => (isActive ? "nav-item active" : "nav-item")}>
+          <NavLink to="/contact" onClick={closeMenu} className={({ isActive }) => (isActive ? "nav-item active" : "nav-item")}>
             Contact
           </NavLink>
         </li>
 
         <li>
-          <NavLink to="/cart" className={({ isActive }) => (isActive ? "nav-item active" : "nav-item")}>
+          <NavLink to="/cart" onClick={closeMenu} className={({ isActive }) => (isActive ? "nav-item active" : "nav-item")}>
             Cart ({totalItems})
           </NavLink>
         </li>
 
         {currentUser && currentUser.role === 'customer' && (
           <li>
-            <NavLink to="/my-orders" className={({ isActive }) => (isActive ? "nav-item active" : "nav-item")}>
+            <NavLink to="/my-orders" onClick={closeMenu} className={({ isActive }) => (isActive ? "nav-item active" : "nav-item")}>
               My Orders
             </NavLink>
           </li>
@@ -93,7 +126,7 @@ function Navbar() {
 
         {currentUser && (currentUser.role === 'admin' || currentUser.role === 'staff') && (
           <li>
-            <Link to="/admin" className="nav-role-badge">
+            <Link to="/admin" onClick={closeMenu} className="nav-role-badge">
               {currentUser.role === 'admin' ? '👑 Admin Panel' : '👨‍🍳 Staff Panel'}
             </Link>
           </li>
@@ -102,7 +135,7 @@ function Navbar() {
         <li>
           {currentUser ? (
             <div className="user-nav-box">
-              <NavLink to="/account" className={({ isActive }) => (isActive ? "user-greeting active" : "user-greeting")}>
+              <NavLink to="/account" onClick={closeMenu} className={({ isActive }) => (isActive ? "user-greeting active" : "user-greeting")}>
                 👤 {currentUser.first_name || currentUser.username}
                 <span className={`role-pill ${currentUser.role}`}>{currentUser.role}</span>
               </NavLink>
@@ -111,7 +144,7 @@ function Navbar() {
               </button>
             </div>
           ) : (
-            <NavLink to="/account" className={({ isActive }) => (isActive ? "nav-item active" : "nav-item")}>
+            <NavLink to="/account" onClick={closeMenu} className={({ isActive }) => (isActive ? "nav-item active" : "nav-item")}>
               Account
             </NavLink>
           )}

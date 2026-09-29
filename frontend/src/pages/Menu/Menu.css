@@ -1,6 +1,6 @@
-/* ===========================
-   MENU PAGE
-=========================== */
+/* ============================================================================
+   BAKE HOUSE - Menu Stylesheet (Fully Responsive)
+   ============================================================================ */
 
 .menu {
     min-height: 100vh;
@@ -13,20 +13,20 @@
 
 .menu-hero {
     text-align: center;
-    padding: 80px 20px 40px;
+    padding: clamp(40px, 6vw, 80px) 20px clamp(25px, 4vw, 40px);
     max-width: 900px;
     margin: auto;
 }
 
 .menu-hero h1 {
-    font-size: 3.2rem;
+    font-size: clamp(2.2rem, 5vw, 3.4rem);
     color: #6B4226;
     margin-bottom: 16px;
     font-weight: 800;
 }
 
 .menu-hero p {
-    font-size: 1.1rem;
+    font-size: clamp(1rem, 2vw, 1.15rem);
     color: #666;
     line-height: 1.8;
     max-width: 700px;
@@ -39,14 +39,14 @@
 
 .menu-filter {
     max-width: 1200px;
-    margin: 20px auto 50px;
+    margin: 20px auto clamp(30px, 5vw, 50px);
     padding: 0 20px;
 }
 
 .search-bar {
     width: 100%;
     box-sizing: border-box;
-    padding: 16px 24px;
+    padding: 14px 22px;
     background: #FFFFFF;
     color: #2D2016;
     border: 1.5px solid #E2DBD2;
@@ -70,7 +70,7 @@
 .category-buttons {
     display: flex;
     justify-content: center;
-    gap: 15px;
+    gap: 12px;
     flex-wrap: wrap;
 }
 
@@ -78,7 +78,7 @@
     background: #FFFFFF;
     color: #6B4226;
     border: 1.5px solid #E5DFD7;
-    padding: 12px 28px;
+    padding: 10px 22px;
     border-radius: 30px;
     cursor: pointer;
     font-size: 0.95rem;
@@ -109,18 +109,18 @@
 
 .best-sellers {
     max-width: 1200px;
-    margin: 60px auto;
+    margin: clamp(40px, 5vw, 60px) auto;
     padding: 0 20px;
 }
 
 .section-title {
     text-align: center;
-    margin-bottom: 40px;
+    margin-bottom: clamp(25px, 4vw, 40px);
 }
 
 .section-title h2 {
     color: #6B4226;
-    font-size: 2.3rem;
+    font-size: clamp(1.8rem, 4vw, 2.3rem);
     font-weight: 800;
     margin-bottom: 10px;
 }
@@ -132,8 +132,8 @@
 
 .featured-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-    gap: 30px;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: clamp(18px, 3vw, 30px);
 }
 
 .featured-card {
@@ -142,36 +142,41 @@
     overflow: hidden;
     box-shadow: 0 10px 25px rgba(0, 0, 0, .08);
     transition: .3s;
+    border: 1px solid #F3EAE0;
 }
 
 .featured-card:hover {
-    transform: translateY(-8px);
+    transform: translateY(-6px);
+    box-shadow: 0 16px 35px rgba(0, 0, 0, .12);
 }
 
 .featured-card img {
     width: 100%;
-    height: 260px;
+    height: 240px;
     object-fit: cover;
+    background: #FAF6F0;
 }
 
 .featured-content {
-    padding: 25px;
+    padding: clamp(18px, 3vw, 25px);
 }
 
 .featured-content h3 {
     color: #6B4226;
     margin-bottom: 10px;
+    font-size: 1.25rem;
 }
 
 .featured-content p {
     color: #555;
     line-height: 1.7;
     margin-bottom: 20px;
+    font-size: 0.95rem;
 }
 
 .price {
     display: block;
-    font-size: 1.3rem;
+    font-size: 1.35rem;
     font-weight: bold;
     color: #222;
     margin-bottom: 20px;
@@ -185,11 +190,14 @@
     color: #fff;
     border-radius: 10px;
     cursor: pointer;
+    font-weight: 700;
+    font-size: 1rem;
     transition: .3s;
 }
 
 .featured-content button:hover {
     background: #54331D;
+    transform: translateY(-1px);
 }
 
 /* ===========================
@@ -198,65 +206,93 @@
 
 .all-products {
     max-width: 1200px;
-    margin: 60px auto 90px;
+    margin: clamp(40px, 5vw, 60px) auto clamp(60px, 8vw, 90px);
     padding: 0 20px;
 }
 
 .products-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-    gap: 30px;
+    gap: clamp(18px, 3vw, 30px);
 }
 
 .product-card {
     background: #fff;
-    border-radius: 15px;
+    border-radius: 16px;
     overflow: hidden;
     box-shadow: 0 8px 20px rgba(0, 0, 0, .08);
     transition: .3s;
+    border: 1px solid #F3EAE0;
 }
 
 .product-card:hover {
-    transform: translateY(-8px);
+    transform: translateY(-6px);
+    box-shadow: 0 14px 30px rgba(0, 0, 0, .12);
 }
 
 .product-card img {
     width: 100%;
     height: 220px;
     object-fit: cover;
+    background: #FAF6F0;
 }
 
 .product-card h3 {
     color: #6B4226;
-    margin: 20px 20px 10px;
+    margin: 18px 18px 10px;
+    font-size: 1.2rem;
 }
 
 .product-card p {
     color: #666;
-    margin: 0 20px 20px;
+    margin: 0 18px 18px;
     line-height: 1.7;
+    font-size: 0.92rem;
 }
 
 .product-card .price {
     display: block;
-    margin: 0 20px 20px;
-    font-size: 1.2rem;
+    margin: 0 18px 18px;
+    font-size: 1.25rem;
     font-weight: bold;
     color: #222;
 }
 
 .product-card button {
-    width: calc(100% - 40px);
-    margin: 0 20px 20px;
-    padding: 14px;
+    width: calc(100% - 36px);
+    margin: 0 18px 18px;
+    padding: 13px;
     background: #6B4226;
     color: #fff;
     border: none;
     border-radius: 10px;
     cursor: pointer;
+    font-weight: 700;
     transition: .3s;
 }
 
 .product-card button:hover {
     background: #54331D;
+}
+
+/* ==========================================================================
+   RESPONSIVE BREAKPOINTS
+   ========================================================================== */
+@media (max-width: 600px) {
+    .category-buttons {
+        gap: 8px;
+    }
+
+    .category-buttons button {
+        padding: 9px 16px;
+        font-size: 0.88rem;
+    }
+
+    .featured-grid,
+    .products-grid {
+        grid-template-columns: 1fr;
+        max-width: 380px;
+        margin-left: auto;
+        margin-right: auto;
+    }
 }

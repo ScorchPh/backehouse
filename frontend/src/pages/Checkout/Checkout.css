@@ -196,6 +196,21 @@
 }
 
 @media (max-width: 768px) {
+    .checkout {
+        margin: 30px auto 60px;
+        padding: 0 14px;
+    }
+
+    .checkout h1 {
+        font-size: 1.85rem;
+        margin-bottom: 24px;
+    }
+
+    .checkout-section {
+        padding: 20px 16px;
+        border-radius: 14px;
+    }
+
     .fulfillment-options-grid {
         grid-template-columns: 1fr;
     }

@@ -1,39 +1,49 @@
+/* ============================================================================
+   BAKE HOUSE - Personalize Page Stylesheet (Fully Responsive)
+   ============================================================================ */
+
 .personalize-page {
     min-height: 100vh;
     background: #fff8f2;
-    padding: 50px;
+    padding: clamp(30px, 5vw, 60px) clamp(16px, 4vw, 30px);
 }
 
 .personalize-page h1 {
     text-align: center;
     color: #8B4513;
     margin-bottom: 10px;
+    font-size: clamp(2rem, 4.5vw, 2.8rem);
+    font-weight: 800;
 }
 
 .personalize-page p {
     text-align: center;
     color: #555;
+    font-size: clamp(0.95rem, 1.8vw, 1.1rem);
 }
 
 .personalize-container {
-    max-width: 1200px;
-    margin: 40px auto;
+    max-width: 1100px;
+    margin: clamp(24px, 4vw, 40px) auto;
     display: flex;
-    gap: 40px;
+    gap: clamp(20px, 3vw, 40px);
     align-items: flex-start;
 }
 
 .preview-section {
     flex: 1;
     background: white;
-    border-radius: 15px;
-    padding: 20px;
-    box-shadow: 0 5px 15px rgba(0,0,0,.1);
+    border-radius: 18px;
+    padding: clamp(18px, 3vw, 25px);
+    box-shadow: 0 5px 18px rgba(0, 0, 0, .07);
+    border: 1px solid #F3EAE0;
 }
 
 .preview-section img {
     width: 100%;
-    border-radius: 10px;
+    max-height: 360px;
+    object-fit: cover;
+    border-radius: 12px;
 }
 
 .preview-info {
@@ -43,14 +53,17 @@
 .preview-info p {
     text-align: left;
     margin: 10px 0;
+    color: #4A3B32;
+    font-size: 0.95rem;
 }
 
 .form-section {
-    flex: 1;
+    flex: 1.2;
     background: white;
-    padding: 25px;
-    border-radius: 15px;
-    box-shadow: 0 5px 15px rgba(0,0,0,.1);
+    padding: clamp(20px, 3.5vw, 30px);
+    border-radius: 18px;
+    box-shadow: 0 5px 18px rgba(0, 0, 0, .07);
+    border: 1px solid #F3EAE0;
 }
 
 .form-section label {
@@ -58,17 +71,31 @@
     margin-top: 15px;
     margin-bottom: 8px;
     font-weight: bold;
+    color: #4A3B32;
+    font-size: 0.92rem;
 }
 
 .form-section input,
 .form-section select,
 .form-section textarea {
     width: 100%;
-    padding: 12px;
+    padding: 12px 14px;
     border-radius: 8px;
-    border: 1px solid #ccc;
+    border: 1px solid #D8CFC5;
     font-size: 15px;
     box-sizing: border-box;
+    background: #FAF8F5;
+    color: #2D2016;
+    transition: all 0.2s ease;
+}
+
+.form-section input:focus,
+.form-section select:focus,
+.form-section textarea:focus {
+    border-color: #8B4513;
+    background: #FFF;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(139, 69, 19, 0.12);
 }
 
 .form-section textarea {
@@ -78,40 +105,43 @@
 .form-section h2 {
     margin-top: 25px;
     color: #8B4513;
+    font-size: 1.3rem;
 }
 
 .form-section button {
     width: 100%;
     padding: 15px;
-    margin-top: 20px;
+    margin-top: 24px;
     background: #8B4513;
     color: white;
     border: none;
-    border-radius: 8px;
-    font-size: 17px;
+    border-radius: 10px;
+    font-size: 1rem;
+    font-weight: 700;
     cursor: pointer;
-    transition: .3s;
+    transition: .25s ease;
 }
 
 .form-section button:hover {
     background: #6d3412;
+    transform: translateY(-1px);
 }
 
 /* Frosting Colors */
-
 .color-picker {
     display: flex;
-    gap: 15px;
+    gap: 12px;
     margin-top: 10px;
+    flex-wrap: wrap;
 }
 
 .color {
-    width: 45px;
-    height: 45px;
+    width: 44px;
+    height: 44px;
     border-radius: 50%;
     cursor: pointer;
     border: 3px solid transparent;
-    transition: .3s;
+    transition: .2s ease;
 }
 
 .color:hover {
@@ -119,12 +149,12 @@
 }
 
 .color.active {
-    border: 3px solid black;
+    border: 3px solid #2D2016;
 }
 
 .white {
     background: white;
-    border: 1px solid #ccc;
+    border: 1.5px solid #ccc;
 }
 
 .pink {
@@ -137,4 +167,19 @@
 
 .chocolate {
     background: #6f4e37;
+}
+
+/* ==========================================================================
+   RESPONSIVE BREAKPOINTS
+   ========================================================================== */
+@media (max-width: 880px) {
+    .personalize-container {
+        flex-direction: column;
+    }
+
+    .preview-section,
+    .form-section {
+        width: 100%;
+        flex: auto;
+    }
 }

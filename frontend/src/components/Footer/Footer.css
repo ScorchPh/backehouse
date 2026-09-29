@@ -1,41 +1,79 @@
-.footer{
-    background:#6B4226;
-    color:white;
-    margin-top:80px;
+/**
+ * ============================================================================
+ * BAKE HOUSE - Footer Stylesheet (Fully Responsive)
+ * ============================================================================
+ */
+
+.footer {
+    background: #6B4226;
+    color: white;
+    margin-top: clamp(50px, 8vw, 80px);
 }
 
-.footer-container{
-    max-width:1200px;
-    margin:auto;
-    display:grid;
-    grid-template-columns:repeat(4,1fr);
-    gap:50px;
-    padding:60px 30px;
+.footer-container {
+    max-width: 1200px;
+    margin: auto;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: clamp(24px, 4vw, 50px);
+    padding: clamp(40px, 6vw, 60px) clamp(20px, 4vw, 30px);
 }
 
 .footer-section h2,
-.footer-section h3{
-    margin-bottom:20px;
+.footer-section h3 {
+    margin-bottom: 18px;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #FFF8F0;
 }
 
-.footer-section p{
-    margin-bottom:12px;
-    line-height:1.7;
+.footer-section p {
+    margin-bottom: 12px;
+    line-height: 1.7;
+    color: #F5EAE0;
+    font-size: 0.95rem;
 }
 
-.footer-section a{
-    display:block;
-    color:white;
-    margin-bottom:12px;
-    transition:.3s;
+.footer-section a {
+    display: block;
+    color: #F5EAE0;
+    margin-bottom: 10px;
+    transition: .25s ease;
+    font-size: 0.95rem;
+    text-decoration: none;
 }
 
-.footer-section a:hover{
-    color:#FFD27F;
+.footer-section a:hover {
+    color: #FFD27F;
+    transform: translateX(3px);
 }
 
-.footer-bottom{
-    text-align:center;
-    border-top:1px solid rgba(255,255,255,.2);
-    padding:20px;
+.footer-bottom {
+    text-align: center;
+    border-top: 1px solid rgba(255, 255, 255, .15);
+    padding: 20px;
+    font-size: 0.9rem;
+    color: #EAD9CC;
+}
+
+/* ==========================================================================
+   RESPONSIVE BREAKPOINTS
+   ========================================================================== */
+@media (max-width: 900px) {
+    .footer-container {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 35px;
+    }
+}
+
+@media (max-width: 550px) {
+    .footer-container {
+        grid-template-columns: 1fr;
+        gap: 30px;
+        text-align: center;
+    }
+
+    .footer-section a:hover {
+        transform: none;
+    }
 }
