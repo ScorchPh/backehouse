@@ -18,6 +18,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useCart } from "../../context/CartContext";
 import { customizerService } from "../../services/customizerService";
+import AnalogTimePicker from "../../components/AnalogTimePicker/AnalogTimePicker";
 import "./Personalize.css";
 
 import placeholder from "../../assets/images/placeholder.jfif";
@@ -47,7 +48,7 @@ function Personalize() {
   };
 
   const [scheduleDate, setScheduleDate] = useState(getMinDate(1));
-  const [scheduleTime, setScheduleTime] = useState("Afternoon (1:00 PM - 5:00 PM)");
+  const [scheduleTime, setScheduleTime] = useState("02:30 PM");
 
   // Load Dynamic Options from API
   useEffect(() => {
@@ -293,18 +294,12 @@ function Personalize() {
 
                 <div>
                   <label style={{ margin: "0 0 4px", fontSize: "0.85rem" }}>
-                    Preferred Time Slot *
+                    Preferred Event Time (Analog Clock) *
                   </label>
-                  <select
+                  <AnalogTimePicker
                     value={scheduleTime}
-                    onChange={(e) => setScheduleTime(e.target.value)}
-                    style={{ background: "#FFF" }}
-                  >
-                    <option>Morning (9:00 AM - 12:00 PM)</option>
-                    <option>Afternoon (1:00 PM - 5:00 PM)</option>
-                    <option>Evening (5:00 PM - 7:00 PM)</option>
-                    <option>Specific Event Time</option>
-                  </select>
+                    onChange={(newTime) => setScheduleTime(newTime)}
+                  />
                 </div>
               </div>
             </div>

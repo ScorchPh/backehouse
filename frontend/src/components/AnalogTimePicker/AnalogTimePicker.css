@@ -1,0 +1,384 @@
+/**
+ * ============================================================================
+ * BAKE HOUSE - Analog Time Picker Stylesheet (Warm Bakery Aesthetic)
+ * ============================================================================
+ */
+
+.analog-picker-wrapper {
+  width: 100%;
+  position: relative;
+}
+
+/* Trigger Button (Looks like a sleek form input) */
+.analog-picker-trigger {
+  width: 100%;
+  padding: 11px 14px;
+  border-radius: 8px;
+  border: 1.5px solid #D8CFC5;
+  background: #FFFFFF;
+  color: #2D2016;
+  font-size: 15px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+}
+
+.analog-picker-trigger:hover {
+  border-color: #6B4226;
+  background: #FAF8F5;
+}
+
+.trigger-clock-icon {
+  font-size: 1.15rem;
+  margin-right: 8px;
+}
+
+.trigger-time-text {
+  flex: 1;
+  text-align: left;
+  font-weight: 700;
+  color: #54331D;
+  letter-spacing: 0.5px;
+}
+
+.trigger-edit-tag {
+  font-size: 0.75rem;
+  background: #FAF2E9;
+  color: #8B4513;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-weight: 700;
+  border: 1px solid #E5DFD7;
+}
+
+/* Modal Overlay */
+.analog-picker-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100000;
+  padding: 16px;
+  animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Dialog Container */
+.analog-picker-dialog {
+  background: #FFFFFF;
+  width: 330px;
+  max-width: 95vw;
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow: 0 20px 50px rgba(60, 35, 18, 0.25);
+  border: 1px solid #ECE3D8;
+  display: flex;
+  flex-direction: column;
+  animation: popupDialog 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes popupDialog {
+  from { transform: scale(0.92); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+/* Header with Digital Readout */
+.analog-header {
+  background: linear-gradient(135deg, #6B4226 0%, #8B4513 100%);
+  color: #FFFFFF;
+  padding: 18px 20px;
+  text-align: center;
+}
+
+.header-subtitle {
+  font-size: 0.8rem;
+  color: #FEE8D6;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-weight: 700;
+  display: block;
+  margin-bottom: 8px;
+}
+
+.time-display-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+}
+
+.time-digits {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.digit-btn {
+  background: rgba(255, 255, 255, 0.12);
+  border: 1.5px solid transparent;
+  color: #FFFFFF;
+  font-size: 2.2rem;
+  font-weight: 800;
+  padding: 4px 10px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 58px;
+}
+
+.digit-btn:hover {
+  background: rgba(255, 255, 255, 0.22);
+}
+
+.digit-btn.active {
+  background: #FFF8F0;
+  color: #6B4226;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.digit-separator {
+  font-size: 2.2rem;
+  font-weight: 800;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+/* AM / PM Selector */
+.ampm-toggle {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ampm-btn {
+  background: rgba(255, 255, 255, 0.12);
+  border: none;
+  color: #F5EAE0;
+  font-size: 0.85rem;
+  font-weight: 800;
+  padding: 6px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.ampm-btn:hover {
+  background: rgba(255, 255, 255, 0.22);
+}
+
+.ampm-btn.active {
+  background: #D97706;
+  color: #FFFFFF;
+  box-shadow: 0 2px 8px rgba(217, 119, 6, 0.4);
+}
+
+/* Mode label */
+.clock-mode-label {
+  text-align: center;
+  padding: 8px 12px 2px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #8B4513;
+  background: #FFF8F0;
+}
+
+/* Clock Face Container */
+.clock-face-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 16px 20px;
+  background: #FFFFFF;
+}
+
+.analog-clock-face {
+  width: 220px;
+  height: 220px;
+  background: #FAF6F0;
+  border: 2px solid #EBE0D4;
+  border-radius: 50%;
+  position: relative;
+  cursor: pointer;
+  user-select: none;
+  box-shadow: inset 0 2px 10px rgba(107, 66, 38, 0.06);
+}
+
+/* Center pivot */
+.clock-center-dot {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 10px;
+  height: 10px;
+  background: #6B4226;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 5;
+  box-shadow: 0 0 0 2px #FFF;
+}
+
+/* Rotating Clock Hand */
+.clock-hand {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 2px;
+  height: 0;
+  transform-origin: 50% 100%;
+  z-index: 4;
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.clock-hand-line {
+  position: absolute;
+  bottom: 0;
+  left: -1px;
+  width: 2.5px;
+  height: 84px;
+  background: #6B4226;
+  border-radius: 2px;
+}
+
+.clock-hand-head {
+  position: absolute;
+  top: -84px;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(107, 66, 38, 0.2);
+  border: 2px solid #6B4226;
+  box-sizing: border-box;
+}
+
+/* Numbers on Dial */
+.clock-number {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  color: #4A3B32;
+  font-size: 0.95rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  z-index: 6;
+  padding: 0;
+}
+
+.clock-number:hover {
+  background: #F0E6D8;
+  color: #6B4226;
+  transform: translate(var(--x, 0), var(--y, 0)) scale(1.1);
+}
+
+.clock-number.selected {
+  background: #6B4226;
+  color: #FFFFFF !important;
+  font-weight: 800;
+  box-shadow: 0 2px 8px rgba(107, 66, 38, 0.35);
+}
+
+.minute-number {
+  font-size: 0.82rem;
+}
+
+/* Preset Chips */
+.analog-presets {
+  padding: 6px 16px 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  background: #FFFFFF;
+  border-top: 1px solid #F3EAE0;
+}
+
+.presets-label {
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: #8C7F72;
+  width: 100%;
+  margin-bottom: 2px;
+}
+
+.analog-presets button {
+  background: #FAF5F0;
+  border: 1px solid #EBE0D4;
+  color: #6B4226;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.analog-presets button:hover {
+  background: #6B4226;
+  color: #FFFFFF;
+}
+
+/* Bottom Actions */
+.analog-actions {
+  display: flex;
+  gap: 10px;
+  padding: 12px 16px;
+  background: #FAF8F5;
+  border-top: 1px solid #EBE0D4;
+}
+
+.action-cancel {
+  flex: 1;
+  background: #FAF2E9;
+  border: 1px solid #D8CFC5;
+  color: #6B5E54;
+  padding: 10px;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 0.88rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.action-cancel:hover {
+  background: #EDE2D7;
+}
+
+.action-confirm {
+  flex: 2;
+  background: #6B4226;
+  border: none;
+  color: #FFFFFF;
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 0.88rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 4px 12px rgba(107, 66, 38, 0.25);
+}
+
+.action-confirm:hover {
+  background: #54331D;
+  transform: translateY(-1px);
+}
