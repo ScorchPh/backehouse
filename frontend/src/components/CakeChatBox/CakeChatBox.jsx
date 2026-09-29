@@ -25,6 +25,8 @@ function CakeChatBox() {
   // 1. All React Hooks (Always called unconditionally in constant order)
   const [currentUser, setCurrentUser] = useState(() => authService.getCurrentUser());
   const [isOpen, setIsOpen] = useState(false);
+  const [isOrderCollapsed, setIsOrderCollapsed] = useState(false);
+  const [isExpandedSize, setIsExpandedSize] = useState(false);
   const [messages, setMessages] = useState([]);
   const [adminThreads, setAdminThreads] = useState([]);
   const [inputText, setInputText] = useState("");
@@ -247,7 +249,7 @@ function CakeChatBox() {
 
       {/* Expandable Chat Window (One-to-One with Baker) */}
       {isOpen && (
-        <div className="cake-chat-window">
+        <div className={`cake-chat-window ${isExpandedSize ? "expanded-view" : ""}`}>
           {/* Header */}
           <div className="cake-chat-header">
             <div className="header-baker-info">
@@ -259,40 +261,73 @@ function CakeChatBox() {
                 </span>
               </div>
             </div>
-            <button
-              type="button"
-              className="chat-close-btn"
-              onClick={() => setIsOpen(false)}
-              title="Close chat"
-            >
-              ✕
-            </button>
+            <div className="header-actions">
+              <button
+                type="button"
+                className="chat-size-toggle-btn"
+                onClick={() => setIsExpandedSize(!isExpandedSize)}
+                title={isExpandedSize ? "Restore comfortable size" : "Make chatbox bigger"}
+                aria-label={isExpandedSize ? "Restore normal size" : "Expand chat window"}
+              >
+                {isExpandedSize ? "🗗" : "🗖"}
+              </button>
+              <button
+                type="button"
+                className="chat-close-btn"
+                onClick={() => setIsOpen(false)}
+                title="Close chat"
+              >
+                ✕
+              </button>
+            </div>
           </div>
 
-          {/* Purchased Cake Order Card */}
+          {/* Purchased Cake Order Card (Collapsible) */}
           {purchasedCake ? (
-            <div className="purchased-cake-banner">
-              <div className="banner-top">
-                <span className="order-pill">🎂 Order #{purchasedCake.orderId}</span>
-                <span className="badge-confirmed">Order Received</span>
+            <div className={`purchased-cake-banner ${isOrderCollapsed ? "is-collapsed" : ""}`}>
+              <div
+                className="banner-top clickable"
+                onClick={() => setIsOrderCollapsed(!isOrderCollapsed)}
+                title="Click to collapse or expand order details"
+              >
+                <div className="banner-top-left">
+                  <span className="order-pill">🎂 Order #{purchasedCake.orderId}</span>
+                  <span className="badge-confirmed">Order Received</span>
+                </div>
+                <button
+                  type="button"
+                  className="order-collapse-toggle"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsOrderCollapsed(!isOrderCollapsed);
+                  }}
+                  aria-expanded={!isOrderCollapsed}
+                >
+                  {isOrderCollapsed ? "▾ Show Order Details" : "▴ Collapse Order"}
+                </button>
               </div>
-              <div className="banner-details">
-                <p><strong>Cake:</strong> {purchasedCake.cakeName}</p>
-                <p><strong>Specs:</strong> {purchasedCake.size} • {purchasedCake.flavor} • {purchasedCake.shape}</p>
-                <p><strong>Frosting:</strong> {purchasedCake.color}</p>
-                {purchasedCake.message && purchasedCake.message !== "None" && (
-                  <p><strong>Message:</strong> "{purchasedCake.message}"</p>
-                )}
-                {purchasedCake.instructions && purchasedCake.instructions !== "None" && (
-                  <p><strong>Requests:</strong> "{purchasedCake.instructions}"</p>
-                )}
-                {purchasedCake.scheduledDate && (
-                  <p><strong>📅 Date Needed:</strong> {purchasedCake.scheduledDate} {purchasedCake.scheduledTime ? `(${purchasedCake.scheduledTime})` : ''}</p>
-                )}
-              </div>
-              <div className="banner-note">
-                💡 <em>Have special requests, delivery updates, or questions for our bakers? Message us below!</em>
-              </div>
+
+              {!isOrderCollapsed && (
+                <>
+                  <div className="banner-details">
+                    <p><strong>Cake:</strong> {purchasedCake.cakeName}</p>
+                    <p><strong>Specs:</strong> {purchasedCake.size} • {purchasedCake.flavor} • {purchasedCake.shape}</p>
+                    <p><strong>Frosting:</strong> {purchasedCake.color}</p>
+                    {purchasedCake.message && purchasedCake.message !== "None" && (
+                      <p><strong>Message:</strong> "{purchasedCake.message}"</p>
+                    )}
+                    {purchasedCake.instructions && purchasedCake.instructions !== "None" && (
+                      <p><strong>Requests:</strong> "{purchasedCake.instructions}"</p>
+                    )}
+                    {purchasedCake.scheduledDate && (
+                      <p><strong>📅 Date Needed:</strong> {purchasedCake.scheduledDate} {purchasedCake.scheduledTime ? `(${purchasedCake.scheduledTime})` : ''}</p>
+                    )}
+                  </div>
+                  <div className="banner-note">
+                    💡 <em>Have special requests, delivery updates, or questions for our bakers? Message us below!</em>
+                  </div>
+                </>
+              )}
             </div>
           ) : (
             <div className="cake-context-badge">

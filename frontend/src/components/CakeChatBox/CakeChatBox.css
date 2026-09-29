@@ -70,24 +70,32 @@
   box-shadow: 0 2px 6px rgba(220, 38, 38, 0.4);
 }
 
-/* Chat Window */
+/* Chat Window (Generous, readable default size with expand option) */
 .cake-chat-window {
-  width: 380px;
-  max-width: calc(100vw - 32px);
-  height: 520px;
-  max-height: calc(100vh - 100px);
+  width: 450px;
+  max-width: calc(100vw - 28px);
+  height: 620px;
+  max-height: calc(100vh - 70px);
   background: #FFFFFF;
   border-radius: 20px;
-  box-shadow: 0 18px 50px rgba(60, 35, 18, 0.25);
-  border: 1px solid #ECE3D8;
+  box-shadow: 0 20px 60px rgba(60, 35, 18, 0.3);
+  border: 1.5px solid #D8CFC5;
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  animation: popupChat 0.25s ease-out;
+  animation: popupChat 0.2s ease-out;
+  transition: width 0.22s cubic-bezier(0.4, 0, 0.2, 1), height 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Expanded View Mode (Large, spacious layout for long chats) */
+.cake-chat-window.expanded-view {
+  width: 600px;
+  height: 720px;
+  max-height: calc(100vh - 40px);
 }
 
 @keyframes popupChat {
-  from { opacity: 0; transform: translateY(20px) scale(0.96); }
+  from { opacity: 0; transform: translateY(16px) scale(0.97); }
   to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
@@ -99,6 +107,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-shrink: 0;
 }
 
 .header-baker-info {
@@ -120,7 +129,7 @@
 
 .header-baker-info h4 {
   margin: 0;
-  font-size: 1rem;
+  font-size: 1.05rem;
   font-weight: 700;
 }
 
@@ -141,45 +150,81 @@
   box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.3);
 }
 
-.chat-close-btn {
-  background: rgba(255, 255, 255, 0.15);
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.chat-size-toggle-btn {
+  background: rgba(255, 255, 255, 0.16);
   border: none;
   color: #FFFFFF;
-  width: 30px;
-  height: 30px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.9rem;
-  transition: 0.2s ease;
+  font-size: 0.95rem;
+  transition: all 0.15s ease;
+}
+
+.chat-size-toggle-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(1.08);
+}
+
+.chat-close-btn {
+  background: rgba(255, 255, 255, 0.16);
+  border: none;
+  color: #FFFFFF;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.95rem;
+  transition: all 0.15s ease;
 }
 
 .chat-close-btn:hover {
   background: rgba(255, 255, 255, 0.3);
+  transform: scale(1.08);
 }
 
 /* Context & Purchased Cake Banner */
 .cake-context-badge {
   background: #FFF8F0;
   border-bottom: 1px solid #F3EAE0;
-  padding: 8px 16px;
-  font-size: 0.82rem;
+  padding: 10px 18px;
+  font-size: 0.85rem;
   color: #6B4226;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  flex-shrink: 0;
 }
 
 .purchased-cake-banner {
   background: #FFF8F0;
-  border-bottom: 1px solid #EBDAC9;
-  padding: 10px 14px;
+  border-bottom: 1.5px solid #EBDAC9;
+  padding: 10px 16px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
   box-shadow: inset 0 -2px 6px rgba(107, 66, 38, 0.04);
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+}
+
+.purchased-cake-banner.is-collapsed {
+  padding: 8px 16px;
+  gap: 0;
+  background: #FAF3EC;
 }
 
 .banner-top {
@@ -189,12 +234,26 @@
   gap: 8px;
 }
 
+.banner-top.clickable {
+  cursor: pointer;
+  user-select: none;
+  padding: 2px 0;
+  border-radius: 6px;
+}
+
+.banner-top-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
 .order-pill {
   font-weight: 800;
   font-size: 0.82rem;
   color: #6B4226;
   background: #F4E8DB;
-  padding: 3px 8px;
+  padding: 3px 9px;
   border-radius: 6px;
   border: 1px solid #E0D0BF;
 }
@@ -204,29 +263,51 @@
   font-weight: 700;
   color: #047857;
   background: #D1FAE5;
-  padding: 2px 7px;
+  padding: 2px 8px;
   border-radius: 12px;
+}
+
+.order-collapse-toggle {
+  background: #FFFFFF;
+  border: 1px solid #D8CFC5;
+  color: #6B4226;
+  font-size: 0.74rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 12px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.15s ease;
+}
+
+.order-collapse-toggle:hover {
+  background: #6B4226;
+  color: #FFFFFF;
+  border-color: #6B4226;
 }
 
 .banner-details {
   background: #FFFFFF;
   border: 1px solid #EBE0D4;
-  border-radius: 8px;
-  padding: 8px 10px;
+  border-radius: 10px;
+  padding: 10px 12px;
   display: flex;
   flex-direction: column;
-  gap: 3px;
-  font-size: 0.78rem;
+  gap: 4px;
+  font-size: 0.82rem;
   color: #4A3B32;
+  box-shadow: 0 1px 4px rgba(107, 66, 38, 0.05);
 }
 
 .banner-details p {
   margin: 0;
-  line-height: 1.35;
+  line-height: 1.4;
 }
 
 .banner-note {
-  font-size: 0.72rem;
+  font-size: 0.74rem;
   color: #8C7F72;
 }
 
@@ -258,10 +339,10 @@
 
 .chat-bubble {
   max-width: 82%;
-  padding: 10px 14px;
-  border-radius: 14px;
-  font-size: 0.9rem;
-  line-height: 1.5;
+  padding: 12px 16px;
+  border-radius: 16px;
+  font-size: 0.95rem;
+  line-height: 1.55;
   display: flex;
   flex-direction: column;
   position: relative;
@@ -360,10 +441,10 @@
 
 .cake-chat-footer input {
   flex: 1;
-  padding: 11px 14px;
+  padding: 12px 16px;
   border: 1.5px solid #E2DBD2;
   border-radius: 20px;
-  font-size: 0.9rem;
+  font-size: 0.95rem;
   outline: none;
   background: #FAF8F5;
   transition: all 0.2s ease;
@@ -378,15 +459,16 @@
   background: #6B4226;
   color: #FFFFFF;
   border: none;
-  width: 38px;
-  height: 38px;
+  width: 42px;
+  height: 42px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.05rem;
+  font-size: 1.15rem;
   cursor: pointer;
   transition: all 0.2s ease;
+  flex-shrink: 0;
 }
 
 .chat-send-btn:hover:not(:disabled) {
@@ -402,12 +484,17 @@
 /* Mobile Breakpoint */
 @media (max-width: 480px) {
   .cake-chat-wrapper {
-    bottom: 16px;
-    right: 16px;
+    bottom: 12px;
+    right: 12px;
   }
 
   .cake-chat-window {
-    width: calc(100vw - 32px);
-    height: 480px;
+    width: calc(100vw - 24px);
+    height: calc(100vh - 80px);
+  }
+
+  .cake-chat-window.expanded-view {
+    width: calc(100vw - 24px);
+    height: calc(100vh - 40px);
   }
 }
