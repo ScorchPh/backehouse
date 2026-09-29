@@ -176,7 +176,9 @@ function Personalize() {
                 <p style={{ margin: "6px 0 2px", color: "#8B4513" }}>
                   <strong>🕒 Preferred Time:</strong>
                 </p>
-                <span style={{ fontSize: "0.85rem", color: "#54331D" }}>{scheduleTime}</span>
+                <span style={{ fontSize: "1rem", fontWeight: "800", color: "#6B4226", display: "inline-block" }}>
+                  {scheduleTime}
+                </span>
               </div>
             </div>
           </div>
@@ -327,7 +329,9 @@ function Personalize() {
               Total Price: ₱{totalPrice.toLocaleString()}
             </h2>
 
-            <button onClick={handleAddToCart}>Add Scheduled Cake to Cart</button>
+            <button type="button" className="add-cart-btn" onClick={handleAddToCart}>
+              Add Scheduled Cake to Cart
+            </button>
           </div>
         </div>
       )}

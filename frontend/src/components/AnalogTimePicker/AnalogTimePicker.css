@@ -1,65 +1,89 @@
 /**
  * ============================================================================
- * BAKE HOUSE - Analog Time Picker Stylesheet (Warm Bakery Aesthetic)
+ * BAKE HOUSE - Analog Time Picker Stylesheet (Warm Bakery Brown Aesthetic)
  * ============================================================================
  */
 
 .analog-picker-wrapper {
   width: 100%;
   position: relative;
-}
-
-/* Trigger Button (Looks like a sleek form input) */
-.analog-picker-trigger {
-  width: 100%;
-  padding: 11px 14px;
-  border-radius: 8px;
-  border: 1.5px solid #D8CFC5;
-  background: #FFFFFF;
-  color: #2D2016;
-  font-size: 15px;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  cursor: pointer;
-  transition: all 0.2s ease;
   box-sizing: border-box;
 }
 
-.analog-picker-trigger:hover {
-  border-color: #6B4226;
-  background: #FAF8F5;
+/* ============================================================================
+   TRIGGER INPUT BUTTON (Matches form inputs with crisp Bakery Brown styling)
+   ============================================================================ */
+button.analog-picker-trigger {
+  width: 100% !important;
+  height: 48px !important;
+  padding: 0 14px !important;
+  margin: 0 !important;
+  border-radius: 8px !important;
+  border: 1.5px solid #8B4513 !important;
+  background: #FAF8F5 !important;
+  color: #6B4226 !important;
+  font-size: 15px !important;
+  font-weight: 700 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 10px !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  box-sizing: border-box !important;
+  box-shadow: 0 1px 3px rgba(107, 66, 38, 0.08) !important;
+  outline: none !important;
+}
+
+button.analog-picker-trigger:hover,
+button.analog-picker-trigger:focus {
+  background: #FFF !important;
+  border-color: #6B4226 !important;
+  box-shadow: 0 0 0 3px rgba(139, 69, 19, 0.15) !important;
 }
 
 .trigger-clock-icon {
-  font-size: 1.15rem;
-  margin-right: 8px;
+  font-size: 1.2rem;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 }
 
 .trigger-time-text {
   flex: 1;
   text-align: left;
-  font-weight: 700;
-  color: #54331D;
+  font-weight: 800 !important;
+  color: #6B4226 !important;
+  font-size: 1.05rem !important;
   letter-spacing: 0.5px;
 }
 
 .trigger-edit-tag {
-  font-size: 0.75rem;
-  background: #FAF2E9;
-  color: #8B4513;
-  padding: 3px 8px;
+  font-size: 0.78rem;
+  background: #8B4513;
+  color: #FFFFFF !important;
+  padding: 5px 12px;
   border-radius: 6px;
   font-weight: 700;
-  border: 1px solid #E5DFD7;
+  border: none;
+  letter-spacing: 0.3px;
+  flex-shrink: 0;
+  transition: background 0.15s ease;
 }
 
-/* Modal Overlay */
+button.analog-picker-trigger:hover .trigger-edit-tag {
+  background: #6d3412;
+}
+
+/* ============================================================================
+   MODAL OVERLAY & POPUP DIALOG
+   ============================================================================ */
 .analog-picker-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.6);
+  background: rgba(45, 32, 22, 0.65);
   -webkit-backdrop-filter: blur(4px);
   backdrop-filter: blur(4px);
   display: flex;
@@ -67,44 +91,47 @@
   justify-content: center;
   z-index: 100000;
   padding: 16px;
-  animation: fadeIn 0.2s ease-out;
+  animation: analogFadeIn 0.2s ease-out;
+  box-sizing: border-box;
 }
 
-@keyframes fadeIn {
+@keyframes analogFadeIn {
   from { opacity: 0; }
   to { opacity: 1; }
 }
 
-/* Dialog Container */
 .analog-picker-dialog {
   background: #FFFFFF;
   width: 330px;
   max-width: 95vw;
-  border-radius: 24px;
+  border-radius: 22px;
   overflow: hidden;
-  box-shadow: 0 20px 50px rgba(60, 35, 18, 0.25);
-  border: 1px solid #ECE3D8;
+  box-shadow: 0 20px 50px rgba(60, 35, 18, 0.35);
+  border: 2px solid #8B4513;
   display: flex;
   flex-direction: column;
-  animation: popupDialog 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: analogPopupDialog 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+  box-sizing: border-box;
 }
 
-@keyframes popupDialog {
+@keyframes analogPopupDialog {
   from { transform: scale(0.92); opacity: 0; }
   to { transform: scale(1); opacity: 1; }
 }
 
-/* Header with Digital Readout */
+/* ============================================================================
+   HEADER WITH DIGITAL READOUT (Warm Chocolate Gradient)
+   ============================================================================ */
 .analog-header {
-  background: linear-gradient(135deg, #6B4226 0%, #8B4513 100%);
+  background: linear-gradient(135deg, #6B4226 0%, #4A2810 100%);
   color: #FFFFFF;
   padding: 18px 20px;
   text-align: center;
 }
 
 .header-subtitle {
-  font-size: 0.8rem;
-  color: #FEE8D6;
+  font-size: 0.78rem;
+  color: #F8D7B8;
   text-transform: uppercase;
   letter-spacing: 1px;
   font-weight: 700;
@@ -125,33 +152,36 @@
   gap: 4px;
 }
 
-.digit-btn {
-  background: rgba(255, 255, 255, 0.12);
-  border: 1.5px solid transparent;
-  color: #FFFFFF;
-  font-size: 2.2rem;
-  font-weight: 800;
-  padding: 4px 10px;
-  border-radius: 12px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  min-width: 58px;
+.time-digits button.digit-btn {
+  background: rgba(255, 255, 255, 0.15) !important;
+  border: 1.5px solid transparent !important;
+  color: #FFFFFF !important;
+  font-size: 2.1rem !important;
+  font-weight: 800 !important;
+  padding: 4px 10px !important;
+  margin: 0 !important;
+  width: auto !important;
+  border-radius: 12px !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  min-width: 58px !important;
 }
 
-.digit-btn:hover {
-  background: rgba(255, 255, 255, 0.22);
+.time-digits button.digit-btn:hover {
+  background: rgba(255, 255, 255, 0.25) !important;
 }
 
-.digit-btn.active {
-  background: #FFF8F0;
-  color: #6B4226;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+.time-digits button.digit-btn.active {
+  background: #FFF8F0 !important;
+  color: #6B4226 !important;
+  border-color: #D97706 !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18) !important;
 }
 
 .digit-separator {
-  font-size: 2.2rem;
+  font-size: 2.1rem;
   font-weight: 800;
-  color: rgba(255, 255, 255, 0.7);
+  color: rgba(255, 255, 255, 0.75);
 }
 
 /* AM / PM Selector */
@@ -161,39 +191,45 @@
   gap: 4px;
 }
 
-.ampm-btn {
-  background: rgba(255, 255, 255, 0.12);
-  border: none;
-  color: #F5EAE0;
-  font-size: 0.85rem;
-  font-weight: 800;
-  padding: 6px 10px;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.2s ease;
+.ampm-toggle button.ampm-btn {
+  background: rgba(255, 255, 255, 0.15) !important;
+  border: none !important;
+  color: #F8D7B8 !important;
+  font-size: 0.85rem !important;
+  font-weight: 800 !important;
+  padding: 6px 12px !important;
+  margin: 0 !important;
+  width: auto !important;
+  border-radius: 8px !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
 }
 
-.ampm-btn:hover {
-  background: rgba(255, 255, 255, 0.22);
+.ampm-toggle button.ampm-btn:hover {
+  background: rgba(255, 255, 255, 0.25) !important;
+  color: #FFFFFF !important;
 }
 
-.ampm-btn.active {
-  background: #D97706;
-  color: #FFFFFF;
-  box-shadow: 0 2px 8px rgba(217, 119, 6, 0.4);
+.ampm-toggle button.ampm-btn.active {
+  background: #D97706 !important;
+  color: #FFFFFF !important;
+  box-shadow: 0 2px 8px rgba(217, 119, 6, 0.4) !important;
 }
 
 /* Mode label */
 .clock-mode-label {
   text-align: center;
-  padding: 8px 12px 2px;
-  font-size: 0.82rem;
-  font-weight: 700;
+  padding: 10px 14px 4px;
+  font-size: 0.85rem;
+  font-weight: 800;
   color: #8B4513;
   background: #FFF8F0;
+  letter-spacing: 0.3px;
 }
 
-/* Clock Face Container */
+/* ============================================================================
+   CLOCK FACE & NUMBERS
+   ============================================================================ */
 .clock-face-container {
   display: flex;
   justify-content: center;
@@ -206,12 +242,12 @@
   width: 220px;
   height: 220px;
   background: #FAF6F0;
-  border: 2px solid #EBE0D4;
+  border: 2.5px solid #8B4513;
   border-radius: 50%;
   position: relative;
   cursor: pointer;
   user-select: none;
-  box-shadow: inset 0 2px 10px rgba(107, 66, 38, 0.06);
+  box-shadow: inset 0 2px 10px rgba(107, 66, 38, 0.08);
 }
 
 /* Center pivot */
@@ -225,7 +261,7 @@
   border-radius: 50%;
   transform: translate(-50%, -50%);
   z-index: 5;
-  box-shadow: 0 0 0 2px #FFF;
+  box-shadow: 0 0 0 2px #FFFFFF;
 }
 
 /* Rotating Clock Hand */
@@ -243,8 +279,8 @@
 .clock-hand-line {
   position: absolute;
   bottom: 0;
-  left: -1px;
-  width: 2.5px;
+  left: -1.5px;
+  width: 3px;
   height: 84px;
   background: #6B4226;
   border-radius: 2px;
@@ -258,53 +294,56 @@
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background: rgba(107, 66, 38, 0.2);
+  background: rgba(107, 66, 38, 0.18);
   border: 2px solid #6B4226;
   box-sizing: border-box;
 }
 
-/* Numbers on Dial */
-.clock-number {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  border: none;
-  background: transparent;
-  color: #4A3B32;
-  font-size: 0.95rem;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.15s ease;
-  z-index: 6;
-  padding: 0;
+/* Numbers on Dial (Deep Brown & High Contrast) */
+.analog-clock-face button.clock-number {
+  position: absolute !important;
+  top: 50% !important;
+  left: 50% !important;
+  width: 32px !important;
+  height: 32px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border-radius: 50% !important;
+  border: none !important;
+  background: transparent !important;
+  color: #6B4226 !important;
+  font-size: 0.95rem !important;
+  font-weight: 800 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer !important;
+  transition: all 0.15s ease !important;
+  z-index: 6 !important;
 }
 
-.clock-number:hover {
-  background: #F0E6D8;
-  color: #6B4226;
-  transform: translate(var(--x, 0), var(--y, 0)) scale(1.1);
+.analog-clock-face button.clock-number:hover {
+  background: #EAD8C3 !important;
+  color: #4A2810 !important;
+  transform: translate(var(--x, 0), var(--y, 0)) scale(1.15) !important;
 }
 
-.clock-number.selected {
-  background: #6B4226;
+.analog-clock-face button.clock-number.selected {
+  background: #6B4226 !important;
   color: #FFFFFF !important;
-  font-weight: 800;
-  box-shadow: 0 2px 8px rgba(107, 66, 38, 0.35);
+  font-weight: 900 !important;
+  box-shadow: 0 2px 10px rgba(107, 66, 38, 0.45) !important;
 }
 
 .minute-number {
-  font-size: 0.82rem;
+  font-size: 0.84rem !important;
 }
 
-/* Preset Chips */
+/* ============================================================================
+   PRESET CHIPS
+   ============================================================================ */
 .analog-presets {
-  padding: 6px 16px 12px;
+  padding: 8px 16px 12px;
   display: flex;
   align-items: center;
   gap: 6px;
@@ -314,31 +353,38 @@
 }
 
 .presets-label {
-  font-size: 0.74rem;
-  font-weight: 700;
-  color: #8C7F72;
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: #8B4513;
   width: 100%;
   margin-bottom: 2px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
-.analog-presets button {
-  background: #FAF5F0;
-  border: 1px solid #EBE0D4;
-  color: #6B4226;
-  padding: 4px 8px;
-  border-radius: 12px;
-  font-size: 0.75rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.2s ease;
+.analog-presets button.preset-chip {
+  background: #FAF5F0 !important;
+  border: 1px solid #D8CFC5 !important;
+  color: #6B4226 !important;
+  padding: 4px 10px !important;
+  margin: 0 !important;
+  width: auto !important;
+  border-radius: 12px !important;
+  font-size: 0.76rem !important;
+  font-weight: 700 !important;
+  cursor: pointer !important;
+  transition: all 0.18s ease !important;
 }
 
-.analog-presets button:hover {
-  background: #6B4226;
-  color: #FFFFFF;
+.analog-presets button.preset-chip:hover {
+  background: #6B4226 !important;
+  color: #FFFFFF !important;
+  border-color: #6B4226 !important;
 }
 
-/* Bottom Actions */
+/* ============================================================================
+   BOTTOM ACTIONS (Cancel / Set Time)
+   ============================================================================ */
 .analog-actions {
   display: flex;
   gap: 10px;
@@ -347,38 +393,43 @@
   border-top: 1px solid #EBE0D4;
 }
 
-.action-cancel {
-  flex: 1;
-  background: #FAF2E9;
-  border: 1px solid #D8CFC5;
-  color: #6B5E54;
-  padding: 10px;
-  border-radius: 10px;
-  font-weight: 700;
-  font-size: 0.88rem;
-  cursor: pointer;
-  transition: all 0.2s;
+.analog-actions button.action-cancel {
+  flex: 1 !important;
+  background: #FAF2E9 !important;
+  border: 1.5px solid #D8CFC5 !important;
+  color: #6B5E54 !important;
+  padding: 10px !important;
+  margin: 0 !important;
+  width: auto !important;
+  border-radius: 10px !important;
+  font-weight: 700 !important;
+  font-size: 0.88rem !important;
+  cursor: pointer !important;
+  transition: all 0.2s !important;
 }
 
-.action-cancel:hover {
-  background: #EDE2D7;
+.analog-actions button.action-cancel:hover {
+  background: #EDE2D7 !important;
+  color: #3D2B1F !important;
 }
 
-.action-confirm {
-  flex: 2;
-  background: #6B4226;
-  border: none;
-  color: #FFFFFF;
-  padding: 10px 14px;
-  border-radius: 10px;
-  font-weight: 700;
-  font-size: 0.88rem;
-  cursor: pointer;
-  transition: all 0.2s;
-  box-shadow: 0 4px 12px rgba(107, 66, 38, 0.25);
+.analog-actions button.action-confirm {
+  flex: 2 !important;
+  background: #8B4513 !important;
+  border: none !important;
+  color: #FFFFFF !important;
+  padding: 10px 14px !important;
+  margin: 0 !important;
+  width: auto !important;
+  border-radius: 10px !important;
+  font-weight: 800 !important;
+  font-size: 0.88rem !important;
+  cursor: pointer !important;
+  transition: all 0.2s !important;
+  box-shadow: 0 4px 12px rgba(107, 66, 38, 0.25) !important;
 }
 
-.action-confirm:hover {
-  background: #54331D;
-  transform: translateY(-1px);
+.analog-actions button.action-confirm:hover {
+  background: #6d3412 !important;
+  transform: translateY(-1px) !important;
 }
