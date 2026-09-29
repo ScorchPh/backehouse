@@ -4,6 +4,10 @@
  * ============================================================================
  * Allows customers and bakers/admins to consult in real-time regarding custom
  * cake requests, decorations, tiers, delivery times, and flavors.
+ * Features:
+ * - Automatically displays the customer's purchased custom cake order specs
+ * - Real-time polling with baker online indicator
+ * - Quick prompt suggestions for post-purchase clarifications
  * ============================================================================
  */
 
@@ -12,7 +16,7 @@ import { cakeChatService } from "../../services/cakeChatService";
 import { authService } from "../../services/authService";
 import "./CakeChatBox.css";
 
-function CakeChatBox({ cakeContext = {} }) {
+function CakeChatBox() {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([]);
   const [inputText, setInputText] = useState("");
@@ -32,9 +36,43 @@ function CakeChatBox({ cakeContext = {} }) {
     return stored;
   });
 
+  // Track purchased custom cake details
+  const [purchasedCake, setPurchasedCake] = useState(() => {
+    try {
+      const saved = localStorage.getItem("bh_last_purchased_cake");
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
+  });
+
+  // Listen for external open commands (e.g. from OrderSuccess page or buttons)
+  useEffect(() => {
+    const handleOpenChat = () => setIsOpen(true);
+    const handleCakePurchased = () => {
+      try {
+        const saved = localStorage.getItem("bh_last_purchased_cake");
+        setPurchasedCake(saved ? JSON.parse(saved) : null);
+        setIsOpen(true); // Automatically open chat to confirm receipt of custom cake order
+      } catch {
+        setPurchasedCake(null);
+      }
+    };
+
+    window.addEventListener("openCakeChat", handleOpenChat);
+    window.addEventListener("cakePurchased", handleCakePurchased);
+    window.addEventListener("storage", handleCakePurchased);
+
+    return () => {
+      window.removeEventListener("openCakeChat", handleOpenChat);
+      window.removeEventListener("cakePurchased", handleCakePurchased);
+      window.removeEventListener("storage", handleCakePurchased);
+    };
+  }, []);
+
   const customerName = currentUser
     ? (currentUser.first_name ? `${currentUser.first_name} ${currentUser.last_name || ''}`.trim() : currentUser.username)
-    : "Customer";
+    : (purchasedCake?.customerName || "Customer");
 
   // Fetch messages from backend
   const fetchMessages = async () => {
@@ -91,7 +129,6 @@ function CakeChatBox({ cakeContext = {} }) {
         userId: currentUser?.id || null
       });
 
-      // Refetch confirmed state
       fetchMessages();
     } catch (err) {
       console.error("Failed to send cake chat message:", err);
@@ -100,7 +137,6 @@ function CakeChatBox({ cakeContext = {} }) {
     }
   };
 
-  // Quick prompt button helper
   const handleQuickPrompt = (promptText) => {
     setInputText(promptText);
   };
@@ -116,11 +152,13 @@ function CakeChatBox({ cakeContext = {} }) {
             setIsOpen(true);
             setUnreadCount(0);
           }}
-          title="Consult with Baker"
+          title="Chat with Bakery about your Cake"
         >
           <span className="chat-trigger-icon">💬</span>
-          <span className="chat-trigger-label">Chat with Baker</span>
-          {unreadCount > 0 && <span className="chat-badge">{unreadCount}</span>}
+          <span className="chat-trigger-label">
+            {purchasedCake ? "Cake Order Chat" : "Chat with Baker"}
+          </span>
+          {purchasedCake && <span className="purchased-dot" title="Active Cake Order"></span>}
         </button>
       )}
 
@@ -132,9 +170,9 @@ function CakeChatBox({ cakeContext = {} }) {
             <div className="header-baker-info">
               <span className="baker-avatar">👨‍🍳</span>
               <div>
-                <h4>Baker Consultation</h4>
+                <h4>Bake House Cake Concierge</h4>
                 <span className="status-indicator">
-                  <span className="status-dot"></span> Online • Bake House Staff
+                  <span className="status-dot"></span> Online • Baker & Staff
                 </span>
               </div>
             </div>
@@ -148,10 +186,34 @@ function CakeChatBox({ cakeContext = {} }) {
             </button>
           </div>
 
-          {/* Quick Context Banner */}
-          {cakeContext.flavor && (
+          {/* Purchased Cake Order Card */}
+          {purchasedCake ? (
+            <div className="purchased-cake-banner">
+              <div className="banner-top">
+                <span className="order-pill">🎂 Order #{purchasedCake.orderId}</span>
+                <span className="badge-confirmed">Order Received</span>
+              </div>
+              <div className="banner-details">
+                <p><strong>Cake:</strong> {purchasedCake.cakeName}</p>
+                <p><strong>Specs:</strong> {purchasedCake.size} • {purchasedCake.flavor} • {purchasedCake.shape}</p>
+                <p><strong>Frosting:</strong> {purchasedCake.color}</p>
+                {purchasedCake.message && purchasedCake.message !== "None" && (
+                  <p><strong>Message:</strong> "{purchasedCake.message}"</p>
+                )}
+                {purchasedCake.instructions && purchasedCake.instructions !== "None" && (
+                  <p><strong>Requests:</strong> "{purchasedCake.instructions}"</p>
+                )}
+                {purchasedCake.scheduledDate && (
+                  <p><strong>📅 Date Needed:</strong> {purchasedCake.scheduledDate} {purchasedCake.scheduledTime ? `(${purchasedCake.scheduledTime})` : ''}</p>
+                )}
+              </div>
+              <div className="banner-note">
+                💡 <em>Have special requests, delivery updates, or questions for our bakers? Message us below!</em>
+              </div>
+            </div>
+          ) : (
             <div className="cake-context-badge">
-              🎂 Designing: <strong>{cakeContext.size}</strong> {cakeContext.flavor} ({cakeContext.occasion || 'Cake'})
+              🎂 <strong>Custom Cake Builder:</strong> Chat with our bakers anytime!
             </div>
           )}
 
@@ -161,7 +223,9 @@ function CakeChatBox({ cakeContext = {} }) {
             <div className="chat-bubble baker-bubble system-welcome">
               <span className="bubble-sender">👨‍🍳 Chef Baker</span>
               <p>
-                Hello! Welcome to Bake House custom cake builder! Have special dietary needs, theme colors, or multi-tier ideas? Ask us anything here!
+                {purchasedCake
+                  ? `Hello ${customerName}! We have your custom cake details for Order #${purchasedCake.orderId}. If you need to clarify decorations, request candles, or adjust timing, let us know here!`
+                  : `Hello! Welcome to Bake House! Designing a custom cake or have questions about flavors, tiers, or rush orders? Ask us here!`}
               </p>
               <span className="bubble-time">Live Support</span>
             </div>
@@ -187,33 +251,58 @@ function CakeChatBox({ cakeContext = {} }) {
             <div ref={messagesEndRef} />
           </div>
 
-          {/* Quick Question Chips */}
+          {/* Quick Suggestion Chips */}
           <div className="quick-suggestions">
-            <button
-              type="button"
-              onClick={() => handleQuickPrompt("Can you make a 2-tier version of this design?")}
-            >
-              2-Tier Cake?
-            </button>
-            <button
-              type="button"
-              onClick={() => handleQuickPrompt("Can you customize this with gold leaf & flowers?")}
-            >
-              Add Gold Leaf?
-            </button>
-            <button
-              type="button"
-              onClick={() => handleQuickPrompt("Is same-day pickup or rush delivery available?")}
-            >
-              Rush Order?
-            </button>
+            {purchasedCake ? (
+              <>
+                <button
+                  type="button"
+                  onClick={() => handleQuickPrompt(`Hi! Can you send a photo of the cake before it's dispatched?`)}
+                >
+                  📸 Send photo before delivery?
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleQuickPrompt(`Can you include birthday candles and a cake knife?`)}
+                >
+                  🕯️ Include candles?
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleQuickPrompt(`Hi, what is the estimated preparation status for Order #${purchasedCake.orderId}?`)}
+                >
+                  ⏳ Prep Status?
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  onClick={() => handleQuickPrompt("Can you make a 2-tier version of this design?")}
+                >
+                  2-Tier Cake?
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleQuickPrompt("Can you customize this with gold leaf & flowers?")}
+                >
+                  Add Gold Leaf?
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleQuickPrompt("Is rush delivery available for this weekend?")}
+                >
+                  Rush Delivery?
+                </button>
+              </>
+            )}
           </div>
 
           {/* Input Form */}
           <form className="cake-chat-footer" onSubmit={handleSendMessage}>
             <input
               type="text"
-              placeholder="Ask the baker about your cake..."
+              placeholder={purchasedCake ? `Ask baker about Order #${purchasedCake.orderId}...` : "Ask the baker about your cake..."}
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
               disabled={sending}

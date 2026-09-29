@@ -18,7 +18,6 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useCart } from "../../context/CartContext";
 import { customizerService } from "../../services/customizerService";
-import CakeChatBox from "../../components/CakeChatBox/CakeChatBox";
 import "./Personalize.css";
 
 import placeholder from "../../assets/images/placeholder.jfif";
@@ -337,9 +336,6 @@ function Personalize() {
           </div>
         </div>
       )}
-
-      {/* Floating Live Baker Chat Consultation Widget */}
-      <CakeChatBox cakeContext={{ size, flavor, shape, color, occasion }} />
     </div>
   );
 }

@@ -125,6 +125,16 @@ function OrderSuccess() {
             🖨️ Print Receipt
           </button>
 
+          <button
+            type="button"
+            onClick={() => window.dispatchEvent(new Event("openCakeChat"))}
+            className="orders-btn"
+            style={{ background: "#6B4226", color: "#FFF" }}
+            title="Chat with our bakers for any special requests, cake design clarifications, or delivery timing"
+          >
+            💬 Chat with Bakery
+          </button>
+
           <Link to={`/order-details?id=${orderId}`} state={{ order }} className="orders-btn">
             Track Order Details
           </Link>

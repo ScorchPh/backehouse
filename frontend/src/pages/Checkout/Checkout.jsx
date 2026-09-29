@@ -18,6 +18,7 @@ import { useCart } from "../../context/CartContext";
 import { useOrders } from "../../context/OrderContext";
 import { orderService } from "../../services/orderService";
 import { authService } from "../../services/authService";
+import { cakeChatService } from "../../services/cakeChatService";
 import { useNavigate, Link } from "react-router-dom";
 import DeliveryMapPicker from "../../components/DeliveryMapPicker/DeliveryMapPicker";
 
@@ -119,6 +120,44 @@ function Checkout() {
       const res = await orderService.createOrder(orderPayload);
 
       if (res && res.success) {
+        // Detect if any items in the order were customized cakes
+        const customCakeItem = cartItems.find(
+          (it) => it.customization && (it.customization.size || it.customization.flavor || it.customization.occasion)
+        );
+
+        if (customCakeItem) {
+          const cakeDetails = {
+            orderId: res.order.id,
+            customerName: fullName,
+            cakeName: customCakeItem.name,
+            size: customCakeItem.customization.size,
+            flavor: customCakeItem.customization.flavor,
+            shape: customCakeItem.customization.shape,
+            color: customCakeItem.customization.color,
+            occasion: customCakeItem.customization.occasion,
+            message: customCakeItem.customization.message || 'None',
+            instructions: customCakeItem.customization.instructions || 'None',
+            scheduledDate: res.order.scheduled_date || customCakeItem.scheduled_date || null,
+            scheduledTime: res.order.scheduled_time || customCakeItem.scheduled_time || null,
+            totalPrice: customCakeItem.price,
+            purchasedAt: new Date().toISOString()
+          };
+
+          // Store in localStorage for the persistent chat consultation box
+          localStorage.setItem("bh_last_purchased_cake", JSON.stringify(cakeDetails));
+          window.dispatchEvent(new Event("cakePurchased"));
+
+          // Post order summary message into the customer-bakery consultation chat
+          const chatSessionId = localStorage.getItem("bh_cake_chat_session") || ("session_" + res.order.id);
+          cakeChatService.sendMessage({
+            sessionId: chatSessionId,
+            senderName: "Bake House Bot",
+            senderRole: "admin",
+            message: `🎉 Order #${res.order.id} Placed! Custom Cake: ${cakeDetails.cakeName} (${cakeDetails.size}, ${cakeDetails.flavor}, ${cakeDetails.shape}, Frosting: ${cakeDetails.color}). Message on cake: "${cakeDetails.message}". Special Request: "${cakeDetails.instructions}". Let us know here if you have any questions or clarifications!`,
+            userId: null
+          }).catch((err) => console.warn("Auto cake chat notification note:", err));
+        }
+
         // Successful checkout: update order history, empty cart, and navigate to confirmation
         addOrder(res.order);
         clearCart();

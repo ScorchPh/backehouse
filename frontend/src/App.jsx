@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 
 import Navbar from "./components/Navbar/Navbar";
 import Footer from "./components/Footer/Footer";
+import CakeChatBox from "./components/CakeChatBox/CakeChatBox";
 
 import Settings from "./pages/Admin/Settings/Settings";
 import Reports from "./pages/Admin/Reports/Reports";
@@ -65,6 +66,9 @@ function AppContent() {
       </Routes>
 
       {!isAdminRoute && <Footer />}
+
+      {/* Global Live Custom Cake & Bakery Consultation Chat Box */}
+      {!isAdminRoute && <CakeChatBox />}
     </>
   );
 }
