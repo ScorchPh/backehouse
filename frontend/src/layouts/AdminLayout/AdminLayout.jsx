@@ -15,12 +15,14 @@ import { useState, useEffect } from "react";
 import { Link, Outlet, useNavigate, useLocation } from "react-router-dom";
 import { authService } from "../../services/authService";
 import { useOrders } from "../../context/OrderContext";
+import AdminCakeChatModal from "../../components/AdminCakeChatModal/AdminCakeChatModal";
 import "./AdminLayout.css";
 
 function AdminLayout() {
   const navigate = useNavigate();
   const location = useLocation();
   const [currentUser, setCurrentUser] = useState(() => authService.getCurrentUser());
+  const [isCakeChatOpen, setIsCakeChatOpen] = useState(false);
   const { orders } = useOrders();
 
   // Active queue count (Pending, Confirmed, Preparing, Ready for Pickup, For Delivery)
@@ -185,6 +187,15 @@ function AdminLayout() {
           </div>
 
           <div className="bakesmart-header-actions">
+            <button
+              type="button"
+              className="cake-consult-btn"
+              onClick={() => setIsCakeChatOpen(true)}
+              title="Customer Cake Consultations"
+            >
+              💬 <span>Cake Consults</span>
+            </button>
+
             <div className="bakesmart-live-badge">
               <span className="live-dot"></span>
               Live Operations
@@ -208,6 +219,12 @@ function AdminLayout() {
           <Outlet />
         </main>
       </div>
+
+      {/* Live Custom Cake Consultation Chat Modal */}
+      <AdminCakeChatModal
+        isOpen={isCakeChatOpen}
+        onClose={() => setIsCakeChatOpen(false)}
+      />
     </div>
   );
 }

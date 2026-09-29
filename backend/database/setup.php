@@ -147,6 +147,21 @@ CREATE TABLE IF NOT EXISTS `messages` (
 ");
 echo "<p>✅ Table <strong>messages</strong> created.</p>";
 
+// 8. Create Custom Cake Live Consultation Chat Table
+$pdo->exec("
+CREATE TABLE IF NOT EXISTS `custom_cake_chats` (
+    `id` INT AUTO_INCREMENT PRIMARY KEY,
+    `session_id` VARCHAR(100) NOT NULL,
+    `user_id` INT NULL,
+    `sender_name` VARCHAR(100) NOT NULL,
+    `sender_role` ENUM('customer', 'admin', 'staff') NOT NULL DEFAULT 'customer',
+    `message` TEXT NOT NULL,
+    `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    INDEX `idx_session` (`session_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+");
+echo "<p>✅ Table <strong>custom_cake_chats</strong> created.</p>";
+
 $pdo->exec("SET FOREIGN_KEY_CHECKS = 1;");
 
 // ----------------------------------------------------------------------------

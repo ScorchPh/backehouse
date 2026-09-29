@@ -152,3 +152,22 @@ CREATE TABLE `messages` (
 
 INSERT INTO `messages` (`name`, `email`, `subject`, `message`) VALUES
 ('Ana Gomez', 'ana@example.com', 'Wedding Cake Inquiry', 'Hi! Do you accommodate 3-tier custom wedding cakes for November?');
+
+-- ----------------------------------------------------------------------------
+-- 7. Table structure for table `custom_cake_chats`
+-- ----------------------------------------------------------------------------
+CREATE TABLE `custom_cake_chats` (
+    `id` INT AUTO_INCREMENT PRIMARY KEY,
+    `session_id` VARCHAR(100) NOT NULL,
+    `user_id` INT NULL,
+    `sender_name` VARCHAR(100) NOT NULL,
+    `sender_role` ENUM('customer', 'admin', 'staff') NOT NULL DEFAULT 'customer',
+    `message` TEXT NOT NULL,
+    `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    INDEX `idx_session` (`session_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+INSERT INTO `custom_cake_chats` (`session_id`, `sender_name`, `sender_role`, `message`) VALUES
+('demo_session_1', 'Juan Dela Cruz', 'customer', 'Hi! Can you do a 2-tier chocolate cake with fresh strawberries for Saturday?'),
+('demo_session_1', 'Chef Baker', 'admin', 'Hello Juan! Yes, absolutely! Please select 2-Tier in the customizer and note strawberries in the special instructions.');
+

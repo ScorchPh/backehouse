@@ -365,6 +365,28 @@
   flex: 1;
 }
 
+.cake-consult-btn {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 14px;
+  border-radius: 20px;
+  background: #FAF2E9;
+  border: 1.5px solid #E2D3C4;
+  color: #6B4226;
+  font-weight: 700;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cake-consult-btn:hover {
+  background: #6B4226;
+  color: #FFF8F0;
+  border-color: #6B4226;
+  transform: translateY(-1px);
+}
+
 @media (max-width: 900px) {
   .bakesmart-sidebar {
     width: 210px;
