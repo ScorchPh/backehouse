@@ -87,7 +87,7 @@ function CakeChatBox() {
 
   // 6. Fetch messages handler
   const fetchMessages = useCallback(async () => {
-    if (!currentUser || currentUser.role === "admin" || currentUser.role === "staff") return;
+    if (!currentUser) return;
     try {
       const res = await cakeChatService.getMessages(sessionId);
       if (res && res.success && Array.isArray(res.messages)) {
@@ -100,7 +100,7 @@ function CakeChatBox() {
 
   // 7. Initial load and periodic polling every 4 seconds (Hooks ALWAYS called)
   useEffect(() => {
-    if (!currentUser || currentUser.role === "admin" || currentUser.role === "staff") {
+    if (!currentUser) {
       return;
     }
     fetchMessages();
@@ -121,6 +121,7 @@ function CakeChatBox() {
     const trimmed = inputText.trim();
     if (!trimmed || sending) return;
 
+    const senderRole = currentUser?.role || "customer";
     const senderName = currentUser?.first_name
       ? `${currentUser.first_name} ${currentUser.last_name || ''}`.trim()
       : (currentUser?.username || "Customer");
@@ -133,7 +134,7 @@ function CakeChatBox() {
         id: Date.now(),
         session_id: sessionId,
         sender_name: senderName,
-        sender_role: "customer",
+        sender_role: senderRole,
         message: trimmed,
         created_at: new Date().toISOString()
       };
@@ -142,7 +143,7 @@ function CakeChatBox() {
       await cakeChatService.sendMessage({
         sessionId,
         senderName,
-        senderRole: "customer",
+        senderRole: senderRole,
         message: trimmed,
         userId: currentUser?.id || null
       });
@@ -162,8 +163,8 @@ function CakeChatBox() {
   // ==========================================================================
   // CONDITIONAL RENDER: Placed at the very end AFTER all hooks have executed
   // ==========================================================================
-  // If not logged in, or if logged in as Admin/Staff, do not render customer chat
-  if (!currentUser || currentUser.role === "admin" || currentUser.role === "staff") {
+  // If not logged in (no account / logged out), do not render chat box
+  if (!currentUser) {
     return null;
   }
 
