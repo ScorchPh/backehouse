@@ -21,6 +21,8 @@ define('DB_PASS', getenv('DB_PASS') !== false ? trim((string)getenv('DB_PASS')) 
 // File Storage Data Directory (for zero-config fallback)
 define('DATA_DIR', dirname(__DIR__) . '/database/data');
 
+$GLOBALS['last_db_error'] = '';
+
 /**
  * Connects to MySQL using PDO Prepared Statements
  * @return PDO|null
@@ -35,6 +37,14 @@ function getDBConnection() {
 
     $attempted = true;
 
+    // Detect system CA bundle if available
+    $caPath = '';
+    if (file_exists('/etc/ssl/certs/ca-certificates.crt')) {
+        $caPath = '/etc/ssl/certs/ca-certificates.crt';
+    } elseif (file_exists('C:\\Windows\\System32\\curl-ca-bundle.crt')) {
+        $caPath = 'C:\\Windows\\System32\\curl-ca-bundle.crt';
+    }
+
     try {
         $dsn = "mysql:host=" . DB_HOST . ";port=" . DB_PORT . ";dbname=" . DB_NAME . ";charset=utf8mb4";
         $options = [
@@ -42,16 +52,27 @@ function getDBConnection() {
             PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
             PDO::ATTR_EMULATE_PREPARES => false,
         ];
-        if (defined('Pdo\\Mysql::ATTR_SSL_CA')) {
-            $options[\Pdo\Mysql::ATTR_SSL_CA] = '';
-            $options[\Pdo\Mysql::ATTR_SSL_VERIFY_SERVER_CERT] = false;
-        } elseif (defined('PDO::MYSQL_ATTR_SSL_CA')) {
-            $options[\PDO::MYSQL_ATTR_SSL_CA] = '';
-            $options[\PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT] = false;
+
+        // Enable SSL/TLS for TiDB Cloud or cloud databases
+        if (strpos(DB_HOST, 'tidbcloud.com') !== false || DB_PORT == 4000) {
+            if (!empty($caPath)) {
+                if (defined('Pdo\\Mysql::ATTR_SSL_CA')) {
+                    $options[\Pdo\Mysql::ATTR_SSL_CA] = $caPath;
+                } elseif (defined('PDO::MYSQL_ATTR_SSL_CA')) {
+                    $options[\PDO::MYSQL_ATTR_SSL_CA] = $caPath;
+                }
+            }
+            if (defined('Pdo\\Mysql::ATTR_SSL_VERIFY_SERVER_CERT')) {
+                $options[\Pdo\Mysql::ATTR_SSL_VERIFY_SERVER_CERT] = false;
+            } elseif (defined('PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT')) {
+                $options[\PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT] = false;
+            }
         }
+
         $pdo = new PDO($dsn, DB_USER, DB_PASS, $options);
         return $pdo;
     } catch (Exception $e) {
+        $GLOBALS['last_db_error'] = $e->getMessage();
         return null;
     }
 }

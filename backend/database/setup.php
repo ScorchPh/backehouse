@@ -17,7 +17,8 @@ require_once __DIR__ . '/../config/db.php';
 
 $pdo = getDBConnection();
 if (!$pdo) {
-    die("<h2>Database Connection Failed</h2><p>Could not connect to MySQL server on " . htmlspecialchars(DB_HOST) . ":" . htmlspecialchars(DB_PORT) . ". Please verify host, credentials, and SSL connection settings.</p>");
+    $err = !empty($GLOBALS['last_db_error']) ? $GLOBALS['last_db_error'] : 'Unknown connection error';
+    die("<h2>Database Connection Failed</h2><p>Could not connect to MySQL server on " . htmlspecialchars(DB_HOST) . ":" . htmlspecialchars(DB_PORT) . ".</p><p style='color:#c00;'><strong>Error Details:</strong> " . htmlspecialchars($err) . "</p>");
 }
 
 echo "<h1>🎂 BAKE HOUSE - Database Setup & Seeder</h1>";
