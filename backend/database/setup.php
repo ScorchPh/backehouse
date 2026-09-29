@@ -43,6 +43,8 @@ try {
 }
 echo "<p>✅ Database <strong>`" . DB_NAME . "`</strong> ready.</p>";
 
+$pdo->exec("SET FOREIGN_KEY_CHECKS = 0;");
+
 // 2. Create Users Table
 $pdo->exec("
 CREATE TABLE IF NOT EXISTS `users` (
@@ -57,7 +59,7 @@ CREATE TABLE IF NOT EXISTS `users` (
     `google_id` VARCHAR(100) NULL UNIQUE,
     `avatar` VARCHAR(500) NULL,
     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 ");
 echo "<p>✅ Table <strong>users</strong> created.</p>";
 
@@ -74,7 +76,7 @@ CREATE TABLE IF NOT EXISTS `products` (
     `status` VARCHAR(50) NOT NULL DEFAULT 'Available',
     `bestseller` TINYINT(1) NOT NULL DEFAULT 0,
     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 ");
 echo "<p>✅ Table <strong>products</strong> created.</p>";
 
@@ -93,7 +95,7 @@ CREATE TABLE IF NOT EXISTS `orders` (
     `status` VARCHAR(50) NOT NULL DEFAULT 'Pending',
     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE SET NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 ");
 echo "<p>✅ Table <strong>orders</strong> created.</p>";
 
@@ -108,7 +110,7 @@ CREATE TABLE IF NOT EXISTS `order_items` (
     `quantity` INT NOT NULL DEFAULT 1,
     `customization` JSON NULL,
     FOREIGN KEY (`order_id`) REFERENCES `orders`(`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 ");
 echo "<p>✅ Table <strong>order_items</strong> created.</p>";
 
@@ -128,7 +130,7 @@ CREATE TABLE IF NOT EXISTS `custom_cakes` (
     `status` VARCHAR(50) NOT NULL DEFAULT 'Pending',
     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE SET NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 ");
 echo "<p>✅ Table <strong>custom_cakes</strong> created.</p>";
 
@@ -141,9 +143,11 @@ CREATE TABLE IF NOT EXISTS `messages` (
     `subject` VARCHAR(255) NOT NULL,
     `message` TEXT NOT NULL,
     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 ");
 echo "<p>✅ Table <strong>messages</strong> created.</p>";
+
+$pdo->exec("SET FOREIGN_KEY_CHECKS = 1;");
 
 // ----------------------------------------------------------------------------
 // SEED USERS (Admin, Staff, Customer with password '1234')
