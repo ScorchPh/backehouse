@@ -56,15 +56,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         $grouped = [];
         foreach ($allChats as $chat) {
             $sid = $chat['session_id'] ?? 'default';
+            $isCustomer = ($chat['sender_role'] ?? '') === 'customer';
+            $sender = $chat['sender_name'] ?? 'Customer';
+
             if (!isset($grouped[$sid])) {
                 $grouped[$sid] = [
                     'session_id'      => $sid,
-                    'customer_name'   => $chat['sender_name'] ?? 'Customer',
+                    'customer_name'   => $isCustomer ? $sender : 'Customer',
                     'last_message'    => $chat['message'] ?? '',
                     'last_message_at' => $chat['created_at'] ?? date('Y-m-d H:i:s'),
                     'message_count'   => 1
                 ];
             } else {
+                if ($isCustomer && $sender !== 'Customer') {
+                    $grouped[$sid]['customer_name'] = $sender;
+                }
                 $grouped[$sid]['last_message']    = $chat['message'] ?? '';
                 $grouped[$sid]['last_message_at'] = $chat['created_at'] ?? date('Y-m-d H:i:s');
                 $grouped[$sid]['message_count']++;

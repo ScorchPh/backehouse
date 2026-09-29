@@ -224,14 +224,17 @@ function Checkout() {
           localStorage.setItem("bh_last_purchased_cake", JSON.stringify(cakeDetails));
           window.dispatchEvent(new Event("cakePurchased"));
 
-          // Post order summary message into the customer-bakery consultation chat
-          const chatSessionId = localStorage.getItem("bh_cake_chat_session") || ("session_" + res.order.id);
+          // Post order summary message into the customer's own conversation thread as the customer
+          const customerSenderName = fullName || (currentUser?.first_name ? `${currentUser.first_name} ${currentUser.last_name || ''}`.trim() : "Customer");
+          const chatSessionId = currentUser?.id ? `session_user_${currentUser.id}` : `session_${res.order.id}`;
+          localStorage.setItem("bh_cake_chat_session", chatSessionId);
+
           cakeChatService.sendMessage({
             sessionId: chatSessionId,
-            senderName: "Bake House Bot",
-            senderRole: "admin",
-            message: `🎉 Order #${res.order.id} Placed! Custom Cake: ${cakeDetails.cakeName} (${cakeDetails.size}, ${cakeDetails.flavor}, ${cakeDetails.shape}, Frosting: ${cakeDetails.color}). Message on cake: "${cakeDetails.message}". Special Request: "${cakeDetails.instructions}". Let us know here if you have any questions or clarifications!`,
-            userId: null
+            senderName: customerSenderName,
+            senderRole: "customer",
+            message: `🎂 Order #${res.order.id} Placed! Custom Cake: ${cakeDetails.cakeName} (${cakeDetails.size}, ${cakeDetails.flavor}, ${cakeDetails.shape}, Frosting: ${cakeDetails.color}). Message on cake: "${cakeDetails.message}". Special Request: "${cakeDetails.instructions}".`,
+            userId: currentUser?.id || null
           }).catch((err) => console.warn("Auto cake chat notification note:", err));
         }
 
