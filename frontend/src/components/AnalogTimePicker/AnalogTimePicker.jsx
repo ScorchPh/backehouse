@@ -86,8 +86,7 @@ function AnalogTimePicker({ value, onChange }) {
       let h = Math.round(deg / 30);
       if (h === 0) h = 12;
       setSelectedHour(h);
-      // Auto-switch to minutes mode for seamless UX
-      setTimeout(() => setMode("minutes"), 250);
+      setMode("minutes");
     } else {
       let m = Math.round(deg / 6);
       if (m === 60) m = 0;
