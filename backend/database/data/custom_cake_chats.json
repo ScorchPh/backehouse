@@ -1,0 +1,11 @@
+[
+    {
+        "id": 1,
+        "session_id": "session_user_3",
+        "user_id": 3,
+        "sender_name": "Juan Dela Cruz",
+        "sender_role": "customer",
+        "message": "Hello",
+        "created_at": "2026-09-29 05:35:42"
+    }
+]

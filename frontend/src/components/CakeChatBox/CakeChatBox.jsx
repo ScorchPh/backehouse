@@ -1,38 +1,45 @@
 /**
  * ============================================================================
- * BAKE HOUSE - Live Custom Cake Chat Box Component
+ * BAKE HOUSE - Live Cake Chat Box Component (Customer 1-to-1 & Admin 1-to-Many)
  * ============================================================================
- * Allows customers and bakers/admins to consult in real-time regarding custom
- * cake requests, decorations, tiers, delivery times, and flavors.
- * Features:
- * - Only visible to authenticated customers (hidden for guests & admin/staff)
- * - Complies strictly with React Rules of Hooks (unconditional hook execution)
- * - Automatically displays the customer's purchased custom cake order specs
- * - Real-time polling with baker online indicator
+ * Capstone Project Architecture:
+ * 1. Customer (1-to-1):
+ *    - Customers chat directly with the bakery regarding custom cake orders,
+ *      dietary restrictions, tier requests, and delivery clarifications.
+ *    - Synced with their specific user account (session_user_<id>).
+ * 2. Admin & Staff (1-to-Many):
+ *    - Admin sees all active customer conversations across the entire store.
+ *    - Displays active thread list and allows replying directly to each customer.
+ * 3. Guest / Logged Out:
+ *    - Completely hidden until logged in.
  * ============================================================================
  */
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { cakeChatService } from "../../services/cakeChatService";
 import { authService } from "../../services/authService";
+import AdminCakeChatModal from "../AdminCakeChatModal/AdminCakeChatModal";
 import "./CakeChatBox.css";
 
 function CakeChatBox() {
-  // 1. All State Hooks (Unconditional)
+  // 1. All React Hooks (Always called unconditionally in constant order)
   const [currentUser, setCurrentUser] = useState(() => authService.getCurrentUser());
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([]);
+  const [adminThreads, setAdminThreads] = useState([]);
   const [inputText, setInputText] = useState("");
   const [sending, setSending] = useState(false);
-  const [unreadCount, setUnreadCount] = useState(0);
   const messagesEndRef = useRef(null);
 
-  // 2. Persistent session identifier per customer account
+  // Determine user role
+  const isAdminOrStaff = currentUser?.role === "admin" || currentUser?.role === "staff";
+
+  // Persistent session identifier per customer account
   const sessionId = currentUser?.id
     ? `session_user_${currentUser.id}`
     : "session_guest";
 
-  // 3. Track purchased custom cake details
+  // Track purchased custom cake details
   const [purchasedCake, setPurchasedCake] = useState(() => {
     try {
       const saved = localStorage.getItem("bh_last_purchased_cake");
@@ -42,7 +49,7 @@ function CakeChatBox() {
     }
   });
 
-  // 4. Listen for login / logout state changes
+  // Listen for login / logout state changes in real time
   useEffect(() => {
     const handleAuthChange = () => {
       const user = authService.getCurrentUser();
@@ -55,7 +62,7 @@ function CakeChatBox() {
     return () => window.removeEventListener("authChange", handleAuthChange);
   }, []);
 
-  // 5. Listen for external open commands
+  // Listen for external open commands (e.g. from OrderSuccess page or button)
   useEffect(() => {
     const handleOpenChat = () => {
       if (authService.getCurrentUser()) {
@@ -85,9 +92,9 @@ function CakeChatBox() {
     };
   }, []);
 
-  // 6. Fetch messages handler
-  const fetchMessages = useCallback(async () => {
-    if (!currentUser) return;
+  // Fetch messages for customer (1-to-1)
+  const fetchCustomerMessages = useCallback(async () => {
+    if (!currentUser || isAdminOrStaff) return;
     try {
       const res = await cakeChatService.getMessages(sessionId);
       if (res && res.success && Array.isArray(res.messages)) {
@@ -96,26 +103,44 @@ function CakeChatBox() {
     } catch (err) {
       console.warn("Could not poll cake chat messages:", err);
     }
-  }, [currentUser, sessionId]);
+  }, [currentUser, isAdminOrStaff, sessionId]);
 
-  // 7. Initial load and periodic polling every 4 seconds (Hooks ALWAYS called)
-  useEffect(() => {
-    if (!currentUser) {
-      return;
+  // Fetch active customer threads for admin (1-to-Many)
+  const fetchAdminThreads = useCallback(async () => {
+    if (!currentUser || !isAdminOrStaff) return;
+    try {
+      const res = await cakeChatService.getActiveSessions();
+      if (res && res.success && Array.isArray(res.threads)) {
+        setAdminThreads(res.threads);
+      }
+    } catch (err) {
+      console.warn("Could not poll admin threads:", err);
     }
-    fetchMessages();
-    const interval = setInterval(fetchMessages, 4000);
-    return () => clearInterval(interval);
-  }, [currentUser, fetchMessages]);
+  }, [currentUser, isAdminOrStaff]);
 
-  // 8. Scroll to bottom when messages update (Hook ALWAYS called)
+  // Periodic polling every 3.5 seconds
   useEffect(() => {
-    if (isOpen) {
+    if (!currentUser) return;
+
+    if (isAdminOrStaff) {
+      fetchAdminThreads();
+      const interval = setInterval(fetchAdminThreads, 3500);
+      return () => clearInterval(interval);
+    } else {
+      fetchCustomerMessages();
+      const interval = setInterval(fetchCustomerMessages, 3500);
+      return () => clearInterval(interval);
+    }
+  }, [currentUser, isAdminOrStaff, fetchAdminThreads, fetchCustomerMessages]);
+
+  // Scroll to bottom when customer messages update
+  useEffect(() => {
+    if (isOpen && !isAdminOrStaff) {
       messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }
-  }, [messages, isOpen]);
+  }, [messages, isOpen, isAdminOrStaff]);
 
-  // Send message
+  // Customer Send Message
   const handleSendMessage = async (e) => {
     e.preventDefault();
     const trimmed = inputText.trim();
@@ -143,12 +168,12 @@ function CakeChatBox() {
       await cakeChatService.sendMessage({
         sessionId,
         senderName,
-        senderRole: senderRole,
+        senderRole,
         message: trimmed,
         userId: currentUser?.id || null
       });
 
-      fetchMessages();
+      fetchCustomerMessages();
     } catch (err) {
       console.error("Failed to send cake chat message:", err);
     } finally {
@@ -161,13 +186,43 @@ function CakeChatBox() {
   };
 
   // ==========================================================================
-  // CONDITIONAL RENDER: Placed at the very end AFTER all hooks have executed
+  // CONDITIONAL RENDER: Executed AFTER all hooks have executed unconditionally
   // ==========================================================================
-  // If not logged in (no account / logged out), do not render chat box
+
+  // 1. If not logged in (no account / logged out), do not render
   if (!currentUser) {
     return null;
   }
 
+  // 2. If logged in as ADMIN or STAFF: Show the One-to-Many Chat Manager
+  if (isAdminOrStaff) {
+    return (
+      <div className="cake-chat-wrapper">
+        <button
+          type="button"
+          className="cake-chat-trigger admin-chat-trigger"
+          onClick={() => setIsOpen(true)}
+          title="Customer Cake Inquiries (Admin Portal)"
+        >
+          <span className="chat-trigger-icon">👑</span>
+          <span className="chat-trigger-label">Customer Chats</span>
+          {adminThreads.length > 0 && (
+            <span className="chat-badge" title={`${adminThreads.length} active customer threads`}>
+              {adminThreads.length}
+            </span>
+          )}
+        </button>
+
+        {/* Full One-to-Many Multi-Customer Admin Console */}
+        <AdminCakeChatModal
+          isOpen={isOpen}
+          onClose={() => setIsOpen(false)}
+        />
+      </div>
+    );
+  }
+
+  // 3. If logged in as CUSTOMER: Show the One-to-One Bakery Chat Box
   const customerName = currentUser.first_name
     ? `${currentUser.first_name} ${currentUser.last_name || ''}`.trim()
     : currentUser.username;
@@ -179,10 +234,7 @@ function CakeChatBox() {
         <button
           type="button"
           className="cake-chat-trigger"
-          onClick={() => {
-            setIsOpen(true);
-            setUnreadCount(0);
-          }}
+          onClick={() => setIsOpen(true)}
           title="Chat with Bakery about your Cake"
         >
           <span className="chat-trigger-icon">💬</span>
@@ -193,7 +245,7 @@ function CakeChatBox() {
         </button>
       )}
 
-      {/* Expandable Chat Window */}
+      {/* Expandable Chat Window (One-to-One with Baker) */}
       {isOpen && (
         <div className="cake-chat-window">
           {/* Header */}

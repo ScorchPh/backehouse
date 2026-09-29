@@ -59,6 +59,17 @@
   border-radius: 10px;
 }
 
+.admin-chat-trigger {
+  background: linear-gradient(135deg, #2D2016 0%, #4A3324 100%) !important;
+  border: 2px solid #D4973B !important;
+  box-shadow: 0 8px 25px rgba(45, 32, 22, 0.45) !important;
+}
+
+.admin-chat-trigger .chat-badge {
+  background: #DC2626 !important;
+  box-shadow: 0 2px 6px rgba(220, 38, 38, 0.4);
+}
+
 /* Chat Window */
 .cake-chat-window {
   width: 380px;
