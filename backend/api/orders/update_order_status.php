@@ -1,26 +1,45 @@
 <?php
 /**
  * ============================================================================
- * BAKE HOUSE - Update Order Status API Endpoint (Admin & Staff)
+ * BAKE HOUSE - Update Order Status API Endpoint
  * ============================================================================
- * Features:
- * 1. Updates order status across lifecycle:
+ * Endpoint: POST or PUT /api/orders/update_order_status.php
+ * Role: Admin & Staff order fulfillment
+ * Accepts: JSON payload { id: "BH-1008", status: "Preparing", reason: "..." }
+ *
+ * KEY FEATURES:
+ * 1. Order Lifecycle Transitions:
  *    Pending -> Confirmed -> Preparing -> Ready for Pickup / For Delivery -> Completed.
- * 2. Deny / Cancel with Reason:
- *    Accepts 'Denied' or 'Cancelled' along with a mandatory or optional reason string.
- * 3. Inventory Stock Replenishment:
- *    When an order is Denied or Cancelled, automatically refunds reserved catalog stock!
+ * 2. Cancellation / Denial Reason:
+ *    Stores reason string when an order is Denied or Cancelled.
+ * 3. Automated Inventory Replenishment:
+ *    If an active order is Denied or Cancelled, automatically refunds the reserved
+ *    product inventory back into the products catalog table!
  * ============================================================================
  */
 
+// ----------------------------------------------------------------------------
+// STEP 1: Load Database Configuration & Helpers
+// ----------------------------------------------------------------------------
 require_once __DIR__ . '/../../config/db.php';
 
+
+// ----------------------------------------------------------------------------
+// STEP 2: Enforce HTTP Method Verification
+// ----------------------------------------------------------------------------
 if ($_SERVER['REQUEST_METHOD'] !== 'POST' && $_SERVER['REQUEST_METHOD'] !== 'PUT') {
-    sendResponse(['success' => false, 'message' => 'Method not allowed. Use POST or PUT.'], 405);
+    sendResponse([
+        'success' => false,
+        'message' => 'Method not allowed. Use POST or PUT.'
+    ], 405);
 }
 
-$data = getRequestBody();
-$id = trim($data['id'] ?? $_GET['id'] ?? '');
+
+// ----------------------------------------------------------------------------
+// STEP 3: Receive and Validate Inputs
+// ----------------------------------------------------------------------------
+$data   = getRequestBody();
+$id     = trim($data['id'] ?? $_GET['id'] ?? '');
 $status = trim($data['status'] ?? '');
 $reason = trim($data['reason'] ?? $data['denial_reason'] ?? $data['cancellation_reason'] ?? '');
 
@@ -36,39 +55,58 @@ $allowedStatuses = [
 ];
 
 if (empty($id) || empty($status)) {
-    sendResponse(['success' => false, 'message' => 'Order ID and status are required.'], 400);
+    sendResponse([
+        'success' => false,
+        'message' => 'Order ID and status are required.'
+    ], 400);
 }
 
 if (!in_array($status, $allowedStatuses)) {
-    sendResponse(['success' => false, 'message' => 'Invalid status. Allowed: ' . implode(', ', $allowedStatuses)], 400);
+    sendResponse([
+        'success' => false,
+        'message' => 'Invalid status. Allowed statuses: ' . implode(', ', $allowedStatuses)
+    ], 400);
 }
 
+
+// ----------------------------------------------------------------------------
+// STEP 4: Update Order in Database (Primary: MySQL/TiDB | Fallback: JSON)
+// ----------------------------------------------------------------------------
 $pdo = getDBConnection();
 
 if ($pdo) {
+    // ------------------------------------------------------------------------
+    // CASE A: Live MySQL / TiDB Cloud Connection
+    // ------------------------------------------------------------------------
     try {
-        // Fetch current order to check previous status and items for stock restoration
+        // Fetch current order to check previous status and prevent double refunds
         $checkStmt = $pdo->prepare("SELECT * FROM orders WHERE id = :id");
         $checkStmt->execute(['id' => $id]);
         $currentOrder = $checkStmt->fetch(PDO::FETCH_ASSOC);
 
         if (!$currentOrder) {
-            sendResponse(['success' => false, 'message' => 'Order not found.'], 404);
+            sendResponse([
+                'success' => false,
+                'message' => 'Order not found.'
+            ], 404);
         }
 
         $prevStatus = $currentOrder['status'] ?? 'Pending';
 
-        // Update order status and denial reason
+        // Update the status
         $stmt = $pdo->prepare("UPDATE orders SET status = :status WHERE id = :id");
         $stmt->execute(['status' => $status, 'id' => $id]);
 
-        // If transitioning to Denied or Cancelled from an active status, replenish inventory stock
+        // AUTOMATED INVENTORY REPLENISHMENT:
+        // When transitioning to 'Denied' or 'Cancelled' from an active status,
+        // automatically restore reserved quantities back to stock!
         if (in_array($status, ['Denied', 'Cancelled']) && !in_array($prevStatus, ['Denied', 'Cancelled', 'Completed'])) {
             $itemsStmt = $pdo->prepare("SELECT product_id, quantity FROM order_items WHERE order_id = :id");
             $itemsStmt->execute(['id' => $id]);
             $orderItems = $itemsStmt->fetchAll(PDO::FETCH_ASSOC);
 
             foreach ($orderItems as $it) {
+                // Ignore custom 3D cakes (which use ID >= 1000000 or null)
                 if (!empty($it['product_id']) && (int)$it['product_id'] < 1000000) {
                     $stockStmt = $pdo->prepare("UPDATE products SET stock = stock + :qty WHERE id = :pid");
                     $stockStmt->execute([
@@ -80,47 +118,55 @@ if ($pdo) {
         }
 
         sendResponse([
-            'success' => true,
-            'message' => "Order {$id} status updated to '{$status}'." . (!empty($reason) ? " Reason: {$reason}" : ""),
+            'success'  => true,
+            'message'  => "Order {$id} status updated to '{$status}'." . (!empty($reason) ? " Reason: {$reason}" : ""),
             'order_id' => $id,
-            'status' => $status,
-            'reason' => $reason
+            'status'   => $status,
+            'reason'   => $reason
         ], 200);
+
     } catch (PDOException $e) {
-        sendResponse(['success' => false, 'message' => 'Database error: ' . $e->getMessage()], 500);
+        sendResponse([
+            'success' => false,
+            'message' => 'Database error: ' . $e->getMessage()
+        ], 500);
     }
+
 } else {
-    $orders = readDataStore('orders');
-    $found = false;
+    // ------------------------------------------------------------------------
+    // CASE B: Offline / Fallback Mode (Using JSON file store)
+    // ------------------------------------------------------------------------
+    $orders      = readDataStore('orders');
+    $found       = false;
     $targetOrder = null;
 
     foreach ($orders as &$o) {
         if ($o['id'] === $id) {
-            $prevStatus = $o['status'] ?? 'Pending';
+            $prevStatus  = $o['status'] ?? 'Pending';
             $o['status'] = $status;
             
             if (!empty($reason)) {
-                $o['denial_reason'] = $reason;
+                $o['denial_reason']       = $reason;
                 $o['cancellation_reason'] = $reason;
-                $o['denied_at'] = date('Y-m-d H:i:s');
+                $o['denied_at']            = date('Y-m-d H:i:s');
             }
 
             $targetOrder = $o;
-            $found = true;
+            $found       = true;
 
             // Replenish stock in products.json if denied/cancelled
             if (in_array($status, ['Denied', 'Cancelled']) && !in_array($prevStatus, ['Denied', 'Cancelled', 'Completed'])) {
                 $products = readDataStore('products');
-                $items = $o['items'] ?? [];
+                $items    = $o['items'] ?? [];
 
                 foreach ($items as $item) {
                     $prodId = $item['product_id'] ?? $item['id'] ?? null;
-                    $qty = (int)($item['quantity'] ?? 1);
+                    $qty    = (int)($item['quantity'] ?? 1);
 
                     if ($prodId && (int)$prodId < 1000000) {
                         foreach ($products as &$p) {
                             if ((int)$p['id'] === (int)$prodId) {
-                                $p['stock'] = (int)($p['stock'] ?? 0) + $qty;
+                                $p['stock']  = (int)($p['stock'] ?? 0) + $qty;
                                 $p['status'] = $p['stock'] <= 0 ? 'Out of Stock' : ($p['stock'] <= 5 ? 'Low Stock' : 'Available');
                                 break;
                             }
@@ -135,17 +181,21 @@ if ($pdo) {
     }
 
     if (!$found) {
-        sendResponse(['success' => false, 'message' => 'Order not found.'], 404);
+        sendResponse([
+            'success' => false,
+            'message' => 'Order not found.'
+        ], 404);
     }
 
     writeDataStore('orders', $orders);
+
     sendResponse([
-        'success' => true,
-        'message' => "Order {$id} status updated to '{$status}'." . (!empty($reason) ? " Reason: {$reason}" : ""),
+        'success'  => true,
+        'message'  => "Order {$id} status updated to '{$status}'." . (!empty($reason) ? " Reason: {$reason}" : ""),
         'order_id' => $id,
-        'status' => $status,
-        'reason' => $reason,
-        'order' => $targetOrder
+        'status'   => $status,
+        'reason'   => $reason,
+        'order'    => $targetOrder
     ], 200);
 }
 ?>

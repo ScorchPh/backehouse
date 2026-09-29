@@ -2,20 +2,46 @@
 /**
  * ============================================================================
  * BAKE HOUSE - Sales Reports & Analytics API Endpoint
+ * ============================================================================
  * Endpoint: GET /api/admin/reports.php
+ * Role: Admin analytics & reporting
+ *
+ * PURPOSE:
+ * Generates aggregated analytical breakdowns for administrative reports and charts:
+ * 1. Category Sales Breakdown (Revenue & quantity sold per category: Cakes, Pastries, Bread)
+ * 2. Payment Method Distribution (GCash, Cash on Delivery, Maya)
+ * 3. Monthly Sales Velocity (6-month historical revenue trend)
  * ============================================================================
  */
 
+// ----------------------------------------------------------------------------
+// STEP 1: Load Database Configuration & Helpers
+// ----------------------------------------------------------------------------
 require_once __DIR__ . '/../../config/db.php';
 
+
+// ----------------------------------------------------------------------------
+// STEP 2: Enforce HTTP Method Verification
+// ----------------------------------------------------------------------------
 if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
-    sendResponse(['success' => false, 'message' => 'Method not allowed. Use GET.'], 405);
+    sendResponse([
+        'success' => false,
+        'message' => 'Method not allowed. Use GET.'
+    ], 405);
 }
 
+
+// ----------------------------------------------------------------------------
+// STEP 3: Aggregate Analytics (Primary: MySQL/TiDB | Fallback: JSON)
+// ----------------------------------------------------------------------------
 $pdo = getDBConnection();
 
 if ($pdo) {
+    // ------------------------------------------------------------------------
+    // CASE A: Live MySQL / TiDB Cloud Connection
+    // ------------------------------------------------------------------------
     try {
+        // 1. Sales by Product Category
         $stmtCat = $pdo->query("
             SELECT COALESCE(p.category, 'Customized') as category,
                    COUNT(oi.id) as items_sold,
@@ -26,6 +52,7 @@ if ($pdo) {
         ");
         $categorySales = $stmtCat->fetchAll();
 
+        // 2. Sales by Payment Method
         $stmtPay = $pdo->query("
             SELECT payment_method,
                    COUNT(*) as order_count,
@@ -35,6 +62,7 @@ if ($pdo) {
         ");
         $paymentStats = $stmtPay->fetchAll();
 
+        // 3. Historical Monthly Revenue (Past 6 Months)
         $stmtMonthly = $pdo->query("
             SELECT DATE_FORMAT(created_at, '%b %Y') as month_year,
                    COUNT(*) as total_orders,
@@ -47,44 +75,65 @@ if ($pdo) {
         $monthlySales = $stmtMonthly->fetchAll();
 
         sendResponse([
-            'success' => true,
+            'success'        => true,
             'category_sales' => $categorySales,
-            'payment_stats' => $paymentStats,
-            'monthly_sales' => $monthlySales
+            'payment_stats'  => $paymentStats,
+            'monthly_sales'  => $monthlySales
         ], 200);
 
     } catch (PDOException $e) {
-        sendResponse(['success' => false, 'message' => 'Reports error: ' . $e->getMessage()], 500);
+        sendResponse([
+            'success' => false,
+            'message' => 'Reports error: ' . $e->getMessage()
+        ], 500);
     }
+
 } else {
-    $orders = readDataStore('orders');
+    // ------------------------------------------------------------------------
+    // CASE B: Offline / Fallback Mode (Using JSON file store)
+    // ------------------------------------------------------------------------
+    $orders      = readDataStore('orders');
     $categoryMap = ['Cakes' => 0.0, 'Pastries' => 0.0, 'Breads' => 0.0, 'Customized' => 0.0];
-    $paymentMap = ['Cash on Delivery' => 0.0, 'GCash' => 0.0, 'Maya' => 0.0];
+    $paymentMap  = ['Cash on Delivery' => 0.0, 'GCash' => 0.0, 'Maya' => 0.0];
 
     foreach ($orders as $o) {
-        $pm = $o['payment_method'] ?? 'Cash on Delivery';
+        $pm              = $o['payment_method'] ?? 'Cash on Delivery';
         $paymentMap[$pm] = ($paymentMap[$pm] ?? 0.0) + (float)($o['total'] ?? 0);
 
         if (isset($o['items']) && is_array($o['items'])) {
             foreach ($o['items'] as $it) {
                 $pName = strtolower($it['product_name'] ?? '');
-                $sub = (float)($it['price'] ?? 0) * (int)($it['quantity'] ?? 1);
-                if (strpos($pName, 'cake') !== false) $categoryMap['Cakes'] += $sub;
-                elseif (strpos($pName, 'croissant') !== false || strpos($pName, 'roll') !== false || strpos($pName, 'muffin') !== false) $categoryMap['Pastries'] += $sub;
-                elseif (strpos($pName, 'bread') !== false || strpos($pName, 'pandesal') !== false) $categoryMap['Breads'] += $sub;
-                else $categoryMap['Customized'] += $sub;
+                $sub   = (float)($it['price'] ?? 0) * (int)($it['quantity'] ?? 1);
+
+                if (strpos($pName, 'cake') !== false) {
+                    $categoryMap['Cakes'] += $sub;
+                } elseif (strpos($pName, 'croissant') !== false || strpos($pName, 'roll') !== false || strpos($pName, 'muffin') !== false) {
+                    $categoryMap['Pastries'] += $sub;
+                } elseif (strpos($pName, 'bread') !== false || strpos($pName, 'pandesal') !== false) {
+                    $categoryMap['Breads'] += $sub;
+                } else {
+                    $categoryMap['Customized'] += $sub;
+                }
             }
         }
     }
 
     $categorySales = [];
     foreach ($categoryMap as $cat => $tot) {
-        $categorySales[] = ['category' => $cat, 'total_sales' => $tot, 'items_sold' => ceil($tot / 150)];
+        $categorySales[] = [
+            'category'    => $cat,
+            'total_sales' => $tot,
+            'items_sold'  => ceil($tot / 150)
+        ];
     }
 
     $paymentStats = [];
     foreach ($paymentMap as $pm => $tot) {
-        $paymentStats[] = ['payment_method' => $pm, 'total_amount' => $tot, 'order_count' => ceil($tot / 800)];
+        $paymentStats[] = [
+            'payment_method' => $pm,
+            'total_amount'   => $tot,
+            'order_count'    => ceil($tot / 800)
+        ];
     }
 
     $monthlySales = [
@@ -94,10 +143,10 @@ if ($pdo) {
     ];
 
     sendResponse([
-        'success' => true,
+        'success'        => true,
         'category_sales' => $categorySales,
-        'payment_stats' => $paymentStats,
-        'monthly_sales' => $monthlySales
+        'payment_stats'  => $paymentStats,
+        'monthly_sales'  => $monthlySales
     ], 200);
 }
 ?>

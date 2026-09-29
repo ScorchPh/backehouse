@@ -2,22 +2,47 @@
 /**
  * ============================================================================
  * BAKE HOUSE - Get Cake Customizer Options API Endpoint
+ * ============================================================================
  * Endpoint: GET /api/personalize/get_customizer_options.php
+ *
+ * PURPOSE:
+ * Serves the interactive 3D / 2D Cake Builder configuration:
+ * - Base price & required advance preparation days
+ * - Available sizes and tier options with price modifiers
+ * - Batter flavors with price adjustments
+ * - Cake shapes (Round, Square, Heart, Star)
+ * - Frosting colors with HEX palette codes
+ * - Occasion themes (Birthday, Wedding, Anniversary, etc.)
  * ============================================================================
  */
 
+// ----------------------------------------------------------------------------
+// STEP 1: Load Database Configuration & Helpers
+// ----------------------------------------------------------------------------
 require_once __DIR__ . '/../../config/db.php';
 
+
+// ----------------------------------------------------------------------------
+// STEP 2: Enforce HTTP Method Verification
+// ----------------------------------------------------------------------------
 if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
-    sendResponse(['success' => false, 'message' => 'Method not allowed. Use GET.'], 405);
+    sendResponse([
+        'success' => false,
+        'message' => 'Method not allowed. Use GET.'
+    ], 405);
 }
 
+
+// ----------------------------------------------------------------------------
+// STEP 3: Load Configuration from JSON Store
+// ----------------------------------------------------------------------------
+// The customizer options are stored as a flexible JSON document in customizer_options.json
 $options = readDataStore('customizer_options');
 
-// If empty fallback, provide default options
+// If empty or not yet seeded, provide comprehensive production defaults
 if (empty($options) || !is_array($options)) {
     $options = [
-        'base_price' => 700,
+        'base_price'   => 700,
         'advance_days' => 1,
         'sizes' => [
             ['id' => 's1', 'name' => '6 inches', 'price_modifier' => 0, 'description' => 'Serves 4–6 persons', 'active' => true],
@@ -62,6 +87,10 @@ if (empty($options) || !is_array($options)) {
     writeDataStore('customizer_options', $options);
 }
 
+
+// ----------------------------------------------------------------------------
+// STEP 4: Return Configuration Payload
+// ----------------------------------------------------------------------------
 sendResponse([
     'success' => true,
     'options' => $options
