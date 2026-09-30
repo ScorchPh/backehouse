@@ -236,6 +236,7 @@
 
 .banner-top.clickable {
   cursor: pointer;
+  -webkit-user-select: none;
   user-select: none;
   padding: 2px 0;
   border-radius: 6px;
@@ -404,7 +405,7 @@
   background: #FFFFFF;
   border-top: 1px solid #F3EAE0;
   overflow-x: auto;
-  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 
 .quick-suggestions::-webkit-scrollbar {

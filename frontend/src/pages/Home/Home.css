@@ -84,7 +84,7 @@
         flex-direction: column-reverse;
         text-align: center;
         padding: 40px 20px 60px;
-        min-height: auto;
+        min-height: 0;
         gap: 32px;
     }
 
