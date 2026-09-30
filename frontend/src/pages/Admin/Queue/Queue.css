@@ -527,12 +527,101 @@
 
 @media (max-width: 768px) {
   .kitchen-queue-page {
-    padding: 15px;
+    padding: 14px 10px 24px;
   }
+
+  .queue-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .queue-header h1 {
+    font-size: 1.45rem;
+  }
+
+  .queue-header-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+
   .queue-tab-selector-bar {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 16px;
   }
+
+  .queue-main-tab {
+    padding: 12px;
+    gap: 10px;
+    border-radius: 12px;
+  }
+
+  .queue-main-tab .tab-icon {
+    font-size: 1.4rem;
+  }
+
+  .tab-text-group strong {
+    font-size: 0.95rem;
+  }
+
+  .tab-text-group small {
+    font-size: 0.75rem;
+  }
+
+  .queue-count-pill {
+    font-size: 0.95rem;
+    padding: 4px 10px;
+    border-radius: 8px;
+  }
+
+  .queue-status-track {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+
+  .status-track-step {
+    padding: 10px 12px;
+    gap: 8px;
+    border-radius: 12px;
+  }
+
+  .step-icon {
+    font-size: 1.25rem;
+  }
+
+  .status-track-step span {
+    font-size: 0.7rem;
+  }
+
+  .status-track-step strong {
+    font-size: 1.15rem;
+  }
+
   .queue-cards-grid {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .queue-card-actions {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .queue-card-actions button {
+    width: 100%;
+  }
+
+  .queue-empty-state {
+    padding: 40px 16px;
+    border-radius: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .queue-tab-selector-bar {
     grid-template-columns: 1fr;
   }
 }

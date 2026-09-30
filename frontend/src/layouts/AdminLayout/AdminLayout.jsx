@@ -23,6 +23,7 @@ function AdminLayout() {
   const location = useLocation();
   const [currentUser, setCurrentUser] = useState(() => authService.getCurrentUser());
   const [isCakeChatOpen, setIsCakeChatOpen] = useState(false);
+  const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
   const { orders } = useOrders();
 
   // Active queue count (Pending, Confirmed, Preparing, Ready for Pickup, For Delivery)
@@ -40,6 +41,23 @@ function AdminLayout() {
     return () => window.removeEventListener("authChange", handleAuthChange);
   }, []);
 
+  // Close mobile drawer on route navigation
+  useEffect(() => {
+    setIsMobileNavOpen(false);
+  }, [location.pathname]);
+
+  // Lock body scroll when mobile drawer is open
+  useEffect(() => {
+    if (isMobileNavOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [isMobileNavOpen]);
+
   const handleLogout = () => {
     authService.logout();
     navigate("/account");
@@ -55,19 +73,36 @@ function AdminLayout() {
 
   return (
     <div className="bakesmart-admin-layout">
-      {/* 1. LEFT SIDEBAR */}
-      <aside className="bakesmart-sidebar">
+      {/* Mobile Backdrop Overlay */}
+      <div
+        className={`bakesmart-sidebar-overlay ${isMobileNavOpen ? "active" : ""}`}
+        onClick={() => setIsMobileNavOpen(false)}
+        aria-hidden="true"
+      />
+
+      {/* 1. LEFT SIDEBAR (Off-canvas drawer on mobile) */}
+      <aside className={`bakesmart-sidebar ${isMobileNavOpen ? "mobile-open" : ""}`}>
         {/* Brand Header */}
         <div className="bakesmart-brand">
-          <div className="bakesmart-brand-icon">
-            <svg viewBox="0 0 24 24" fill="currentColor" width="22" height="22">
-              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8 0-1.55.45-3 1.22-4.23l11.01 11.01C13.99 19.45 13.04 20 12 20zm6.78-3.77L7.77 5.22C8.99 4.45 10.44 4 12 4c4.41 0 8 3.59 8 8 0 1.56-.45 3.01-1.22 4.23z"/>
-            </svg>
+          <div className="bakesmart-brand-left">
+            <div className="bakesmart-brand-icon">
+              <svg viewBox="0 0 24 24" fill="currentColor" width="22" height="22">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8 0-1.55.45-3 1.22-4.23l11.01 11.01C13.99 19.45 13.04 20 12 20zm6.78-3.77L7.77 5.22C8.99 4.45 10.44 4 12 4c4.41 0 8 3.59 8 8 0 1.56-.45 3.01-1.22 4.23z"/>
+              </svg>
+            </div>
+            <div className="bakesmart-brand-text">
+              <h2>BAKE HOUSE</h2>
+              <span>{role === 'staff' ? 'STAFF PORTAL' : 'ADMIN PORTAL'}</span>
+            </div>
           </div>
-          <div className="bakesmart-brand-text">
-            <h2>BAKE HOUSE</h2>
-            <span>{role === 'staff' ? 'STAFF PORTAL' : 'ADMIN PORTAL'}</span>
-          </div>
+          <button
+            type="button"
+            className="bakesmart-sidebar-close-btn"
+            onClick={() => setIsMobileNavOpen(false)}
+            aria-label="Close navigation menu"
+          >
+            ✕
+          </button>
         </div>
 
         {/* Navigation Menu */}
@@ -177,13 +212,25 @@ function AdminLayout() {
       <div className="bakesmart-main-container">
         {/* Top Operations Header */}
         <header className="bakesmart-top-header">
-          <div className="bakesmart-search-wrapper">
-            <span className="search-icon">🔍</span>
-            <input
-              type="text"
-              placeholder="Search orders, ingredients, or riders..."
-              className="bakesmart-search-input"
-            />
+          <div className="bakesmart-header-left">
+            <button
+              type="button"
+              className="bakesmart-hamburger-btn"
+              onClick={() => setIsMobileNavOpen(true)}
+              title="Open Navigation Menu"
+              aria-label="Open Navigation Menu"
+            >
+              ☰
+            </button>
+
+            <div className="bakesmart-search-wrapper">
+              <span className="search-icon">🔍</span>
+              <input
+                type="text"
+                placeholder="Search orders, ingredients, or riders..."
+                className="bakesmart-search-input"
+              />
+            </div>
           </div>
 
           <div className="bakesmart-header-actions">
@@ -193,12 +240,12 @@ function AdminLayout() {
               onClick={() => setIsCakeChatOpen(true)}
               title="Customer Cake Consultations"
             >
-              💬 <span>Cake Consults</span>
+              💬 <span className="btn-text-responsive">Cake Consults</span>
             </button>
 
-            <div className="bakesmart-live-badge">
+            <div className="bakesmart-live-badge" title="Live Operations Active">
               <span className="live-dot"></span>
-              Live Operations
+              <span className="badge-text-responsive">Live Operations</span>
             </div>
 
             <button className="header-icon-btn" title="Notifications">

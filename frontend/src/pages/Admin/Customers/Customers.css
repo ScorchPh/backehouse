@@ -225,6 +225,17 @@
 
 @media (max-width: 600px) {
   .customers-page {
-    padding: 20px;
+    padding: 12px 6px;
+  }
+
+  .customers-tools {
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+  }
+
+  .customers-tools input,
+  .customers-tools select {
+    width: 100%;
   }
 }
