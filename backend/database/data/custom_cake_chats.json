@@ -14,7 +14,16 @@
         "user_id": 3,
         "sender_name": "Juan Dela Cruz",
         "sender_role": "customer",
-        "message": "🎂 Order #BH-6ABB5F0846 Placed! Custom Cake: Birthday Custom Cake (10 inches, Chocolate, Square, Frosting: White). Message on cake: \"Happy Birtday MwemWE\". Special Request: \"AHAHAHHAHAHA\".",
+        "message": "\ud83c\udf82 Order #BH-6ABB5F0846 Placed! Custom Cake: Birthday Custom Cake (10 inches, Chocolate, Square, Frosting: White). Message on cake: \"Happy Birtday MwemWE\". Special Request: \"AHAHAHHAHAHA\".",
         "created_at": "2026-09-29 06:47:36"
+    },
+    {
+        "id": 3,
+        "session_id": "session_user_3",
+        "user_id": 1,
+        "sender_name": "Store",
+        "sender_role": "admin",
+        "message": "[IMAGE]: /uploads/productimg/prod_1791186893_db295e69.jpg",
+        "created_at": "2026-10-05 07:54:53"
     }
 ]

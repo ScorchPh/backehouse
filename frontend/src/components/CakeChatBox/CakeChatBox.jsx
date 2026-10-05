@@ -352,6 +352,21 @@ function CakeChatBox() {
               const isMe = m.sender_role === "customer";
               const timeString = m.created_at ? new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
 
+              // Check if message is a product photo from baker or customer
+              let imgData = null;
+              if (m.message && typeof m.message === "string" && m.message.trim().startsWith("[IMAGE]:")) {
+                const payload = m.message.trim().replace(/^\[IMAGE\]:\s*/i, "");
+                const separatorIdx = payload.indexOf("|");
+                if (separatorIdx !== -1) {
+                  imgData = {
+                    imageUrl: payload.slice(0, separatorIdx).trim(),
+                    caption: payload.slice(separatorIdx + 1).trim()
+                  };
+                } else {
+                  imgData = { imageUrl: payload.trim(), caption: "" };
+                }
+              }
+
               return (
                 <div
                   key={m.id || idx}
@@ -360,7 +375,36 @@ function CakeChatBox() {
                   <span className="bubble-sender">
                     {isMe ? "You" : `👨‍🍳 ${m.sender_name || 'Baker'}`}
                   </span>
-                  <p>{m.message}</p>
+
+                  {imgData ? (
+                    <div className="chat-photo-attachment">
+                      <div className="photo-label-row">
+                        <span>{isMe ? "📷 Photo Sent" : "🎂 Product Photo from Baker"}</span>
+                      </div>
+                      <div
+                        className="photo-thumb-container"
+                        onClick={() => window.open(imgData.imageUrl.startsWith("http") ? imgData.imageUrl : `http://localhost:8000${imgData.imageUrl}`, "_blank")}
+                        title="Click to open full photo"
+                      >
+                        <img
+                          src={imgData.imageUrl}
+                          alt="Product or Reference"
+                          className="customer-chat-photo"
+                          onError={(e) => {
+                            if (!imgData.imageUrl.startsWith("http")) {
+                              e.target.src = `http://localhost:8000${imgData.imageUrl}`;
+                            }
+                          }}
+                        />
+                      </div>
+                      {imgData.caption && (
+                        <p className="photo-caption-text">{imgData.caption}</p>
+                      )}
+                    </div>
+                  ) : (
+                    <p>{m.message}</p>
+                  )}
+
                   {timeString && <span className="bubble-time">{timeString}</span>}
                 </div>
               );

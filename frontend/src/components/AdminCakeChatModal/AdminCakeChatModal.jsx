@@ -10,6 +10,7 @@
 import { useState, useEffect, useRef } from "react";
 import { cakeChatService } from "../../services/cakeChatService";
 import { authService } from "../../services/authService";
+import { productService } from "../../services/productService";
 import "./AdminCakeChatModal.css";
 
 const BAKER_QUICK_REPLIES = [
@@ -68,6 +69,32 @@ function parseCakeOrderMessage(text) {
   };
 }
 
+/**
+ * NOTE TO BE REVIEWED LATER:
+ * Image message parser.
+ * Detects if the message contains an uploaded product/cake photo:
+ * Format: [IMAGE]: /uploads/productimg/prod_123.jpg | Optional Caption
+ */
+function parseImageMessage(text) {
+  if (!text || typeof text !== "string") return null;
+  const trimmed = text.trim();
+  if (trimmed.startsWith("[IMAGE]:")) {
+    const payload = trimmed.replace(/^\[IMAGE\]:\s*/i, "");
+    const separatorIdx = payload.indexOf("|");
+    if (separatorIdx !== -1) {
+      return {
+        imageUrl: payload.slice(0, separatorIdx).trim(),
+        caption: payload.slice(separatorIdx + 1).trim()
+      };
+    }
+    return { imageUrl: payload.trim(), caption: "" };
+  }
+  if (/^\/uploads\/productimg\/[^\s]+$/i.test(trimmed)) {
+    return { imageUrl: trimmed, caption: "" };
+  }
+  return null;
+}
+
 function AdminCakeChatModal({ isOpen, onClose }) {
   const [threads, setThreads] = useState([]);
   const [selectedSessionId, setSelectedSessionId] = useState(null);
@@ -77,8 +104,15 @@ function AdminCakeChatModal({ isOpen, onClose }) {
   const [loadingThreads, setLoadingThreads] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [copiedOrderId, setCopiedOrderId] = useState(null);
+
+  // Picture attachment state for product photo preview
+  const [selectedImageFile, setSelectedImageFile] = useState(null);
+  const [imagePreviewUrl, setImagePreviewUrl] = useState(null);
+  const [zoomedImage, setZoomedImage] = useState(null);
+
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
+  const fileInputRef = useRef(null);
 
   const currentUser = authService.getCurrentUser();
   const adminName = currentUser ? (currentUser.first_name || currentUser.username) : "Baker";
@@ -155,22 +189,59 @@ function AdminCakeChatModal({ isOpen, onClose }) {
     }
   };
 
-  // Send Admin Reply
+  // Select photo file handler
+  const handleFileSelect = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      alert("Please select a valid image file (JPG, PNG, WEBP, JFIF).");
+      return;
+    }
+    setSelectedImageFile(file);
+    setImagePreviewUrl(URL.createObjectURL(file));
+  };
+
+  const handleCancelImage = () => {
+    setSelectedImageFile(null);
+    if (imagePreviewUrl) {
+      URL.revokeObjectURL(imagePreviewUrl);
+      setImagePreviewUrl(null);
+    }
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  // Send Admin Reply (with optional product image upload)
   const handleSendReply = async (e) => {
     e.preventDefault();
     const trimmed = replyText.trim();
-    if (!trimmed || !selectedSessionId || sending) return;
+    if ((!trimmed && !selectedImageFile) || !selectedSessionId || sending) return;
 
     try {
       setSending(true);
+
+      let finalUploadedUrl = "";
+      if (selectedImageFile) {
+        const uploadRes = await productService.uploadProductImage(selectedImageFile);
+        if (uploadRes && uploadRes.image_url) {
+          finalUploadedUrl = uploadRes.image_url;
+        } else {
+          throw new Error(uploadRes.error || "Failed to upload product picture.");
+        }
+      }
+
+      const finalMessage = finalUploadedUrl
+        ? (trimmed ? `[IMAGE]: ${finalUploadedUrl} | ${trimmed}` : `[IMAGE]: ${finalUploadedUrl}`)
+        : trimmed;
+
       setReplyText("");
+      handleCancelImage();
 
       const optimistic = {
         id: Date.now(),
         session_id: selectedSessionId,
         sender_name: adminName,
         sender_role: "admin",
-        message: trimmed,
+        message: finalMessage,
         created_at: new Date().toISOString()
       };
       setMessages((prev) => [...prev, optimistic]);
@@ -179,13 +250,14 @@ function AdminCakeChatModal({ isOpen, onClose }) {
         sessionId: selectedSessionId,
         senderName: adminName,
         senderRole: currentUser?.role || "admin",
-        message: trimmed,
+        message: finalMessage,
         userId: currentUser?.id || null
       });
 
       loadMessages(selectedSessionId);
     } catch (err) {
       console.error("Failed to send admin reply:", err);
+      alert("Error: " + err.message);
     } finally {
       setSending(false);
     }
@@ -260,6 +332,14 @@ function AdminCakeChatModal({ isOpen, onClose }) {
                   ? new Date(t.last_message_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
                   : "";
 
+                // Format preview for photos or custom orders
+                let previewText = t.last_message || "No messages";
+                if (previewText.startsWith("[IMAGE]:")) {
+                  const parts = previewText.replace(/^\[IMAGE\]:\s*/i, "").split("|");
+                  const caption = parts[1] ? parts[1].trim() : "";
+                  previewText = caption ? `📷 Photo: ${caption}` : "📷 [Sent a Product Photo]";
+                }
+
                 return (
                   <div
                     key={t.session_id}
@@ -272,7 +352,7 @@ function AdminCakeChatModal({ isOpen, onClose }) {
                         <strong>{t.customer_name || "Customer"}</strong>
                         <span className="thread-time">{timeStr}</span>
                       </div>
-                      <p className="thread-preview">{t.last_message || "No messages"}</p>
+                      <p className="thread-preview">{previewText}</p>
                     </div>
                   </div>
                 );
@@ -293,9 +373,6 @@ function AdminCakeChatModal({ isOpen, onClose }) {
                       </strong>
                       <div className="customer-meta-row">
                         <span className="active-status-dot">● Active Consultation</span>
-                        <span className="session-tag" title={selectedSessionId}>
-                          Session: {selectedSessionId.slice(0, 10)}...
-                        </span>
                       </div>
                     </div>
                   </div>
@@ -324,8 +401,9 @@ function AdminCakeChatModal({ isOpen, onClose }) {
                         ? new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
                         : "";
 
-                      // NOTE TO BE REVIEWED LATER: Check if message is an automated cake order specification
+                      // NOTE TO BE REVIEWED LATER: Check for custom cake spec or product image attachment
                       const cakeOrder = !isAdmin ? parseCakeOrderMessage(m.message) : null;
+                      const imgData = parseImageMessage(m.message);
 
                       return (
                         <div
@@ -337,7 +415,33 @@ function AdminCakeChatModal({ isOpen, onClose }) {
                               {isAdmin ? `👨‍🍳 ${m.sender_name} (Baker Staff)` : `👤 ${m.sender_name}`}
                             </span>
 
-                            {cakeOrder ? (
+                            {imgData ? (
+                              <div className="cake-photo-card">
+                                <div className="photo-card-header">
+                                  <span>{isAdmin ? "🎂 Cake / Product Photo" : "📸 Customer Photo Reference"}</span>
+                                  <span className="photo-zoom-hint">🔍 Click to zoom</span>
+                                </div>
+                                <div
+                                  className="photo-img-wrap"
+                                  onClick={() => setZoomedImage(imgData.imageUrl)}
+                                  title="Click to view full size"
+                                >
+                                  <img
+                                    src={imgData.imageUrl}
+                                    alt="Product or Reference"
+                                    className="chat-embedded-photo"
+                                    onError={(e) => {
+                                      if (!imgData.imageUrl.startsWith("http")) {
+                                        e.target.src = `http://localhost:8000${imgData.imageUrl}`;
+                                      }
+                                    }}
+                                  />
+                                </div>
+                                {imgData.caption && (
+                                  <p className="photo-caption-text">{imgData.caption}</p>
+                                )}
+                              </div>
+                            ) : cakeOrder ? (
                               <div className="cake-spec-card">
                                 <div className="cake-spec-header">
                                   <span className="spec-badge-title">🎂 Custom Cake Placed</span>
@@ -410,18 +514,58 @@ function AdminCakeChatModal({ isOpen, onClose }) {
                   </div>
                 </div>
 
+                {/* Staged Photo Attachment Bar */}
+                {selectedImageFile && (
+                  <div className="staged-image-preview-bar">
+                    <div className="staged-preview-left">
+                      <img src={imagePreviewUrl} alt="Staged Preview" className="staged-thumb" />
+                      <div className="staged-info">
+                        <strong>📷 Product Photo Ready to Send</strong>
+                        <small>{selectedImageFile.name} ({(selectedImageFile.size / 1024).toFixed(1)} KB)</small>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      className="cancel-staged-btn"
+                      onClick={handleCancelImage}
+                      title="Remove picture"
+                    >
+                      ✕ Remove
+                    </button>
+                  </div>
+                )}
+
+                {/* Hidden File Input for Product Photos */}
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  accept="image/*"
+                  onChange={handleFileSelect}
+                  style={{ display: "none" }}
+                />
+
                 {/* Reply Form */}
                 <form className="reply-form" onSubmit={handleSendReply}>
+                  <button
+                    type="button"
+                    className={`attach-photo-btn ${selectedImageFile ? "has-image" : ""}`}
+                    onClick={() => fileInputRef.current?.click()}
+                    title="Send a photo of the product/cake to the customer"
+                  >
+                    📷 <span className="attach-photo-text">Send Photo</span>
+                  </button>
+
                   <input
                     ref={inputRef}
                     type="text"
-                    placeholder="Type reply to customer..."
+                    placeholder={selectedImageFile ? "Add an optional caption for this photo..." : "Type reply to customer..."}
                     value={replyText}
                     onChange={(e) => setReplyText(e.target.value)}
                     disabled={sending}
                   />
-                  <button type="submit" disabled={!replyText.trim() || sending}>
-                    {sending ? "..." : "Send Reply"}
+
+                  <button type="submit" disabled={(!replyText.trim() && !selectedImageFile) || sending}>
+                    {sending ? "Sending..." : "Send Reply"}
                   </button>
                 </form>
               </>
@@ -432,6 +576,37 @@ function AdminCakeChatModal({ isOpen, onClose }) {
             )}
           </div>
         </div>
+
+        {/* Lightbox Modal for High-Resolution Photo Zoom */}
+        {zoomedImage && (
+          <div className="cake-photo-lightbox-overlay" onClick={() => setZoomedImage(null)}>
+            <div className="cake-photo-lightbox-card" onClick={(e) => e.stopPropagation()}>
+              <div className="lightbox-top-bar">
+                <span>🎂 Cake / Product Preview</span>
+                <button
+                  type="button"
+                  className="close-lightbox-btn"
+                  onClick={() => setZoomedImage(null)}
+                  title="Close Zoom"
+                >
+                  ✕
+                </button>
+              </div>
+              <div className="lightbox-img-container">
+                <img
+                  src={zoomedImage}
+                  alt="High-resolution Product View"
+                  className="lightbox-full-img"
+                  onError={(e) => {
+                    if (!zoomedImage.startsWith("http")) {
+                      e.target.src = `http://localhost:8000${zoomedImage}`;
+                    }
+                  }}
+                />
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
