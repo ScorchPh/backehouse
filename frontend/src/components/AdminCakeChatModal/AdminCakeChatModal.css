@@ -196,6 +196,39 @@
   text-overflow: ellipsis;
 }
 
+/* Threads Search Box */
+.threads-search-wrap {
+  padding: 8px 12px;
+  background: #FDFBF8;
+  border-bottom: 1px solid #EBE0D4;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.threads-search-input {
+  width: 100%;
+  padding: 6px 12px;
+  border: 1px solid #E2D7CC;
+  border-radius: 16px;
+  font-size: 0.82rem;
+  outline: none;
+  background: #FFFFFF;
+  color: #3D2314;
+}
+
+.threads-search-input:focus {
+  border-color: #6B4226;
+}
+
+.threads-clear-search {
+  background: none;
+  border: none;
+  color: #9CA3AF;
+  cursor: pointer;
+  font-size: 0.75rem;
+}
+
 /* Right: Conversation Pane */
 .chat-conversation-pane {
   flex: 1;
@@ -205,23 +238,76 @@
 }
 
 .conversation-header {
-  padding: 14px 22px;
-  background: #FFF8F0;
+  padding: 12px 20px;
+  background: #FFFDF9;
   border-bottom: 1px solid #EBE0D4;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 0.92rem;
-  color: #4A3B32;
+}
+
+.conversation-user-details {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.customer-avatar-badge {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #FEF3C7;
+  color: #92400E;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  border: 1.5px solid #FCD34D;
+}
+
+.customer-name-heading {
+  display: block;
+  font-size: 1rem;
+  color: #2D2016;
+}
+
+.customer-meta-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 2px;
+}
+
+.active-status-dot {
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: #059669;
 }
 
 .session-tag {
-  font-size: 0.78rem;
+  font-size: 0.72rem;
   background: #EBE0D4;
   color: #6B4226;
-  padding: 3px 8px;
+  padding: 2px 7px;
   border-radius: 6px;
   font-family: monospace;
+}
+
+.header-action-pill {
+  background: #FAF5EF;
+  border: 1px solid #D8C8BA;
+  color: #6B4226;
+  padding: 5px 12px;
+  border-radius: 12px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.header-action-pill:hover {
+  background: #6B4226;
+  color: #FFFFFF;
 }
 
 .conversation-messages {
@@ -258,9 +344,9 @@
 }
 
 .message-bubble {
-  max-width: 75%;
+  max-width: 82%;
   padding: 12px 16px;
-  border-radius: 14px;
+  border-radius: 16px;
   display: flex;
   flex-direction: column;
   font-size: 0.92rem;
@@ -270,17 +356,17 @@
 
 .bubble-customer {
   background: #FFFFFF;
-  border: 1px solid #E5DFD7;
+  border: 1.5px solid #EBE0D4;
   color: #2D2016;
-  border-bottom-left-radius: 3px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+  border-bottom-left-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
 .bubble-admin {
-  background: #6B4226;
+  background: linear-gradient(135deg, #54331D 0%, #3D2314 100%);
   color: #FFFFFF;
-  border-bottom-right-radius: 3px;
-  box-shadow: 0 2px 8px rgba(107, 66, 38, 0.2);
+  border-bottom-right-radius: 4px;
+  box-shadow: 0 4px 14px rgba(84, 51, 29, 0.22);
 }
 
 .bubble-admin .msg-sender {
@@ -288,22 +374,191 @@
 }
 
 .msg-sender {
-  font-size: 0.72rem;
-  font-weight: 700;
+  font-size: 0.74rem;
+  font-weight: 800;
   margin-bottom: 4px;
-  color: #6B4226;
+  color: #7A4B29;
+}
+
+.bubble-text {
+  margin: 0;
+  white-space: pre-wrap;
 }
 
 .msg-time {
-  font-size: 0.7rem;
-  margin-top: 4px;
+  font-size: 0.68rem;
+  margin-top: 6px;
   align-self: flex-end;
-  opacity: 0.7;
+  opacity: 0.65;
+}
+
+/* ============================================================================
+ * Structured Cake Order Spec Card (Rendered for Automated Custom Cake Orders)
+ * ============================================================================ */
+.cake-spec-card {
+  background: #FFFDF9;
+  border: 1.5px solid #F3DFC8;
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin: 4px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  box-shadow: 0 2px 6px rgba(107, 66, 38, 0.05);
+}
+
+.cake-spec-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  border-bottom: 1px dashed #EEDBCA;
+  padding-bottom: 6px;
+}
+
+.spec-badge-title {
+  font-size: 0.76rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: #B45309;
+  letter-spacing: 0.5px;
+}
+
+.order-id-chip {
+  background: #FEF3C7;
+  color: #92400E;
+  border: 1px solid #FCD34D;
+  font-weight: 800;
+  font-size: 0.75rem;
+  padding: 2px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.order-id-chip:hover {
+  background: #FDE68A;
+  transform: translateY(-1px);
+}
+
+.cake-spec-name {
+  font-size: 1.05rem;
+  color: #3D2314;
+  font-weight: 800;
+}
+
+.spec-chips-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.spec-chip {
+  background: #FAF4ED;
+  color: #54331D;
+  border: 1px solid #E5D5C5;
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 8px;
+}
+
+.spec-dedication-box {
+  background: #FFF9ED;
+  border-left: 3px solid #D97706;
+  border-radius: 6px;
+  padding: 8px 12px;
+}
+
+.dedication-label {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: #92400E;
+  text-transform: uppercase;
+  margin-bottom: 2px;
+}
+
+.dedication-quote {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #451A03;
+  font-style: italic;
+}
+
+.spec-request-box {
+  background: #F5F3EF;
+  border-radius: 6px;
+  padding: 6px 10px;
+}
+
+.request-label {
+  display: block;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #7A695B;
+  text-transform: uppercase;
+}
+
+.request-text {
+  margin: 2px 0 0;
+  font-size: 0.85rem;
+  color: #3D2314;
+}
+
+/* ============================================================================
+ * Baker Quick-Replies Toolbar
+ * ============================================================================ */
+.quick-replies-toolbar {
+  padding: 8px 16px;
+  background: #FBF9F6;
+  border-top: 1px solid #ECE3D8;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  overflow: hidden;
+}
+
+.quick-label {
+  font-size: 0.74rem;
+  font-weight: 800;
+  color: #8C7F72;
+  white-space: nowrap;
+  text-transform: uppercase;
+}
+
+.quick-chips-scroll {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+  scrollbar-width: thin;
+}
+
+.quick-reply-btn {
+  background: #FFFFFF;
+  border: 1px solid #DFD5C9;
+  color: #54331D;
+  font-size: 0.76rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 14px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+}
+
+.quick-reply-btn:hover {
+  background: #54331D;
+  color: #FFFFFF;
+  border-color: #54331D;
+  transform: translateY(-1px);
 }
 
 /* Reply Form */
 .reply-form {
-  padding: 16px 20px;
+  padding: 14px 20px;
   background: #FFFFFF;
   border-top: 1px solid #ECE3D8;
   display: flex;
@@ -355,5 +610,11 @@
   .threads-list {
     width: 100%;
     max-height: 180px;
+  }
+
+  .quick-replies-toolbar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
   }
 }

@@ -156,12 +156,69 @@ function Queue() {
     }
   };
 
+  const [statusFilter, setStatusFilter] = useState("all"); // 'all' | 'Pending' | 'Confirmed' | 'Preparing' | 'Ready'
+  const [queueSearch, setQueueSearch] = useState("");
+
+  /**
+   * NOTE TO BE REVIEWED LATER:
+   * Elapsed time and kitchen urgency calculator.
+   * Helps dispatchers and bakers spot orders that have exceeded the 20m/45m threshold.
+   */
+  const getElapsedInfo = (createdAt) => {
+    if (!createdAt) return null;
+    const created = new Date(createdAt);
+    if (isNaN(created.getTime())) return null;
+    const diffMins = Math.max(0, Math.floor((Date.now() - created.getTime()) / 60000));
+    let urgency = "normal"; // 'normal' (<20m) | 'warning' (20m-45m) | 'urgent' (>45m)
+    if (diffMins >= 45) urgency = "urgent";
+    else if (diffMins >= 20) urgency = "warning";
+
+    if (diffMins < 1) return { text: "Just now", urgency, diffMins };
+    if (diffMins < 60) return { text: `${diffMins}m ago`, urgency, diffMins };
+    const hrs = Math.floor(diffMins / 60);
+    const remMins = diffMins % 60;
+    return { text: `${hrs}h ${remMins}m ago`, urgency, diffMins };
+  };
+
+  /**
+   * NOTE TO BE REVIEWED LATER:
+   * 1-Click Kitchen Slip Print: Opens details modal and triggers printer dialog directly from queue card.
+   */
+  const handlePrintSlipDirect = (order) => {
+    setSelectedOrder(order);
+    setTimeout(() => {
+      window.print();
+    }, 350);
+  };
   // Active kitchen queue items (Pending, Confirmed, Preparing, Ready/Delivering)
   const activeOrders = orders.filter((o) => o.status !== "Completed" && o.status !== "Denied" && o.status !== "Cancelled");
   const todayQueue = activeOrders.filter((o) => !isOrderScheduled(o));
   const scheduledQueue = activeOrders.filter((o) => isOrderScheduled(o));
 
-  const currentDisplayList = activeQueueTab === "today" ? todayQueue : scheduledQueue;
+  const baseQueueList = activeQueueTab === "today" ? todayQueue : scheduledQueue;
+
+  // Filter by status pipeline if active
+  const filteredByStatus = statusFilter === "all"
+    ? baseQueueList
+    : baseQueueList.filter((o) => {
+        if (statusFilter === "Ready") {
+          return o.status === "Ready for Pickup" || o.status === "For Delivery";
+        }
+        return o.status === statusFilter;
+      });
+
+  // Filter by search query (Order # or Customer Name or Items)
+  const currentDisplayList = filteredByStatus.filter((o) => {
+    if (!queueSearch.trim()) return true;
+    const q = queueSearch.toLowerCase().trim();
+    const matchId = String(o.id || "").toLowerCase().includes(q);
+    const matchName = String(o.customer_name || "").toLowerCase().includes(q);
+    const matchContact = String(o.customer_contact || "").toLowerCase().includes(q);
+    const matchItems = (o.items || []).some(
+      (it) => String(it.product_name || it.name || "").toLowerCase().includes(q)
+    );
+    return matchId || matchName || matchContact || matchItems;
+  });
 
   return (
     <div className="kitchen-queue-page">
@@ -173,6 +230,27 @@ function Queue() {
         </div>
 
         <div className="queue-header-actions">
+          <div className="queue-search-box">
+            <span className="search-icon">🔍</span>
+            <input
+              type="text"
+              placeholder="Search queue (ID, Name)..."
+              value={queueSearch}
+              onChange={(e) => setQueueSearch(e.target.value)}
+              className="queue-search-input"
+            />
+            {queueSearch && (
+              <button
+                type="button"
+                className="clear-search-btn"
+                onClick={() => setQueueSearch("")}
+                title="Clear Search"
+              >
+                ✕
+              </button>
+            )}
+          </div>
+
           <span className="live-pulse-badge">
             <span className="pulse-dot"></span> Auto-Syncing (30s)
           </span>
@@ -187,7 +265,10 @@ function Queue() {
         <button
           type="button"
           className={`queue-main-tab ${activeQueueTab === "today" ? "active" : ""}`}
-          onClick={() => setActiveQueueTab("today")}
+          onClick={() => {
+            setActiveQueueTab("today");
+            setStatusFilter("all");
+          }}
         >
           <span className="tab-icon">⚡</span>
           <div className="tab-text-group">
@@ -200,7 +281,10 @@ function Queue() {
         <button
           type="button"
           className={`queue-main-tab ${activeQueueTab === "scheduled" ? "active" : ""}`}
-          onClick={() => setActiveQueueTab("scheduled")}
+          onClick={() => {
+            setActiveQueueTab("scheduled");
+            setStatusFilter("all");
+          }}
         >
           <span className="tab-icon">📅</span>
           <div className="tab-text-group">
@@ -211,35 +295,77 @@ function Queue() {
         </button>
       </div>
 
-      {/* Status Pipeline Cards Summary */}
-      <div className="queue-status-track">
-        <div className="status-track-step pending">
-          <span className="step-icon">🟡</span>
-          <div>
-            <span>Pending Acceptance</span>
-            <strong>{currentDisplayList.filter((o) => o.status === "Pending").length}</strong>
-          </div>
+      {/* Status Pipeline Cards Summary (NOTE: Now Interactive 1-Click Filters) */}
+      <div className="queue-status-pipeline-wrap">
+        <div className="pipeline-label-row">
+          <span>Filter by Stage:</span>
+          {statusFilter !== "all" && (
+            <button
+              type="button"
+              className="reset-pipeline-filter-btn"
+              onClick={() => setStatusFilter("all")}
+            >
+              Showing: {statusFilter} (Click to View All {baseQueueList.length})
+            </button>
+          )}
         </div>
-        <div className="status-track-step confirmed">
-          <span className="step-icon">🔵</span>
-          <div>
-            <span>Confirmed / In Queue</span>
-            <strong>{currentDisplayList.filter((o) => o.status === "Confirmed").length}</strong>
-          </div>
-        </div>
-        <div className="status-track-step preparing">
-          <span className="step-icon">👨‍🍳</span>
-          <div>
-            <span>Currently Baking</span>
-            <strong>{currentDisplayList.filter((o) => o.status === "Preparing").length}</strong>
-          </div>
-        </div>
-        <div className="status-track-step ready">
-          <span className="step-icon">🚚</span>
-          <div>
-            <span>Ready / In Transit</span>
-            <strong>{currentDisplayList.filter((o) => o.status === "Ready for Pickup" || o.status === "For Delivery").length}</strong>
-          </div>
+
+        <div className="queue-status-track">
+          <button
+            type="button"
+            className={`status-track-step pending ${statusFilter === "Pending" ? "active-filter" : ""}`}
+            onClick={() => setStatusFilter(statusFilter === "Pending" ? "all" : "Pending")}
+            title="Click to filter by Pending"
+          >
+            <span className="step-icon">🟡</span>
+            <div>
+              <span>Pending Acceptance</span>
+              <strong>{baseQueueList.filter((o) => o.status === "Pending").length}</strong>
+            </div>
+            {statusFilter === "Pending" && <span className="filter-active-dot">● Active</span>}
+          </button>
+
+          <button
+            type="button"
+            className={`status-track-step confirmed ${statusFilter === "Confirmed" ? "active-filter" : ""}`}
+            onClick={() => setStatusFilter(statusFilter === "Confirmed" ? "all" : "Confirmed")}
+            title="Click to filter by Confirmed"
+          >
+            <span className="step-icon">🔵</span>
+            <div>
+              <span>Confirmed / In Queue</span>
+              <strong>{baseQueueList.filter((o) => o.status === "Confirmed").length}</strong>
+            </div>
+            {statusFilter === "Confirmed" && <span className="filter-active-dot">● Active</span>}
+          </button>
+
+          <button
+            type="button"
+            className={`status-track-step preparing ${statusFilter === "Preparing" ? "active-filter" : ""}`}
+            onClick={() => setStatusFilter(statusFilter === "Preparing" ? "all" : "Preparing")}
+            title="Click to filter by Baking"
+          >
+            <span className="step-icon">👨‍🍳</span>
+            <div>
+              <span>Currently Baking</span>
+              <strong>{baseQueueList.filter((o) => o.status === "Preparing").length}</strong>
+            </div>
+            {statusFilter === "Preparing" && <span className="filter-active-dot">● Active</span>}
+          </button>
+
+          <button
+            type="button"
+            className={`status-track-step ready ${statusFilter === "Ready" ? "active-filter" : ""}`}
+            onClick={() => setStatusFilter(statusFilter === "Ready" ? "all" : "Ready")}
+            title="Click to filter by Ready / In Transit"
+          >
+            <span className="step-icon">🚚</span>
+            <div>
+              <span>Ready / In Transit</span>
+              <strong>{baseQueueList.filter((o) => o.status === "Ready for Pickup" || o.status === "For Delivery").length}</strong>
+            </div>
+            {statusFilter === "Ready" && <span className="filter-active-dot">● Active</span>}
+          </button>
         </div>
       </div>
 
@@ -252,9 +378,46 @@ function Queue() {
           </div>
         ) : currentDisplayList.length === 0 ? (
           <div className="queue-empty-state">
-            <span style={{ fontSize: "48px" }}>🎉</span>
-            <h3>No Orders Waiting in this Queue</h3>
-            <p>All active bakery orders in this section are currently completed or fulfilled!</p>
+            <span style={{ fontSize: "52px" }}>🎉</span>
+            <h3>No Orders in this View</h3>
+            
+            {/* NOTE TO BE REVIEWED LATER: Smart cross-queue guidance for staff */}
+            {statusFilter !== "all" ? (
+              <div className="empty-sub-actions">
+                <p>No orders currently match the "<strong>{statusFilter}</strong>" stage.</p>
+                <button
+                  type="button"
+                  className="queue-cta-btn secondary"
+                  onClick={() => setStatusFilter("all")}
+                >
+                  Show All {activeQueueTab === "today" ? "Today's" : "Scheduled"} Orders ({baseQueueList.length})
+                </button>
+              </div>
+            ) : activeQueueTab === "today" && scheduledQueue.length > 0 ? (
+              <div className="empty-cross-guidance">
+                <p>All of today's immediate orders are clear! You have upcoming advance bookings waiting:</p>
+                <button
+                  type="button"
+                  className="queue-cta-btn primary"
+                  onClick={() => setActiveQueueTab("scheduled")}
+                >
+                  📅 Switch to Scheduled & Advance Orders ({scheduledQueue.length} Waiting) →
+                </button>
+              </div>
+            ) : activeQueueTab === "scheduled" && todayQueue.length > 0 ? (
+              <div className="empty-cross-guidance">
+                <p>No scheduled advance bookings pending! You have live orders for today:</p>
+                <button
+                  type="button"
+                  className="queue-cta-btn primary"
+                  onClick={() => setActiveQueueTab("today")}
+                >
+                  ⚡ Switch to Today's Live Queue ({todayQueue.length} Active) →
+                </button>
+              </div>
+            ) : (
+              <p>All active bakery orders in this section are currently completed or fulfilled!</p>
+            )}
           </div>
         ) : (
           <div className="queue-cards-grid">
@@ -263,19 +426,42 @@ function Queue() {
                 (order.fulfillment_type && order.fulfillment_type.toLowerCase() === "pickup") ||
                 (order.delivery_address && order.delivery_address.toLowerCase().includes("pickup"));
               const scheduledInfo = getScheduledInfo(order);
+              const elapsed = getElapsedInfo(order.created_at);
+              const isCOD =
+                (order.payment_method || "").toLowerCase().includes("cash") ||
+                (order.payment_method || "").toLowerCase().includes("cod");
 
               return (
                 <div className={`queue-card status-border-${(order.status || "pending").toLowerCase().replace(/\s+/g, "-")}`} key={order.id}>
                   {/* Card Header */}
                   <div className="queue-card-top">
                     <div>
-                      <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
                         <h3 className="queue-order-id">#{order.id}</h3>
                         <span className={`queue-fulfillment-tag ${isPickup ? "tag-pickup" : "tag-delivery"}`}>
                           {isPickup ? "🏪 PICKUP" : "🚚 DELIVERY"}
                         </span>
+                        {elapsed && (
+                          <span
+                            className={`queue-elapsed-pill urgency-${elapsed.urgency}`}
+                            title={`Ordered at ${order.created_at || 'N/A'}`}
+                          >
+                            ⏱️ {elapsed.text}
+                          </span>
+                        )}
                       </div>
-                      <span className="queue-customer-name">👤 {order.customer_name}</span>
+                      <div className="queue-customer-row">
+                        <span className="queue-customer-name">👤 {order.customer_name}</span>
+                        {order.customer_contact && (
+                          <a
+                            href={`tel:${order.customer_contact}`}
+                            className="queue-contact-link"
+                            title="Call customer"
+                          >
+                            📞 {order.customer_contact}
+                          </a>
+                        )}
+                      </div>
                     </div>
 
                     <div className="queue-status-pill-box">
@@ -283,6 +469,14 @@ function Queue() {
                         ● {order.status || "Pending"}
                       </span>
                     </div>
+                  </div>
+
+                  {/* Payment & Amount Callout Bar */}
+                  <div className="queue-payment-bar">
+                    <span className="queue-total-amount">₱{parseFloat(order.total || 0).toLocaleString()}</span>
+                    <span className={`queue-payment-tag ${isCOD ? "pay-tag-cod" : "pay-tag-paid"}`}>
+                      {isCOD ? "💵 COD: Collect on Handover" : `💳 Paid (${order.payment_method || "Online"})`}
+                    </span>
                   </div>
 
                   {/* Scheduled Event Highlight Banner if present */}
@@ -385,6 +579,15 @@ function Queue() {
                         onClick={() => setSelectedOrder(order)}
                       >
                         Inspect Details
+                      </button>
+
+                      <button
+                        type="button"
+                        className="print-slip-btn-sm"
+                        onClick={() => handlePrintSlipDirect(order)}
+                        title="Print kitchen preparation slip"
+                      >
+                        🖨️ Ticket
                       </button>
 
                       <button
