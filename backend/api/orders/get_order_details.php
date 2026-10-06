@@ -52,9 +52,16 @@ if ($pdo) {
     // CASE A: Live MySQL / TiDB Cloud Connection
     // ------------------------------------------------------------------------
     try {
+        // Auto-ensure column exists
+        try {
+            $pdo->query("ALTER TABLE orders ADD COLUMN cancellation_reason TEXT NULL");
+        } catch (Exception $e) {}
+
         $stmt = $pdo->prepare("
             SELECT o.id, o.user_id, o.customer_name, o.customer_contact, o.delivery_address,
-                   o.payment_method, o.subtotal, o.delivery_fee, o.total, o.status, o.created_at,
+                   o.payment_method, o.subtotal, o.delivery_fee, o.total, o.status, 
+                   COALESCE(o.cancellation_reason, '') as cancellation_reason,
+                   o.created_at,
                    DATE_FORMAT(o.created_at, '%M %d, %Y - %h:%i %p') as formatted_date
             FROM orders o
             WHERE o.id = :id

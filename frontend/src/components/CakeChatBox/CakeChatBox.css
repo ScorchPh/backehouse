@@ -268,6 +268,223 @@
   border-radius: 12px;
 }
 
+/* Real-Time Status Badges */
+.status-badge-pill {
+  font-size: 0.74rem;
+  font-weight: 800;
+  padding: 3px 10px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+
+.status-badge-pill.badge-accepted {
+  background: #ECFDF5;
+  color: #065F46;
+  border-color: #6EE7B7;
+}
+
+.status-badge-pill.badge-denied {
+  background: #FEF2F2;
+  color: #991B1B;
+  border-color: #FCA5A5;
+}
+
+.status-badge-pill.badge-preparing {
+  background: #EFF6FF;
+  color: #1E40AF;
+  border-color: #93C5FD;
+}
+
+.status-badge-pill.badge-ready {
+  background: #F5F3FF;
+  color: #6D28D9;
+  border-color: #C4B5FD;
+}
+
+.status-badge-pill.badge-delivery {
+  background: #F0F9FF;
+  color: #0369A1;
+  border-color: #7DD3FC;
+}
+
+.status-badge-pill.badge-completed {
+  background: #F3F4F6;
+  color: #374151;
+  border-color: #D1D5DB;
+}
+
+.status-badge-pill.badge-pending {
+  background: #FFFBEB;
+  color: #92400E;
+  border-color: #FCD34D;
+}
+
+/* Order Status Clarification Card */
+.order-status-card {
+  border-radius: 12px;
+  padding: 10px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  border: 1.5px solid transparent;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+}
+
+.order-status-card.badge-accepted {
+  background: #F0FDF4;
+  border-color: #BBF7D0;
+}
+
+.order-status-card.badge-denied {
+  background: #FEF2F2;
+  border-color: #FECACA;
+}
+
+.order-status-card.badge-preparing {
+  background: #F0F7FF;
+  border-color: #BFDBFE;
+}
+
+.order-status-card.badge-ready {
+  background: #F8F5FF;
+  border-color: #DDD6FE;
+}
+
+.order-status-card.badge-delivery {
+  background: #F0F9FF;
+  border-color: #BAE6FD;
+}
+
+.order-status-card.badge-completed {
+  background: #F9FAFB;
+  border-color: #E5E7EB;
+}
+
+.order-status-card.badge-pending {
+  background: #FFFDF5;
+  border-color: #FDE68A;
+}
+
+.status-card-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.status-card-icon {
+  font-size: 1.25rem;
+}
+
+.status-card-titles {
+  display: flex;
+  flex-direction: column;
+}
+
+.status-card-titles strong {
+  font-size: 0.92rem;
+  color: #2D241E;
+  line-height: 1.2;
+}
+
+.status-sub-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #8C7F72;
+}
+
+.status-card-desc {
+  margin: 0;
+  font-size: 0.82rem;
+  line-height: 1.45;
+  color: #4A3B32;
+}
+
+.order-status-card.badge-denied .status-card-desc {
+  color: #B91C1C;
+  font-weight: 700;
+}
+
+.status-card-hint {
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: #78350F;
+  background: rgba(255, 255, 255, 0.7);
+  padding: 4px 8px;
+  border-radius: 6px;
+  border: 1px dashed rgba(180, 83, 9, 0.25);
+}
+
+.order-status-card.badge-denied .status-card-hint {
+  color: #991B1B;
+  border-color: rgba(239, 68, 68, 0.3);
+  background: #FFFFFF;
+}
+
+/* Stepper Progression Row */
+.status-stepper-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 4px 0 2px;
+  padding: 6px 10px;
+  background: rgba(255, 255, 255, 0.65);
+  border-radius: 8px;
+}
+
+.step-node {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.step-dot {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #E5DFD7;
+  color: #8C7F72;
+  font-size: 0.7rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.step-name {
+  font-size: 0.66rem;
+  font-weight: 700;
+  color: #8C7F72;
+}
+
+.step-node.step-active .step-dot {
+  background: #10B981;
+  color: #FFFFFF;
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.25);
+}
+
+.step-node.step-active .step-name {
+  color: #065F46;
+  font-weight: 800;
+}
+
+.step-line {
+  flex: 1;
+  height: 2px;
+  background: #E5DFD7;
+  margin: 0 4px 10px;
+}
+
+.step-line.line-active {
+  background: #10B981;
+}
+
 .order-collapse-toggle {
   background: #FFFFFF;
   border: 1px solid #D8CFC5;

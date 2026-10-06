@@ -710,7 +710,7 @@ export default function CounterPOS() {
             title="Scan customer QR code or lookup online pickup order"
           >
             <span className="qr-scan-icon">📱</span>
-            <span>Scan QR / Pickup</span>
+            <span>Scan QR</span>
             {onlinePickupOrders.length > 0 && (
               <span className="qr-pickup-count-badge">{onlinePickupOrders.length}</span>
             )}
@@ -735,20 +735,20 @@ export default function CounterPOS() {
             type="button"
             className={`pos-printer-setup-btn ${printerConfig.mode === "bluetooth" && thermalPrinterService.isConnected() ? "bt-connected" : ""}`}
             onClick={() => setShowPrinterModal(true)}
-            title="Configure Thermal Printer (GOOJPRT PT-210, Bluetooth, USB, Paper Size)"
+            title="Configure Thermal Printer"
           >
             <span className="printer-status-dot"></span>
-            🖨️ {printerConfig.paperSize} {printerConfig.mode === "bluetooth" ? "• Bluetooth" : printerConfig.mode === "serial" ? "• USB" : "• Printer Setup"}
+            🖨️ {printerConfig.paperSize} {printerConfig.mode === "bluetooth" ? "• BT" : printerConfig.mode === "serial" ? "• USB" : "• Printer"}
           </button>
 
           <button
             type="button"
             className={`pos-autoprint-btn ${printerConfig.autoPrint ? "active" : ""}`}
             onClick={() => handleUpdatePrinterConfig({ autoPrint: !printerConfig.autoPrint })}
-            title={printerConfig.autoPrint ? "Auto-Print is ON: Receipt will print automatically after each completed sale" : "Auto-Print is OFF: Click to enable auto printing"}
+            title={printerConfig.autoPrint ? "Auto-Print is ON: Receipt prints automatically" : "Auto-Print is OFF"}
           >
             <span className="autoprint-indicator"></span>
-            ⚡ Auto-Print: <strong>{printerConfig.autoPrint ? "ON" : "OFF"}</strong>
+            ⚡ Auto: <strong>{printerConfig.autoPrint ? "ON" : "OFF"}</strong>
           </button>
 
           <button
@@ -757,7 +757,7 @@ export default function CounterPOS() {
             onClick={() => setShowShiftLog(true)}
             title="View today's counter transactions"
           >
-            📋 Today's Sales (₱{todayTotalRevenue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })})
+            💰 Sales: ₱{todayTotalRevenue.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
           </button>
 
           <button
@@ -794,7 +794,7 @@ export default function CounterPOS() {
                   className={`pos-category-tab ${selectedCategory === cat ? "active" : ""}`}
                   onClick={() => setSelectedCategory(cat)}
                 >
-                  <span>
+                  <span className="cat-icon">
                     {cat === "Cake" ? "🍰" : cat === "Pastry" ? "🥐" : cat === "Bread" ? "🍞" : cat === "Bestsellers" ? "⭐" : "🏷️"}
                   </span>
                   <span className="cat-name">{cat === "All" ? "All Products" : cat}</span>
@@ -862,7 +862,8 @@ export default function CounterPOS() {
 
                         {/* Stock Tag */}
                         <span className={`pos-stock-tag ${isOutOfStock ? "stock-out" : isLowStock ? "stock-low" : "stock-ok"}`}>
-                          {isOutOfStock ? "Out of Stock" : isLowStock ? `Low: ${product.stock}` : `Stock: ${product.stock}`}
+                          <span className="stock-dot">●</span>
+                          {isOutOfStock ? "Out of Stock" : isLowStock ? `Low: ${product.stock}` : `${product.stock} in stock`}
                         </span>
                       </div>
 
@@ -988,7 +989,7 @@ export default function CounterPOS() {
               <div className="register-empty-state">
                 <div className="empty-icon-circle">🛒</div>
                 <h4>Register is Empty</h4>
-                <p>Tap products from the menu on the left to add items to this customer's bill.</p>
+                <p>Select items from the catalog on the left to start this bill.</p>
               </div>
             ) : (
               <div className="register-items-list">
@@ -1068,21 +1069,21 @@ export default function CounterPOS() {
                 className={`payment-tab ${paymentMethod === "Cash" ? "active" : ""}`}
                 onClick={() => setPaymentMethod("Cash")}
               >
-                💵 Cash Payment
+                💵 Cash
               </button>
               <button
                 type="button"
                 className={`payment-tab ${paymentMethod === "GCash" ? "active" : ""}`}
                 onClick={() => { setPaymentMethod("GCash"); setCashTendered(totalDue.toString()); }}
               >
-                📱 GCash / E-Wallet
+                📱 GCash
               </button>
               <button
                 type="button"
                 className={`payment-tab ${paymentMethod === "Card" ? "active" : ""}`}
                 onClick={() => { setPaymentMethod("Card"); setCashTendered(totalDue.toString()); }}
               >
-                💳 Debit / Credit Card
+                💳 Card
               </button>
             </div>
 
@@ -1090,7 +1091,7 @@ export default function CounterPOS() {
               <div className="cash-tendered-block">
                 <div className="cash-input-row">
                   <div className="cash-label-group">
-                    <label>💵 Money Given by Customer:</label>
+                    <label>💵 Money Received:</label>
                     <button
                       type="button"
                       className="numpad-toggle-btn"
@@ -1104,12 +1105,31 @@ export default function CounterPOS() {
                     <span className="currency-prefix">₱</span>
                     <input
                       ref={cashInputRef}
-                      type="number"
+                      type="text"
+                      inputMode="decimal"
                       placeholder="0.00"
                       value={cashTendered}
-                      onChange={(e) => setCashTendered(e.target.value)}
+                      onChange={(e) => {
+                        // Strip any non-numeric and non-decimal characters (prevents 'e', letters, symbols)
+                        let val = e.target.value.replace(/[^0-9.]/g, "");
+                        // Clean up leading zero if typing another digit (e.g. "0" + "5" -> "5")
+                        if (val.length > 1 && val.startsWith("0") && val[1] !== ".") {
+                          val = val.replace(/^0+/, "") || "0";
+                        }
+                        // Allow only one decimal point
+                        const parts = val.split(".");
+                        if (parts.length > 2) {
+                          val = parts[0] + "." + parts.slice(1).join("");
+                        }
+                        setCashTendered(val);
+                      }}
+                      onKeyDown={(e) => {
+                        // Explicitly prevent exponent 'e', signs '+', '-', and spaces
+                        if (["e", "E", "+", "-", " "].includes(e.key)) {
+                          e.preventDefault();
+                        }
+                      }}
                       className="cash-input-field"
-                      min="0"
                     />
                   </div>
                 </div>

@@ -39,5 +39,20 @@ export const cakeChatService = {
     return apiRequest('/personalize/cake_chat.php?list_sessions=1', {
       method: 'GET'
     });
+  },
+
+  /**
+   * (Admin) Mark a customer session as read
+   */
+  async markSessionAsRead(sessionId) {
+    if (!sessionId) return { success: false };
+    return apiRequest('/personalize/cake_chat.php', {
+      method: 'POST',
+      body: {
+        action: 'mark_read',
+        session_id: sessionId
+      }
+    });
   }
 };
+

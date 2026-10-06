@@ -11,6 +11,7 @@ import { useState, useEffect, useRef } from "react";
 import { cakeChatService } from "../../services/cakeChatService";
 import { authService } from "../../services/authService";
 import { productService } from "../../services/productService";
+import { orderService } from "../../services/orderService";
 import "./AdminCakeChatModal.css";
 
 const BAKER_QUICK_REPLIES = [
@@ -19,6 +20,14 @@ const BAKER_QUICK_REPLIES = [
   { label: "✍️ Dedication Noted", text: "Got it! Your dedication message has been forwarded directly to our cake decorator." },
   { label: "👨‍🍳 Now Baking", text: "Great news! Your custom cake has entered our kitchen and is currently in the oven." },
   { label: "📦 Ready for Pickup", text: "Your custom cake has been decorated, boxed, and is ready for pickup at our counter!" }
+];
+
+const PRESET_DENIAL_REASONS = [
+  "Fully booked for this scheduled date and time slot",
+  "Custom decorative elements or ingredients currently out of stock",
+  "Lead time is too short for this multi-tier / sculpted design",
+  "Design complexity exceeds current kitchen capacity",
+  "Other specific reason..."
 ];
 
 /**
@@ -35,7 +44,7 @@ function parseCakeOrderMessage(text) {
   if (!isOrderPlaced) return null;
 
   const orderMatch = text.match(/Order\s+(#?[A-Za-z0-9_-]+)/i);
-  const orderId = orderMatch ? orderMatch[1] : null;
+  const orderId = orderMatch ? orderMatch[1].replace(/^#/, "") : null;
 
   let cakeName = "Custom Cake";
   let specsList = [];
@@ -110,12 +119,48 @@ function AdminCakeChatModal({ isOpen, onClose }) {
   const [imagePreviewUrl, setImagePreviewUrl] = useState(null);
   const [zoomedImage, setZoomedImage] = useState(null);
 
+  // Live order status management for custom cake consultations
+  const [orderStatuses, setOrderStatuses] = useState({});
+  const [actionLoading, setActionLoading] = useState(null);
+  const [denyingOrderId, setDenyingOrderId] = useState(null);
+  const [denialPreset, setDenialPreset] = useState(PRESET_DENIAL_REASONS[0]);
+  const [customDenialReason, setCustomDenialReason] = useState("");
+
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
   const fileInputRef = useRef(null);
 
   const currentUser = authService.getCurrentUser();
   const adminName = currentUser ? (currentUser.first_name || currentUser.username) : "Baker";
+
+  // Fetch details for any order found in thread messages
+  const fetchOrdersForMessages = async (msgs) => {
+    if (!Array.isArray(msgs) || msgs.length === 0) return;
+    const ids = [];
+    msgs.forEach((m) => {
+      const parsed = parseCakeOrderMessage(m.message);
+      if (parsed?.orderId && !ids.includes(parsed.orderId)) {
+        ids.push(parsed.orderId);
+      }
+    });
+
+    for (const oid of ids) {
+      try {
+        const res = await orderService.getOrderDetails(oid);
+        if (res && res.success && res.order) {
+          setOrderStatuses((prev) => ({
+            ...prev,
+            [oid]: {
+              status: res.order.status,
+              cancellation_reason: res.order.cancellation_reason || ""
+            }
+          }));
+        }
+      } catch (e) {
+        console.warn("Could not fetch details for order:", oid, e);
+      }
+    }
+  };
 
   // Load threads
   const loadThreads = async () => {
@@ -125,7 +170,11 @@ function AdminCakeChatModal({ isOpen, onClose }) {
       if (res && res.success && Array.isArray(res.threads)) {
         setThreads(res.threads);
         if (!selectedSessionId && res.threads.length > 0) {
-          setSelectedSessionId(res.threads[0].session_id);
+          const firstSid = res.threads[0].session_id;
+          setSelectedSessionId(firstSid);
+          markSessionRead(firstSid);
+        } else if (selectedSessionId) {
+          markSessionRead(selectedSessionId);
         }
       }
     } catch (err) {
@@ -142,10 +191,86 @@ function AdminCakeChatModal({ isOpen, onClose }) {
       const res = await cakeChatService.getMessages(sid);
       if (res && res.success && Array.isArray(res.messages)) {
         setMessages(res.messages);
+        fetchOrdersForMessages(res.messages);
       }
     } catch (err) {
       console.warn("Could not load thread messages:", err);
     }
+  };
+
+  // Listen for external order status changes to keep consultation synced
+  useEffect(() => {
+    const handleOrdersUpdated = () => {
+      if (messages.length > 0) {
+        fetchOrdersForMessages(messages);
+      }
+    };
+    window.addEventListener("ordersUpdated", handleOrdersUpdated);
+    return () => window.removeEventListener("ordersUpdated", handleOrdersUpdated);
+  }, [messages]);
+
+  // Handle Baker Decisions (Accept, Deny, Prepare, Ready)
+  const handleUpdateStatus = async (orderId, newStatus, reason = null) => {
+    if (!orderId || actionLoading) return;
+    try {
+      setActionLoading(orderId);
+      const res = await orderService.updateOrderStatus(orderId, newStatus, reason);
+      if (res && res.success !== false) {
+        // Update local map optimistically
+        setOrderStatuses((prev) => ({
+          ...prev,
+          [orderId]: {
+            status: newStatus,
+            cancellation_reason: reason || ""
+          }
+        }));
+
+        // Send official bakery notification message into customer chat
+        let autoMsg = "";
+        if (newStatus === "Confirmed") {
+          autoMsg = `✅ [ORDER ACCEPTED]: Great news! We have reviewed and ACCEPTED your custom cake order (Order #${orderId}). Our decorators will schedule your cake preparation for your needed date!`;
+        } else if (newStatus === "Denied") {
+          autoMsg = `❌ [ORDER DECLINED]: We apologize, but your custom cake order (Order #${orderId}) could not be accommodated.\nClarification from Bakery: "${reason || 'Fully booked or requirements unavailable'}".\nPlease message us here if you would like to discuss alternative flavors, sizes, or available dates!`;
+        } else if (newStatus === "Preparing") {
+          autoMsg = `👨‍🍳 [ORDER UPDATE]: Order #${orderId} has entered our kitchen and is now actively baking and decorating!`;
+        } else if (newStatus === "Ready for Pickup") {
+          autoMsg = `📦 [ORDER UPDATE]: Order #${orderId} has been decorated, boxed, and is READY FOR PICKUP at the Bake House counter!`;
+        }
+
+        if (autoMsg && selectedSessionId) {
+          await cakeChatService.sendMessage({
+            sessionId: selectedSessionId,
+            senderName: `${adminName} (Baker Staff)`,
+            senderRole: "admin",
+            message: autoMsg,
+            userId: currentUser?.id || null
+          });
+          loadMessages(selectedSessionId);
+        }
+      }
+    } catch (err) {
+      console.error("Failed to update cake order status:", err);
+      alert("Error updating order status: " + (err.message || "Unknown error"));
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleOpenDenialModal = (orderId) => {
+    setDenyingOrderId(orderId);
+    setDenialPreset(PRESET_DENIAL_REASONS[0]);
+    setCustomDenialReason("");
+  };
+
+  const handleConfirmDenial = async () => {
+    if (!denyingOrderId) return;
+    const finalReason = denialPreset === "Other specific reason..."
+      ? (customDenialReason.trim() || "Unable to fulfill custom request at this time")
+      : denialPreset;
+
+    const oid = denyingOrderId;
+    setDenyingOrderId(null);
+    await handleUpdateStatus(oid, "Denied", finalReason);
   };
 
   // Poll threads and active thread messages
@@ -161,12 +286,35 @@ function AdminCakeChatModal({ isOpen, onClose }) {
     return () => clearInterval(interval);
   }, [isOpen, selectedSessionId]);
 
-  // When selected session changes, fetch immediately
-  useEffect(() => {
-    if (selectedSessionId) {
-      loadMessages(selectedSessionId);
+  // Mark session as read helper (updates localStorage, triggers event, and calls backend)
+  const markSessionRead = async (sid) => {
+    if (!sid) return;
+    try {
+      // 1. Record read timestamp in localStorage for instant reactive UI
+      const readStore = JSON.parse(localStorage.getItem("bh_admin_read_cake_threads") || "{}");
+      readStore[sid] = Date.now();
+      localStorage.setItem("bh_admin_read_cake_threads", JSON.stringify(readStore));
+      window.dispatchEvent(new Event("cakeChatReadUpdated"));
+
+      // 2. Optimistically mark read in component state
+      setThreads((prev) =>
+        prev.map((t) => (t.session_id === sid ? { ...t, unread_count: 0 } : t))
+      );
+
+      // 3. Persist read receipt to backend
+      await cakeChatService.markSessionAsRead(sid);
+    } catch (e) {
+      console.warn("Could not mark session read:", e);
     }
-  }, [selectedSessionId]);
+  };
+
+  // When selected session changes, fetch immediately and mark as read
+  useEffect(() => {
+    if (selectedSessionId && isOpen) {
+      loadMessages(selectedSessionId);
+      markSessionRead(selectedSessionId);
+    }
+  }, [selectedSessionId, isOpen]);
 
   // Scroll to bottom of chat
   useEffect(() => {
@@ -344,7 +492,10 @@ function AdminCakeChatModal({ isOpen, onClose }) {
                   <div
                     key={t.session_id}
                     className={`thread-item ${isSelected ? "selected" : ""}`}
-                    onClick={() => setSelectedSessionId(t.session_id)}
+                    onClick={() => {
+                      setSelectedSessionId(t.session_id);
+                      markSessionRead(t.session_id);
+                    }}
                   >
                     <div className="thread-avatar">👤</div>
                     <div className="thread-info">
@@ -482,6 +633,102 @@ function AdminCakeChatModal({ isOpen, onClose }) {
                                     <p className="request-text">{cakeOrder.specialRequest}</p>
                                   </div>
                                 )}
+
+                                {/* NOTE TO BE REVIEWED LATER: Live Order Status & Baker Decision Action Bar */}
+                                {cakeOrder.orderId && (() => {
+                                  const orderInfo = orderStatuses[cakeOrder.orderId] || null;
+                                  const normStatus = (orderInfo?.status || "Pending").toLowerCase().trim();
+                                  const isAccepted = normStatus === "confirmed" || normStatus === "accepted";
+                                  const isDenied = normStatus === "denied" || normStatus === "cancelled";
+                                  const isPreparing = normStatus === "preparing" || normStatus === "in preparation";
+                                  const isReady = normStatus === "ready for pickup";
+                                  const isCompleted = normStatus === "completed";
+
+                                  return (
+                                    <div className="cake-status-baker-section">
+                                      <div className="cake-status-row">
+                                        <span className="status-title-label">Live Fulfillment Status:</span>
+                                        <span className={`baker-status-pill status-${normStatus.replace(/\s+/g, '-')}`}>
+                                          {isAccepted && "✅ Accepted & Confirmed"}
+                                          {isDenied && "❌ Denied / Declined"}
+                                          {isPreparing && "👨‍🍳 In Kitchen (Baking)"}
+                                          {isReady && "📦 Ready for Pickup"}
+                                          {isCompleted && "🎉 Order Completed"}
+                                          {!isAccepted && !isDenied && !isPreparing && !isReady && !isCompleted && "⏳ Pending Baker Review"}
+                                        </span>
+                                      </div>
+
+                                      {isDenied && orderInfo?.cancellation_reason && (
+                                        <div className="baker-denial-reason-box">
+                                          <strong>Clarification from Bakery:</strong> "{orderInfo.cancellation_reason}"
+                                        </div>
+                                      )}
+
+                                      {/* Baker Action Buttons Row */}
+                                      <div className="baker-actions-row">
+                                        {!isAccepted && !isPreparing && !isReady && !isCompleted && (
+                                          <button
+                                            type="button"
+                                            className="btn-baker-action btn-baker-accept"
+                                            onClick={() => handleUpdateStatus(cakeOrder.orderId, "Confirmed")}
+                                            disabled={actionLoading === cakeOrder.orderId}
+                                            title="Accept this custom cake order and notify customer"
+                                          >
+                                            {actionLoading === cakeOrder.orderId ? "Saving..." : "✅ Accept Order"}
+                                          </button>
+                                        )}
+
+                                        {!isDenied && !isCompleted && (
+                                          <button
+                                            type="button"
+                                            className="btn-baker-action btn-baker-deny"
+                                            onClick={() => handleOpenDenialModal(cakeOrder.orderId)}
+                                            disabled={actionLoading === cakeOrder.orderId}
+                                            title="Deny this custom cake order with a clarification reason"
+                                          >
+                                            ❌ Deny Order...
+                                          </button>
+                                        )}
+
+                                        {isAccepted && (
+                                          <button
+                                            type="button"
+                                            className="btn-baker-action btn-baker-bake"
+                                            onClick={() => handleUpdateStatus(cakeOrder.orderId, "Preparing")}
+                                            disabled={actionLoading === cakeOrder.orderId}
+                                            title="Mark as actively in kitchen / baking"
+                                          >
+                                            👨‍🍳 Start Baking
+                                          </button>
+                                        )}
+
+                                        {isPreparing && (
+                                          <button
+                                            type="button"
+                                            className="btn-baker-action btn-baker-ready"
+                                            onClick={() => handleUpdateStatus(cakeOrder.orderId, "Ready for Pickup")}
+                                            disabled={actionLoading === cakeOrder.orderId}
+                                            title="Mark as finished and ready for customer pickup"
+                                          >
+                                            📦 Mark Ready
+                                          </button>
+                                        )}
+
+                                        {isDenied && (
+                                          <button
+                                            type="button"
+                                            className="btn-baker-action btn-baker-reopen"
+                                            onClick={() => handleUpdateStatus(cakeOrder.orderId, "Confirmed")}
+                                            disabled={actionLoading === cakeOrder.orderId}
+                                            title="Reconsider and Accept this order"
+                                          >
+                                            ↩️ Re-open & Accept
+                                          </button>
+                                        )}
+                                      </div>
+                                    </div>
+                                  );
+                                })()}
                               </div>
                             ) : (
                               <p className="bubble-text">{m.message}</p>
@@ -603,6 +850,77 @@ function AdminCakeChatModal({ isOpen, onClose }) {
                     }
                   }}
                 />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Denial Reason & Clarification Dialog Modal */}
+        {denyingOrderId && (
+          <div className="denial-modal-overlay" onClick={() => setDenyingOrderId(null)}>
+            <div className="denial-modal-card" onClick={(e) => e.stopPropagation()}>
+              <div className="denial-modal-header">
+                <h4>❌ Deny Custom Cake Order #{denyingOrderId}</h4>
+                <button
+                  type="button"
+                  className="close-denial-btn"
+                  onClick={() => setDenyingOrderId(null)}
+                  title="Close Dialog"
+                >
+                  ✕
+                </button>
+              </div>
+
+              <div className="denial-modal-body">
+                <p className="denial-instruction">
+                  Please select or provide a clarification reason. This clarification will immediately be displayed on the customer's chat screen and status banner:
+                </p>
+
+                <div className="preset-reasons-list">
+                  {PRESET_DENIAL_REASONS.map((preset, pIdx) => (
+                    <label key={pIdx} className="preset-reason-item">
+                      <input
+                        type="radio"
+                        name="denialReasonPreset"
+                        value={preset}
+                        checked={denialPreset === preset}
+                        onChange={() => setDenialPreset(preset)}
+                      />
+                      <span className="preset-text">{preset}</span>
+                    </label>
+                  ))}
+                </div>
+
+                {denialPreset === "Other specific reason..." && (
+                  <div className="custom-reason-input-wrap">
+                    <label>Specify Custom Clarification:</label>
+                    <textarea
+                      rows={3}
+                      placeholder="e.g. We cannot accommodate custom fondant sculpting on this requested date..."
+                      value={customDenialReason}
+                      onChange={(e) => setCustomDenialReason(e.target.value)}
+                      className="custom-reason-textarea"
+                    />
+                  </div>
+                )}
+              </div>
+
+              <div className="denial-modal-actions">
+                <button
+                  type="button"
+                  className="btn-cancel-denial"
+                  onClick={() => setDenyingOrderId(null)}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  className="btn-confirm-denial"
+                  onClick={handleConfirmDenial}
+                  disabled={denialPreset === "Other specific reason..." && !customDenialReason.trim()}
+                >
+                  Confirm Denial & Send Clarification
+                </button>
               </div>
             </div>
           </div>

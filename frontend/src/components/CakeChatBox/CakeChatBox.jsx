@@ -15,11 +15,154 @@
  * ============================================================================
  */
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { cakeChatService } from "../../services/cakeChatService";
 import { authService } from "../../services/authService";
+import { orderService } from "../../services/orderService";
 import AdminCakeChatModal from "../AdminCakeChatModal/AdminCakeChatModal";
 import "./CakeChatBox.css";
+
+/**
+ * Helper to parse automated cake order announcement messages
+ */
+function parseCakeOrderMessage(text) {
+  if (!text || typeof text !== "string") return null;
+
+  const isOrderPlaced = text.includes("Placed!") || text.includes("Custom Cake:") || text.includes("Message on cake:");
+  if (!isOrderPlaced) return null;
+
+  const orderMatch = text.match(/Order\s+(#?[A-Za-z0-9_-]+)/i);
+  const orderId = orderMatch ? orderMatch[1].replace(/^#/, "") : null;
+
+  let cakeName = "Custom Cake";
+  let specsList = [];
+  const cakeMatch = text.match(/Custom Cake:\s*([^(]+)(?:\(([^)]+)\))?/i);
+  if (cakeMatch) {
+    if (cakeMatch[1]) cakeName = cakeMatch[1].trim();
+    if (cakeMatch[2]) {
+      specsList = cakeMatch[2].split(",").map((s) => s.trim());
+    }
+  }
+
+  let dedication = null;
+  const dedicationMatch = text.match(/Message on cake:\s*["“]([^"”]+)["”]/i) || text.match(/Message on cake:\s*([^.]+)\./i);
+  if (dedicationMatch && dedicationMatch[1]) {
+    dedication = dedicationMatch[1].trim();
+  }
+
+  let specialRequest = null;
+  const requestMatch = text.match(/Special Request:\s*["“]([^"”]+)["”]/i) || text.match(/Special Request:\s*(.+)$/i);
+  if (requestMatch && requestMatch[1]) {
+    specialRequest = requestMatch[1].trim();
+  }
+
+  return {
+    orderId,
+    cakeName,
+    specs: specsList,
+    dedication,
+    specialRequest
+  };
+}
+
+/**
+ * Returns comprehensive, user-friendly clarification details based on the order's real-time status
+ */
+function getStatusClarification(status, cancellationReason) {
+  const norm = (status || "").toLowerCase().trim();
+
+  if (norm === "confirmed" || norm === "accepted") {
+    return {
+      label: "Accepted by Bakery",
+      icon: "✅",
+      badgeClass: "badge-accepted",
+      step: 2,
+      isDenied: false,
+      title: "Order Accepted & Confirmed!",
+      description: "Great news! Our cake decorators have reviewed and accepted your custom cake design. Ingredients and baking schedules are officially locked in for your date.",
+      actionHint: "Need to make quick adjustments or add candles? Message our baker below!"
+    };
+  }
+
+  if (norm === "denied" || norm === "cancelled") {
+    return {
+      label: "Order Denied / Declined",
+      icon: "❌",
+      badgeClass: "badge-denied",
+      step: -1,
+      isDenied: true,
+      title: "Order Denied by Bakery",
+      description: cancellationReason
+        ? `Clarification from Bakery: "${cancellationReason}"`
+        : "Our decorators are currently unable to accommodate this custom cake request for the requested schedule or requirements.",
+      actionHint: "💡 Please chat with our baker below to discuss alternative flavors, sizes, or available dates!"
+    };
+  }
+
+  if (norm === "preparing" || norm === "in preparation") {
+    return {
+      label: "In the Kitchen / Baking",
+      icon: "👨‍🍳",
+      badgeClass: "badge-preparing",
+      step: 3,
+      isDenied: false,
+      title: "Actively Baking & Decorating",
+      description: "Our kitchen has started on your cake! The sponge layers are baking and our decorators are crafting your frosting, dedication, and toppings.",
+      actionHint: "You can ask for a photo of the finished cake below before dispatch!"
+    };
+  }
+
+  if (norm === "ready for pickup") {
+    return {
+      label: "Ready for Pickup",
+      icon: "📦",
+      badgeClass: "badge-ready",
+      step: 4,
+      isDenied: false,
+      title: "Ready at the Counter!",
+      description: "Your custom cake has been decorated, boxed, and is waiting at our counter. Please present your Order ID upon arrival.",
+      actionHint: "Our counter staff is ready to hand you your freshly baked cake!"
+    };
+  }
+
+  if (norm === "for delivery" || norm === "out for delivery") {
+    return {
+      label: "Out for Delivery",
+      icon: "🚚",
+      badgeClass: "badge-delivery",
+      step: 4,
+      isDenied: false,
+      title: "On the Way to You",
+      description: "Your custom cake is carefully packaged and currently on the road with our delivery rider.",
+      actionHint: "Please keep your contact phone nearby for rider arrival."
+    };
+  }
+
+  if (norm === "completed") {
+    return {
+      label: "Order Completed",
+      icon: "🎉",
+      badgeClass: "badge-completed",
+      step: 5,
+      isDenied: false,
+      title: "Order Completed & Fulfilled",
+      description: "This custom cake order has been successfully fulfilled. Thank you for celebrating with Bake House!",
+      actionHint: "We hope you loved every bite! Tag us in your celebration photos."
+    };
+  }
+
+  // Default: Pending review
+  return {
+    label: "Pending Baker Review",
+    icon: "⏳",
+    badgeClass: "badge-pending",
+    step: 1,
+    isDenied: false,
+    title: "Awaiting Baker Review",
+    description: "Your custom cake specifications have been received by our kitchen. Our head decorator is reviewing your dedication and request details.",
+    actionHint: "Feel free to send photo references or message our bakers below!"
+  };
+}
 
 function CakeChatBox() {
   // 1. All React Hooks (Always called unconditionally in constant order)
@@ -142,6 +285,120 @@ function CakeChatBox() {
     }
   }, [messages, isOpen, isAdminOrStaff]);
 
+  // Listen for read-state updates from AdminCakeChatModal
+  const [readVersion, setReadVersion] = useState(0);
+
+  useEffect(() => {
+    const handleReadUpdate = () => {
+      setReadVersion((v) => v + 1);
+    };
+    window.addEventListener("cakeChatReadUpdated", handleReadUpdate);
+    window.addEventListener("storage", handleReadUpdate);
+    return () => {
+      window.removeEventListener("cakeChatReadUpdated", handleReadUpdate);
+      window.removeEventListener("storage", handleReadUpdate);
+    };
+  }, []);
+
+  // Compute strictly UNREAD threads (only shows badge if customer sent a message that hasn't been read)
+  const unreadThreadsCount = useMemo(() => {
+    if (!isAdminOrStaff || !Array.isArray(adminThreads)) return 0;
+    try {
+      const readStore = JSON.parse(localStorage.getItem("bh_admin_read_cake_threads") || "{}");
+      return adminThreads.filter((t) => {
+        // If the last message was sent by admin or staff, the admin already replied
+        if (t.last_sender_role && t.last_sender_role !== "customer") {
+          return false;
+        }
+
+        // Check if admin viewed/read this thread after the last message was posted
+        const lastReadAt = readStore[t.session_id];
+        if (lastReadAt) {
+          const lastMsgTime = t.last_message_at ? new Date(t.last_message_at).getTime() : 0;
+          if (lastReadAt >= lastMsgTime) {
+            return false; // Already read!
+          }
+        }
+
+        const backendUnread = Number(t.unread_count || 0);
+        return backendUnread > 0 || !lastReadAt;
+      }).length;
+    } catch {
+      return 0;
+    }
+  }, [isAdminOrStaff, adminThreads, readVersion]);
+
+  // Live order status and clarification tracking
+  const [liveOrderDetails, setLiveOrderDetails] = useState(null);
+
+  // Derive order and custom cake details from chat announcements or purchasedCake
+  const detectedOrder = useMemo(() => {
+    // 1. Search messages history for custom cake order announcement (newest first)
+    if (Array.isArray(messages)) {
+      for (let i = messages.length - 1; i >= 0; i--) {
+        const m = messages[i];
+        if (m?.message) {
+          const parsed = parseCakeOrderMessage(m.message);
+          if (parsed && parsed.orderId) {
+            return {
+              orderId: parsed.orderId.replace(/^#/, ""),
+              cakeName: parsed.cakeName,
+              specs: parsed.specs,
+              dedication: parsed.dedication,
+              specialRequest: parsed.specialRequest
+            };
+          }
+        }
+      }
+    }
+    // 2. Fall back to localStorage purchasedCake
+    if (purchasedCake?.orderId) {
+      return {
+        orderId: (purchasedCake.orderId || "").replace(/^#/, ""),
+        cakeName: purchasedCake.cakeName,
+        specs: [purchasedCake.size, purchasedCake.flavor, purchasedCake.shape].filter(Boolean),
+        dedication: purchasedCake.message,
+        specialRequest: purchasedCake.instructions,
+        scheduledDate: purchasedCake.scheduledDate,
+        scheduledTime: purchasedCake.scheduledTime
+      };
+    }
+    return null;
+  }, [messages, purchasedCake]);
+
+  const activeOrderId = detectedOrder?.orderId || null;
+
+  // Poll live order details (status, denial reason, scheduled date, etc.)
+  const fetchLiveOrderStatus = useCallback(async () => {
+    if (!activeOrderId || isAdminOrStaff) return;
+    try {
+      const res = await orderService.getOrderDetails(activeOrderId);
+      if (res && res.success && res.order) {
+        setLiveOrderDetails(res.order);
+      }
+    } catch (err) {
+      console.warn("Could not fetch live order details:", err);
+    }
+  }, [activeOrderId, isAdminOrStaff]);
+
+  useEffect(() => {
+    if (activeOrderId && isOpen && !isAdminOrStaff) {
+      fetchLiveOrderStatus();
+      const interval = setInterval(fetchLiveOrderStatus, 4000);
+      const handleOrdersUpdated = () => fetchLiveOrderStatus();
+      window.addEventListener("ordersUpdated", handleOrdersUpdated);
+      return () => {
+        clearInterval(interval);
+        window.removeEventListener("ordersUpdated", handleOrdersUpdated);
+      };
+    }
+  }, [activeOrderId, isOpen, isAdminOrStaff, fetchLiveOrderStatus]);
+
+  // Compute real-time status and clear explanation for the customer
+  const currentStatus = (liveOrderDetails?.status || "Pending").trim();
+  const cancellationReason = liveOrderDetails?.cancellation_reason || liveOrderDetails?.reason || "";
+  const statusClarification = getStatusClarification(currentStatus, cancellationReason);
+
   // Customer Send Message
   const handleSendMessage = async (e) => {
     e.preventDefault();
@@ -208,9 +465,9 @@ function CakeChatBox() {
         >
           <span className="chat-trigger-icon">👑</span>
           <span className="chat-trigger-label">Customer Chats</span>
-          {adminThreads.length > 0 && (
-            <span className="chat-badge" title={`${adminThreads.length} active customer threads`}>
-              {adminThreads.length}
+          {unreadThreadsCount > 0 && (
+            <span className="chat-badge" title={`${unreadThreadsCount} unread customer message${unreadThreadsCount > 1 ? "s" : ""}`}>
+              {unreadThreadsCount}
             </span>
           )}
         </button>
@@ -282,17 +539,19 @@ function CakeChatBox() {
             </div>
           </div>
 
-          {/* Purchased Cake Order Card (Collapsible) */}
-          {purchasedCake ? (
-            <div className={`purchased-cake-banner ${isOrderCollapsed ? "is-collapsed" : ""}`}>
+          {/* Purchased Cake Order Card (Collapsible with Real-Time Status & Clarification) */}
+          {(detectedOrder || purchasedCake) ? (
+            <div className={`purchased-cake-banner banner-${statusClarification.badgeClass} ${isOrderCollapsed ? "is-collapsed" : ""}`}>
               <div
                 className="banner-top clickable"
                 onClick={() => setIsOrderCollapsed(!isOrderCollapsed)}
                 title="Click to collapse or expand order details"
               >
                 <div className="banner-top-left">
-                  <span className="order-pill">🎂 Order #{purchasedCake.orderId}</span>
-                  <span className="badge-confirmed">Order Received</span>
+                  <span className="order-pill">🎂 Order #{activeOrderId || purchasedCake?.orderId}</span>
+                  <span className={`status-badge-pill ${statusClarification.badgeClass}`}>
+                    {statusClarification.icon} {statusClarification.label}
+                  </span>
                 </div>
                 <button
                   type="button"
@@ -303,30 +562,89 @@ function CakeChatBox() {
                   }}
                   aria-expanded={!isOrderCollapsed}
                 >
-                  {isOrderCollapsed ? "▾ Show Order Details" : "▴ Collapse Order"}
+                  {isOrderCollapsed ? "▾ Show Details" : "▴ Collapse"}
                 </button>
               </div>
 
+              {/* Order Status Clarification Callout */}
+              <div className={`order-status-card ${statusClarification.badgeClass}`}>
+                <div className="status-card-header">
+                  <span className="status-card-icon">{statusClarification.icon}</span>
+                  <div className="status-card-titles">
+                    <strong>{statusClarification.title}</strong>
+                    <span className="status-sub-label">Current Fulfillment Status</span>
+                  </div>
+                </div>
+
+                <p className="status-card-desc">{statusClarification.description}</p>
+
+                {/* Progress Pipeline Stepper (for active orders) */}
+                {!statusClarification.isDenied && (
+                  <div className="status-stepper-row">
+                    <div className={`step-node ${statusClarification.step >= 1 ? "step-active" : ""}`}>
+                      <span className="step-dot">{statusClarification.step > 1 ? "✓" : "1"}</span>
+                      <span className="step-name">Received</span>
+                    </div>
+                    <div className={`step-line ${statusClarification.step >= 2 ? "line-active" : ""}`}></div>
+                    <div className={`step-node ${statusClarification.step >= 2 ? "step-active" : ""}`}>
+                      <span className="step-dot">{statusClarification.step > 2 ? "✓" : "2"}</span>
+                      <span className="step-name">Accepted</span>
+                    </div>
+                    <div className={`step-line ${statusClarification.step >= 3 ? "line-active" : ""}`}></div>
+                    <div className={`step-node ${statusClarification.step >= 3 ? "step-active" : ""}`}>
+                      <span className="step-dot">{statusClarification.step > 3 ? "✓" : "3"}</span>
+                      <span className="step-name">Baking</span>
+                    </div>
+                    <div className={`step-line ${statusClarification.step >= 4 ? "line-active" : ""}`}></div>
+                    <div className={`step-node ${statusClarification.step >= 4 ? "step-active" : ""}`}>
+                      <span className="step-dot">{statusClarification.step > 4 ? "✓" : "4"}</span>
+                      <span className="step-name">Ready</span>
+                    </div>
+                  </div>
+                )}
+
+                {/* Special Guidance / Clarification Action Hint */}
+                {statusClarification.actionHint && (
+                  <div className="status-card-hint">
+                    {statusClarification.actionHint}
+                  </div>
+                )}
+              </div>
+
               {!isOrderCollapsed && (
-                <>
-                  <div className="banner-details">
-                    <p><strong>Cake:</strong> {purchasedCake.cakeName}</p>
-                    <p><strong>Specs:</strong> {purchasedCake.size} • {purchasedCake.flavor} • {purchasedCake.shape}</p>
-                    <p><strong>Frosting:</strong> {purchasedCake.color}</p>
-                    {purchasedCake.message && purchasedCake.message !== "None" && (
-                      <p><strong>Message:</strong> "{purchasedCake.message}"</p>
-                    )}
-                    {purchasedCake.instructions && purchasedCake.instructions !== "None" && (
-                      <p><strong>Requests:</strong> "{purchasedCake.instructions}"</p>
-                    )}
-                    {purchasedCake.scheduledDate && (
-                      <p><strong>📅 Date Needed:</strong> {purchasedCake.scheduledDate} {purchasedCake.scheduledTime ? `(${purchasedCake.scheduledTime})` : ''}</p>
-                    )}
-                  </div>
-                  <div className="banner-note">
-                    💡 <em>Have special requests, delivery updates, or questions for our bakers? Message us below!</em>
-                  </div>
-                </>
+                <div className="banner-details">
+                  <p><strong>Cake:</strong> {detectedOrder?.cakeName || purchasedCake?.cakeName || liveOrderDetails?.items?.[0]?.product_name || "Custom Cake"}</p>
+                  {(detectedOrder?.specs?.length > 0 || purchasedCake?.size || liveOrderDetails?.items?.[0]?.customization) && (
+                    <p>
+                      <strong>Specs:</strong>{" "}
+                      {detectedOrder?.specs?.length > 0
+                        ? detectedOrder.specs.join(" • ")
+                        : [
+                            purchasedCake?.size || liveOrderDetails?.items?.[0]?.customization?.size,
+                            purchasedCake?.flavor || liveOrderDetails?.items?.[0]?.customization?.flavor,
+                            purchasedCake?.shape || liveOrderDetails?.items?.[0]?.customization?.shape
+                          ].filter(Boolean).join(" • ")}
+                    </p>
+                  )}
+                  {(purchasedCake?.color || liveOrderDetails?.items?.[0]?.customization?.color) && (
+                    <p><strong>Frosting:</strong> {purchasedCake?.color || liveOrderDetails?.items?.[0]?.customization?.color}</p>
+                  )}
+                  {(detectedOrder?.dedication || purchasedCake?.message || liveOrderDetails?.items?.[0]?.customization?.message) && (
+                    <p><strong>Dedication:</strong> "{detectedOrder?.dedication || purchasedCake?.message || liveOrderDetails?.items?.[0]?.customization?.message}"</p>
+                  )}
+                  {(detectedOrder?.specialRequest || purchasedCake?.instructions || liveOrderDetails?.items?.[0]?.customization?.instructions) && (
+                    <p><strong>Requests:</strong> "{detectedOrder?.specialRequest || purchasedCake?.instructions || liveOrderDetails?.items?.[0]?.customization?.instructions}"</p>
+                  )}
+                  {(purchasedCake?.scheduledDate || liveOrderDetails?.items?.[0]?.customization?.scheduled_date) && (
+                    <p>
+                      <strong>📅 Date Needed:</strong>{" "}
+                      {purchasedCake?.scheduledDate || liveOrderDetails?.items?.[0]?.customization?.scheduled_date}{" "}
+                      {(purchasedCake?.scheduledTime || liveOrderDetails?.items?.[0]?.customization?.scheduled_time)
+                        ? `(${purchasedCake?.scheduledTime || liveOrderDetails?.items?.[0]?.customization?.scheduled_time})`
+                        : ""}
+                    </p>
+                  )}
+                </div>
               )}
             </div>
           ) : (

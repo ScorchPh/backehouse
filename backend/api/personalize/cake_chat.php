@@ -16,12 +16,44 @@ require_once __DIR__ . '/../../config/db.php';
 
 $pdo = getDBConnection();
 
+// Auto-ensure is_read column exists in custom_cake_chats table if using PDO
+if ($pdo) {
+    try {
+        $pdo->query("ALTER TABLE custom_cake_chats ADD COLUMN is_read TINYINT(1) DEFAULT 0");
+    } catch (Exception $e) {
+        // Column already exists or table not ready
+    }
+}
+
 // ----------------------------------------------------------------------------
-// GET: Fetch Messages or Active Chat Sessions
+// GET: Fetch Messages, Active Chat Sessions, or Mark Read
 // ----------------------------------------------------------------------------
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+    $action       = trim($_GET['action'] ?? '');
     $listSessions = isset($_GET['list_sessions']) && $_GET['list_sessions'] == '1';
     $sessionId    = trim($_GET['session_id'] ?? '');
+
+    // Action: Mark session messages as read
+    if ($action === 'mark_read' && !empty($sessionId)) {
+        if ($pdo) {
+            try {
+                $stmt = $pdo->prepare("UPDATE custom_cake_chats SET is_read = 1 WHERE session_id = :session_id");
+                $stmt->execute([':session_id' => $sessionId]);
+            } catch (Exception $e) {}
+        }
+        $allChats = readDataStore('custom_cake_chats');
+        $modified = false;
+        foreach ($allChats as &$chat) {
+            if (($chat['session_id'] ?? '') === $sessionId) {
+                $chat['is_read'] = 1;
+                $modified = true;
+            }
+        }
+        if ($modified) {
+            writeDataStore('custom_cake_chats', $allChats);
+        }
+        sendResponse(['success' => true, 'message' => 'Session marked as read']);
+    }
 
     // Option A: Admin fetching list of distinct customer chat threads
     if ($listSessions) {
@@ -35,6 +67,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
                         (SELECT message FROM custom_cake_chats c2 
                          WHERE c2.session_id = c1.session_id 
                          ORDER BY c2.id DESC LIMIT 1) AS last_message,
+                        (SELECT sender_role FROM custom_cake_chats c2 
+                         WHERE c2.session_id = c1.session_id 
+                         ORDER BY c2.id DESC LIMIT 1) AS last_sender_role,
+                        (SELECT id FROM custom_cake_chats c2 
+                         WHERE c2.session_id = c1.session_id 
+                         ORDER BY c2.id DESC LIMIT 1) AS last_message_id,
+                        SUM(CASE WHEN sender_role = 'customer' AND (is_read = 0 OR is_read IS NULL) THEN 1 ELSE 0 END) AS unread_count,
                         COUNT(id) AS message_count
                     FROM custom_cake_chats c1
                     GROUP BY session_id
@@ -58,21 +97,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             $sid = $chat['session_id'] ?? 'default';
             $isCustomer = ($chat['sender_role'] ?? '') === 'customer';
             $sender = $chat['sender_name'] ?? 'Customer';
+            $isUnread = $isCustomer && empty($chat['is_read']);
 
             if (!isset($grouped[$sid])) {
                 $grouped[$sid] = [
-                    'session_id'      => $sid,
-                    'customer_name'   => $isCustomer ? $sender : 'Customer',
-                    'last_message'    => $chat['message'] ?? '',
-                    'last_message_at' => $chat['created_at'] ?? date('Y-m-d H:i:s'),
-                    'message_count'   => 1
+                    'session_id'        => $sid,
+                    'customer_name'     => $isCustomer ? $sender : 'Customer',
+                    'last_message'      => $chat['message'] ?? '',
+                    'last_message_at'   => $chat['created_at'] ?? date('Y-m-d H:i:s'),
+                    'last_sender_role'  => $chat['sender_role'] ?? 'customer',
+                    'last_message_id'   => $chat['id'] ?? null,
+                    'unread_count'      => $isUnread ? 1 : 0,
+                    'message_count'     => 1
                 ];
             } else {
                 if ($isCustomer && $sender !== 'Customer') {
                     $grouped[$sid]['customer_name'] = $sender;
                 }
-                $grouped[$sid]['last_message']    = $chat['message'] ?? '';
-                $grouped[$sid]['last_message_at'] = $chat['created_at'] ?? date('Y-m-d H:i:s');
+                $grouped[$sid]['last_message']      = $chat['message'] ?? '';
+                $grouped[$sid]['last_message_at']   = $chat['created_at'] ?? date('Y-m-d H:i:s');
+                $grouped[$sid]['last_sender_role']  = $chat['sender_role'] ?? 'customer';
+                $grouped[$sid]['last_message_id']   = $chat['id'] ?? null;
+                if ($isUnread) {
+                    $grouped[$sid]['unread_count']++;
+                }
                 $grouped[$sid]['message_count']++;
             }
         }
@@ -93,7 +141,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     if ($pdo) {
         try {
             $stmt = $pdo->prepare("
-                SELECT id, session_id, user_id, sender_name, sender_role, message, created_at 
+                SELECT id, session_id, user_id, sender_name, sender_role, message, created_at, COALESCE(is_read, 0) AS is_read
                 FROM custom_cake_chats 
                 WHERE session_id = :session_id 
                 ORDER BY id ASC
@@ -123,11 +171,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
 }
 
 // ----------------------------------------------------------------------------
-// POST: Send New Chat Message
+// POST: Send New Chat Message or Mark Session as Read
 // ----------------------------------------------------------------------------
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $data       = getRequestBody();
+    $action     = trim($data['action'] ?? '');
     $sessionId  = trim($data['session_id'] ?? '');
+
+    // Action: Mark session as read
+    if ($action === 'mark_read' && !empty($sessionId)) {
+        if ($pdo) {
+            try {
+                $stmt = $pdo->prepare("UPDATE custom_cake_chats SET is_read = 1 WHERE session_id = :session_id");
+                $stmt->execute([':session_id' => $sessionId]);
+            } catch (Exception $e) {}
+        }
+        $allChats = readDataStore('custom_cake_chats');
+        $modified = false;
+        foreach ($allChats as &$chat) {
+            if (($chat['session_id'] ?? '') === $sessionId) {
+                $chat['is_read'] = 1;
+                $modified = true;
+            }
+        }
+        if ($modified) {
+            writeDataStore('custom_cake_chats', $allChats);
+        }
+        sendResponse(['success' => true, 'message' => 'Session marked as read']);
+    }
+
     $senderName = trim($data['sender_name'] ?? 'Guest');
     $senderRole = trim($data['sender_role'] ?? 'customer');
     $message    = trim($data['message'] ?? '');

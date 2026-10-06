@@ -541,7 +541,16 @@
   gap: 6px;
   overflow-x: auto;
   padding-bottom: 2px;
-  scrollbar-width: thin;
+  -webkit-overflow-scrolling: touch;
+}
+
+.quick-chips-scroll::-webkit-scrollbar {
+  height: 4px;
+}
+
+.quick-chips-scroll::-webkit-scrollbar-thumb {
+  background: rgba(107, 66, 38, 0.2);
+  border-radius: 4px;
 }
 
 .quick-reply-btn {
@@ -845,6 +854,354 @@
   max-height: 80vh;
   object-fit: contain;
   border-radius: 10px;
+}
+
+/* Baker Live Status and Decision Controls */
+.cake-status-baker-section {
+  background: #FFFDFB;
+  border: 1px solid #EEDBCA;
+  border-radius: 10px;
+  padding: 10px 12px;
+  margin-top: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.cake-status-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.status-title-label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #78350F;
+  letter-spacing: 0.4px;
+}
+
+.baker-status-pill {
+  font-size: 0.76rem;
+  font-weight: 800;
+  padding: 3px 10px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border: 1px solid transparent;
+}
+
+.baker-status-pill.status-confirmed,
+.baker-status-pill.status-accepted {
+  background: #ECFDF5;
+  color: #065F46;
+  border-color: #6EE7B7;
+}
+
+.baker-status-pill.status-denied,
+.baker-status-pill.status-cancelled {
+  background: #FEF2F2;
+  color: #991B1B;
+  border-color: #FCA5A5;
+}
+
+.baker-status-pill.status-preparing {
+  background: #EFF6FF;
+  color: #1E40AF;
+  border-color: #93C5FD;
+}
+
+.baker-status-pill.status-ready-for-pickup {
+  background: #F5F3FF;
+  color: #6D28D9;
+  border-color: #C4B5FD;
+}
+
+.baker-status-pill.status-completed {
+  background: #F3F4F6;
+  color: #374151;
+  border-color: #D1D5DB;
+}
+
+.baker-status-pill.status-pending {
+  background: #FFFBEB;
+  color: #92400E;
+  border-color: #FCD34D;
+}
+
+.baker-denial-reason-box {
+  background: #FEF2F2;
+  border-left: 3px solid #EF4444;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  color: #991B1B;
+  line-height: 1.4;
+}
+
+.baker-actions-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding-top: 4px;
+  border-top: 1px dashed #F1E5D8;
+}
+
+.btn-baker-action {
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 6px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  transition: all 0.18s ease;
+}
+
+.btn-baker-action:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-baker-accept {
+  background: #059669;
+  color: #FFFFFF;
+}
+
+.btn-baker-accept:hover:not(:disabled) {
+  background: #047857;
+  transform: translateY(-1px);
+}
+
+.btn-baker-deny {
+  background: #DC2626;
+  color: #FFFFFF;
+}
+
+.btn-baker-deny:hover:not(:disabled) {
+  background: #B91C1C;
+  transform: translateY(-1px);
+}
+
+.btn-baker-bake {
+  background: #2563EB;
+  color: #FFFFFF;
+}
+
+.btn-baker-bake:hover:not(:disabled) {
+  background: #1D4ED8;
+  transform: translateY(-1px);
+}
+
+.btn-baker-ready {
+  background: #7C3AED;
+  color: #FFFFFF;
+}
+
+.btn-baker-ready:hover:not(:disabled) {
+  background: #6D28D9;
+  transform: translateY(-1px);
+}
+
+.btn-baker-reopen {
+  background: #D97706;
+  color: #FFFFFF;
+}
+
+.btn-baker-reopen:hover:not(:disabled) {
+  background: #B45309;
+  transform: translateY(-1px);
+}
+
+/* Denial Reason & Clarification Dialog Modal */
+.denial-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+  z-index: 21000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  animation: fadeIn 0.2s ease;
+}
+
+.denial-modal-card {
+  background: #FFFFFF;
+  border-radius: 16px;
+  width: 520px;
+  max-width: 94vw;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid #FCA5A5;
+}
+
+.denial-modal-header {
+  background: #DC2626;
+  color: #FFFFFF;
+  padding: 14px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.denial-modal-header h4 {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.close-denial-btn {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: #FFFFFF;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.95rem;
+}
+
+.close-denial-btn:hover {
+  background: rgba(255, 255, 255, 0.35);
+}
+
+.denial-modal-body {
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: #FFFDFD;
+}
+
+.denial-instruction {
+  margin: 0;
+  font-size: 0.88rem;
+  color: #4B5563;
+  line-height: 1.4;
+}
+
+.preset-reasons-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.preset-reason-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border: 1.5px solid #E5E7EB;
+  border-radius: 8px;
+  cursor: pointer;
+  background: #FFFFFF;
+  transition: all 0.15s ease;
+}
+
+.preset-reason-item:hover {
+  background: #FEF2F2;
+  border-color: #FCA5A5;
+}
+
+.preset-reason-item input[type="radio"] {
+  accent-color: #DC2626;
+  cursor: pointer;
+}
+
+.preset-text {
+  font-size: 0.86rem;
+  color: #1F2937;
+  font-weight: 500;
+}
+
+.custom-reason-input-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.custom-reason-input-wrap label {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #374151;
+}
+
+.custom-reason-textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1.5px solid #DC2626;
+  font-size: 0.88rem;
+  font-family: inherit;
+  resize: vertical;
+}
+
+.custom-reason-textarea:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.15);
+}
+
+.denial-modal-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 14px 20px;
+  background: #F9FAFB;
+  border-top: 1px solid #E5E7EB;
+}
+
+.btn-cancel-denial {
+  background: #E5E7EB;
+  color: #374151;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 0.88rem;
+  cursor: pointer;
+}
+
+.btn-cancel-denial:hover {
+  background: #D1D5DB;
+}
+
+.btn-confirm-denial {
+  background: #DC2626;
+  color: #FFFFFF;
+  border: none;
+  padding: 8px 18px;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 0.88rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-confirm-denial:hover:not(:disabled) {
+  background: #B91C1C;
+}
+
+.btn-confirm-denial:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 /* Responsive */

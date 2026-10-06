@@ -93,9 +93,18 @@ if ($pdo) {
 
         $prevStatus = $currentOrder['status'] ?? 'Pending';
 
-        // Update the status
-        $stmt = $pdo->prepare("UPDATE orders SET status = :status WHERE id = :id");
-        $stmt->execute(['status' => $status, 'id' => $id]);
+        // Auto-ensure cancellation_reason column exists
+        try {
+            $pdo->query("ALTER TABLE orders ADD COLUMN cancellation_reason TEXT NULL");
+        } catch (Exception $e) {}
+
+        // Update the status and reason
+        $stmt = $pdo->prepare("UPDATE orders SET status = :status, cancellation_reason = :reason WHERE id = :id");
+        $stmt->execute([
+            'status' => $status,
+            'reason' => !empty($reason) ? $reason : ($status === 'Denied' || $status === 'Cancelled' ? ($currentOrder['cancellation_reason'] ?? null) : null),
+            'id'     => $id
+        ]);
 
         // AUTOMATED INVENTORY REPLENISHMENT:
         // When transitioning to 'Denied' or 'Cancelled' from an active status,

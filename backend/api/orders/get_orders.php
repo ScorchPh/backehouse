@@ -57,7 +57,9 @@ if ($pdo) {
         // allowing us to dynamically append 'AND' conditions below without syntax errors.
         $sql = "
             SELECT o.id, o.user_id, o.customer_name, o.customer_contact, o.delivery_address, 
-                   o.payment_method, o.subtotal, o.delivery_fee, o.total, o.status, o.created_at,
+                   o.payment_method, o.subtotal, o.delivery_fee, o.total, o.status, 
+                   COALESCE(o.cancellation_reason, '') as cancellation_reason,
+                   o.created_at,
                    DATE_FORMAT(o.created_at, '%M %d, %Y') as formatted_date
             FROM orders o
             WHERE 1=1
