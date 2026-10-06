@@ -541,7 +541,6 @@
   gap: 6px;
   overflow-x: auto;
   padding-bottom: 2px;
-  -webkit-overflow-scrolling: touch;
 }
 
 .quick-chips-scroll::-webkit-scrollbar {
@@ -549,7 +548,7 @@
 }
 
 .quick-chips-scroll::-webkit-scrollbar-thumb {
-  background: rgba(107, 66, 38, 0.2);
+  background: #E0D3C3;
   border-radius: 4px;
 }
 
