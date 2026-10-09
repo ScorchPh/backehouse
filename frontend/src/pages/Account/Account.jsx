@@ -1,35 +1,60 @@
-/**
- * ============================================================================
- * BAKE HOUSE - User Account, Authentication & Profile Page
- * ============================================================================
- * Capstone Project Explanation:
- * Handles:
- * 1. Login with username or email + password (for Admin, Staff, and Customer).
- * 2. Customer Registration with input validation.
- * 3. Google Sign-In Single Sign-On (SSO).
- * 4. Quick 1-Click Capstone Demo Account Fillers (Admin, Staff, Customer).
- * 5. Authenticated Profile View with role badges and order navigation.
- * 6. Customer Account Settings: Edit personal info (Name, Contact, Email)
- *    and Default Shopee-Style Delivery Location (Street, Barangay, City,
- *    Landmark, and Interactive Pinpoint Map Coordinates).
- * ============================================================================
- */
-
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { authService } from "../../services/authService";
 import DeliveryMapPicker from "../../components/DeliveryMapPicker/DeliveryMapPicker";
+import catPastries from "../../assets/images/cat_pastries.jpg";
+import catSourdough from "../../assets/images/cat_sourdough.jpg";
+import heroBg from "../../assets/images/bakesmart_hero.jpg";
 import "./Account.css";
+
+const BREAD_PASTRY_SLIDES = [
+  {
+    image: catPastries,
+    tag: "🥐 Artisanal Pastry",
+    title: "Golden Butter Croissants",
+    desc: "Flaky, buttery French pastries baked crisp and golden every morning."
+  },
+  {
+    image: catSourdough,
+    tag: "🥖 Hearth Bread",
+    title: "Stone Hearth Sourdough",
+    desc: "Naturally leavened with wild starter, stone-baked with a crusty finish."
+  },
+  {
+    image: "/uploads/productimg/cinnamon_roll.jpg",
+    fallback: catPastries,
+    tag: "🥯 Sweet Pastry",
+    title: "Glazed Cinnamon Swirls",
+    desc: "Warm spiced cinnamon rolls drizzled with velvety vanilla cream cheese."
+  },
+  {
+    image: "/uploads/productimg/spanish_bread.jpg",
+    fallback: heroBg,
+    tag: "🍞 Filipino Favorites",
+    title: "Fresh Spanish Bread",
+    desc: "Soft traditional morning rolls filled with sweet buttery golden breadcrumbs."
+  },
+  {
+    image: heroBg,
+    tag: "🌾 Artisan Bakery",
+    title: "Stone-Baked Daily Loaves",
+    desc: "Handcrafted with pure wholesome flour, baked fresh daily in Cordova."
+  }
+];
 
 function Account() {
   const navigate = useNavigate();
   const [currentUser, setCurrentUser] = useState(() => authService.getCurrentUser());
   const [isLogin, setIsLogin] = useState(true);
+  const [currentSlide, setCurrentSlide] = useState(0);
 
-  // Tab state for logged-in user: 'overview' or 'settings'
+  useEffect(() => {
+    const slideTimer = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % BREAD_PASTRY_SLIDES.length);
+    }, 4500);
+    return () => clearInterval(slideTimer);
+  }, []);
   const [activeTab, setActiveTab] = useState("overview");
-
-  // Form input states (Auth)
   const [loginIdentifier, setLoginIdentifier] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
   
@@ -39,8 +64,6 @@ function Account() {
   const [regContact, setRegContact] = useState("");
   const [regPassword, setRegPassword] = useState("");
   const [regConfirmPassword, setRegConfirmPassword] = useState("");
-
-  // Customer Settings / Edit Details States
   const [editFirstName, setEditFirstName] = useState("");
   const [editLastName, setEditLastName] = useState("");
   const [editEmail, setEditEmail] = useState("");
@@ -55,12 +78,9 @@ function Account() {
   const [showMapPicker, setShowMapPicker] = useState(false);
   const [savingSettings, setSavingSettings] = useState(false);
   const [settingsMessage, setSettingsMessage] = useState({ text: "", type: "" });
-
-  // Feedback states (Login/Register)
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
-
   const populateEditFields = (user) => {
     if (!user) return;
     setEditFirstName(user.first_name || "");
@@ -72,10 +92,11 @@ function Account() {
     setEditCity(user.default_city || "Cordova");
     setEditProvince(user.default_province || "Cebu");
     setEditLandmark(user.default_landmark || "");
-    setEditLat(user.default_lat ? parseFloat(user.default_lat) : 10.2540);
-    setEditLng(user.default_lng ? parseFloat(user.default_lng) : 123.9490);
+    const parsedLat = parseFloat(user.default_lat);
+    const parsedLng = parseFloat(user.default_lng);
+    setEditLat(!isNaN(parsedLat) ? parsedLat : 10.2540);
+    setEditLng(!isNaN(parsedLng) ? parsedLng : 123.9490);
   };
-
   useEffect(() => {
     const handleAuthChange = () => {
       const user = authService.getCurrentUser();
@@ -92,11 +113,7 @@ function Account() {
 
     return () => window.removeEventListener("authChange", handleAuthChange);
   }, []);
-
-  /**
-   * Helper to fill demo credentials quickly for Capstone defense
-   */
-  const fillDemoAccount = (role) => {
+    const fillDemoAccount = (role) => {
     setIsLogin(true);
     setErrorMessage("");
     setSuccessMessage("");
@@ -111,11 +128,7 @@ function Account() {
       setLoginPassword("1234");
     }
   };
-
-  /**
-   * Handle Standard Form Login
-   */
-  const handleLoginSubmit = async (e) => {
+    const handleLoginSubmit = async (e) => {
     e.preventDefault();
     setErrorMessage("");
     setSuccessMessage("");
@@ -142,11 +155,7 @@ function Account() {
       setLoading(false);
     }
   };
-
-  /**
-   * Handle Google Sign-In
-   */
-  const handleGoogleSignIn = async () => {
+    const handleGoogleSignIn = async () => {
     setErrorMessage("");
     setSuccessMessage("");
     try {
@@ -172,11 +181,7 @@ function Account() {
       setLoading(false);
     }
   };
-
-  /**
-   * Handle Customer Registration
-   */
-  const handleRegisterSubmit = async (e) => {
+    const handleRegisterSubmit = async (e) => {
     e.preventDefault();
     setErrorMessage("");
     setSuccessMessage("");
@@ -213,10 +218,6 @@ function Account() {
       setLoading(false);
     }
   };
-
-  /**
-   * Save Customer Settings (Personal Info & Default Delivery Location)
-   */
   const handleSaveSettings = async (e) => {
     e.preventDefault();
     setSettingsMessage({ text: "", type: "" });
@@ -282,24 +283,74 @@ function Account() {
   return (
     <div className="account-page">
       <div className={`account-container ${currentUser && activeTab === 'settings' ? 'settings-active' : ''}`}>
-        {/* Left Side Branding */}
         <div className="account-left">
-          <h1>BAKE HOUSE</h1>
-          <p>
-            Freshly baked happiness delivered to your doorstep. Handcrafted daily with love.
-          </p>
-          <img
-            src="https://images.unsplash.com/photo-1519864600265-abb23847ef2c?w=700"
-            alt="Bakery"
-          />
-        </div>
+          <div className="account-carousel-bg" aria-hidden="true">
+            {BREAD_PASTRY_SLIDES.map((slide, idx) => (
+              <div
+                key={idx}
+                className={`carousel-slide ${idx === currentSlide ? "active" : ""}`}
+                style={{
+                  backgroundImage: `url(${slide.image}), url(${slide.fallback || catPastries})`
+                }}
+              />
+            ))}
+            <div className="carousel-overlay" />
+          </div>
+          <div className="account-left-content">
+            <div className="account-left-header">
+              <span className="brand-badge">🥖 Artisanal Bakery</span>
+              <h1>BAKE HOUSE</h1>
+              <p className="brand-tagline">
+                Freshly baked happiness delivered to your doorstep. Handcrafted daily with love.
+              </p>
+            </div>
+            <div className="carousel-highlight-card">
+              <span className="slide-tag">{BREAD_PASTRY_SLIDES[currentSlide].tag}</span>
+              <h3 className="slide-title">{BREAD_PASTRY_SLIDES[currentSlide].title}</h3>
+              <p className="slide-desc">{BREAD_PASTRY_SLIDES[currentSlide].desc}</p>
+            </div>
+            <div className="carousel-controls">
+              <button
+                type="button"
+                className="carousel-arrow"
+                onClick={() =>
+                  setCurrentSlide((prev) => (prev - 1 + BREAD_PASTRY_SLIDES.length) % BREAD_PASTRY_SLIDES.length)
+                }
+                title="Previous pastry"
+                aria-label="Previous pastry"
+              >
+                ‹
+              </button>
 
-        {/* Right Side Form or Profile */}
+              <div className="carousel-dots">
+                {BREAD_PASTRY_SLIDES.map((_, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    className={`carousel-dot ${idx === currentSlide ? "active" : ""}`}
+                    onClick={() => setCurrentSlide(idx)}
+                    aria-label={`Show ${BREAD_PASTRY_SLIDES[idx].title}`}
+                  />
+                ))}
+              </div>
+
+              <button
+                type="button"
+                className="carousel-arrow"
+                onClick={() =>
+                  setCurrentSlide((prev) => (prev + 1) % BREAD_PASTRY_SLIDES.length)
+                }
+                title="Next pastry"
+                aria-label="Next pastry"
+              >
+                ›
+              </button>
+            </div>
+          </div>
+        </div>
         <div className="account-right">
           {currentUser ? (
-            /* Logged-In User Profile & Settings Container */
             <div className="profile-view">
-              {/* Account Tabs Header */}
               <div className="account-tabs">
                 <button
                   type="button"
@@ -325,7 +376,6 @@ function Account() {
               </div>
 
               {activeTab === 'overview' ? (
-                /* TAB 1: Profile Overview */
                 <div className="overview-tab-content">
                   <div className="profile-header">
                     <img
@@ -357,8 +407,6 @@ function Account() {
                       <span className="detail-val">{currentUser.contact_number || "Not specified"}</span>
                     </div>
                   </div>
-
-                  {/* Customer Default Delivery Details Card */}
                   <div className="profile-delivery-box">
                     <div className="delivery-box-header">
                       <div>
@@ -456,7 +504,6 @@ function Account() {
                   </div>
                 </div>
               ) : (
-                /* TAB 2: Customer Settings & Edit Form */
                 <form onSubmit={handleSaveSettings} className="settings-tab-form">
                   <div className="settings-header">
                     <h2>Edit Your Details</h2>
@@ -470,8 +517,6 @@ function Account() {
                       {settingsMessage.text}
                     </div>
                   )}
-
-                  {/* Section 1: Personal Info */}
                   <div className="settings-section">
                     <h3 className="section-title">👤 Personal Details</h3>
                     <div className="form-row">
@@ -519,8 +564,6 @@ function Account() {
                       </div>
                     </div>
                   </div>
-
-                  {/* Section 2: Default Delivery Location */}
                   <div className="settings-section">
                     <h3 className="section-title">🏠 Default Delivery Address (Shopee Style)</h3>
                     <p className="section-desc">
@@ -576,8 +619,6 @@ function Account() {
                         />
                       </div>
                     </div>
-
-                    {/* Section 3: Interactive Map Pinpoint Accordion */}
                     <div className="map-picker-accordion">
                       <div className="map-accordion-header">
                         <div>
@@ -627,8 +668,6 @@ function Account() {
                       )}
                     </div>
                   </div>
-
-                  {/* Form Action Buttons */}
                   <div className="settings-btn-row">
                     <button
                       type="submit"
@@ -650,12 +689,9 @@ function Account() {
               )}
             </div>
           ) : isLogin ? (
-            /* Login Form */
             <form onSubmit={handleLoginSubmit}>
               <h2>Welcome Back</h2>
               <p className="subtitle">Sign in to continue your bakery journey.</p>
-
-              {/* Demo Account Quick Pickers for Capstone Review */}
               <div className="demo-accounts-bar">
                 <span className="demo-label">⚡ Capstone Test Accounts (Password: 1234):</span>
                 <div className="demo-buttons">
@@ -703,8 +739,6 @@ function Account() {
               <button type="submit" className="account-btn" disabled={loading}>
                 {loading ? "Logging in..." : "Login"}
               </button>
-
-              {/* Google Sign-In Button */}
               <div className="divider">
                 <span>OR</span>
               </div>
@@ -739,7 +773,6 @@ function Account() {
               </button>
             </form>
           ) : (
-            /* Register Form */
             <form onSubmit={handleRegisterSubmit}>
               <h2>Create Account</h2>
               <p className="subtitle">Join BAKE HOUSE today.</p>
@@ -798,8 +831,6 @@ function Account() {
               <button type="submit" className="account-btn" disabled={loading}>
                 {loading ? "Creating Account..." : "Create Account"}
               </button>
-
-              {/* Google Sign-In option in register */}
               <div className="divider">
                 <span>OR</span>
               </div>

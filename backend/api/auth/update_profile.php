@@ -1,21 +1,10 @@
 <?php
-/**
- * ============================================================================
- * BAKE HOUSE - Update User Profile & Default Delivery Information
- * ============================================================================
- * Endpoint: POST /api/auth/update_profile.php
- *
- * Allows customers and administrators to update:
- * - First Name & Last Name
- * - Email & Contact Number
- * - Default Delivery Address (Street, Barangay, City, Province, Landmark)
- * - Default Pinpoint Map Coordinates (Latitude, Longitude)
- * ============================================================================
- */
+// handles updating customer profile and their default delivery address
 
 require_once __DIR__ . '/../../config/cors.php';
 require_once __DIR__ . '/../../config/db.php';
 
+// only allow POST request
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     sendResponse([
         'success' => false,
@@ -23,7 +12,11 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     ], 405);
 }
 
+// get json payload or regular post form data
 $payload = getRequestBody();
+if (empty($payload) && !empty($_POST)) {
+    $payload = $_POST;
+}
 
 if (empty($payload) || !is_array($payload)) {
     sendResponse([
@@ -32,9 +25,9 @@ if (empty($payload) || !is_array($payload)) {
     ], 400);
 }
 
+// find user by id or username
 $userId = isset($payload['id']) ? (int)$payload['id'] : 0;
 if ($userId <= 0 && !empty($payload['username'])) {
-    // If id missing, look up by username
     $users = readDataStore('users');
     foreach ($users as $u) {
         if ($u['username'] === $payload['username']) {
@@ -51,7 +44,7 @@ if ($userId <= 0) {
     ], 400);
 }
 
-// Extract updateable fields
+// clean and trim input fields
 $firstName = isset($payload['first_name']) ? trim((string)$payload['first_name']) : null;
 $lastName  = isset($payload['last_name']) ? trim((string)$payload['last_name']) : null;
 $email     = isset($payload['email']) ? strtolower(trim((string)$payload['email'])) : null;
@@ -64,13 +57,11 @@ $landmark  = isset($payload['default_landmark']) ? trim((string)$payload['defaul
 $lat       = isset($payload['default_lat']) && is_numeric($payload['default_lat']) ? (float)$payload['default_lat'] : null;
 $lng       = isset($payload['default_lng']) && is_numeric($payload['default_lng']) ? (float)$payload['default_lng'] : null;
 
-// Construct composite address string
+// combine address parts into one full address string
 $addressParts = array_filter([$street, $barangay, $city, $province]);
 $compositeAddress = !empty($addressParts) ? implode(', ', $addressParts) : (isset($payload['address']) ? trim((string)$payload['address']) : '');
 
-// ----------------------------------------------------------------------------
-// 1. UPDATE JSON DATA STORE
-// ----------------------------------------------------------------------------
+// update users.json file first
 $users = readDataStore('users');
 $found = false;
 $updatedUser = null;
@@ -91,53 +82,38 @@ for ($i = 0; $i < count($users); $i++) {
         if ($compositeAddress !== '') $users[$i]['address'] = $compositeAddress;
 
         $updatedUser = $users[$i];
+        // don't send back the hashed password
         unset($updatedUser['password']);
         $found = true;
         break;
     }
 }
 
-if (!$found) {
-    sendResponse([
-        'success' => false,
-        'message' => 'User account not found.'
-    ], 404);
-}
-
-writeDataStore('users', $users);
-
-// ----------------------------------------------------------------------------
-// 2. SYNC WITH MYSQL IF AVAILABLE
-// ----------------------------------------------------------------------------
+// also sync to mysql if connected
 try {
     $pdo = getDBConnection();
     if ($pdo) {
-        // Attempt to ensure columns exist in users table
-        try {
-            $pdo->exec("ALTER TABLE `users` ADD COLUMN `default_street` VARCHAR(255) NULL;");
-        } catch (Exception $e) {}
-        try {
-            $pdo->exec("ALTER TABLE `users` ADD COLUMN `default_barangay` VARCHAR(100) NULL;");
-        } catch (Exception $e) {}
-        try {
-            $pdo->exec("ALTER TABLE `users` ADD COLUMN `default_city` VARCHAR(100) NULL;");
-        } catch (Exception $e) {}
-        try {
-            $pdo->exec("ALTER TABLE `users` ADD COLUMN `default_province` VARCHAR(100) NULL;");
-        } catch (Exception $e) {}
-        try {
-            $pdo->exec("ALTER TABLE `users` ADD COLUMN `default_landmark` VARCHAR(255) NULL;");
-        } catch (Exception $e) {}
-        try {
-            $pdo->exec("ALTER TABLE `users` ADD COLUMN `default_lat` DECIMAL(10, 7) NULL;");
-        } catch (Exception $e) {}
-        try {
-            $pdo->exec("ALTER TABLE `users` ADD COLUMN `default_lng` DECIMAL(10, 7) NULL;");
-        } catch (Exception $e) {}
-        try {
-            $pdo->exec("ALTER TABLE `users` ADD COLUMN `address` TEXT NULL;");
-        } catch (Exception $e) {}
+        // make sure new columns exist in table so it won't crash
+        $columnsToEnsure = [
+            'default_street'   => 'VARCHAR(255) NULL',
+            'default_barangay' => 'VARCHAR(100) NULL',
+            'default_city'     => 'VARCHAR(100) NULL',
+            'default_province' => 'VARCHAR(100) NULL',
+            'default_landmark' => 'VARCHAR(255) NULL',
+            'default_lat'      => 'DECIMAL(10, 7) NULL',
+            'default_lng'      => 'DECIMAL(10, 7) NULL',
+            'address'          => 'TEXT NULL'
+        ];
 
+        foreach ($columnsToEnsure as $col => $definition) {
+            try {
+                $pdo->exec("ALTER TABLE `users` ADD COLUMN `{$col}` {$definition};");
+            } catch (Exception $ignored) {
+                // column already exists, safe to ignore
+            }
+        }
+
+        // update user row in database
         $updateSql = "
             UPDATE `users` SET 
                 `first_name` = COALESCE(:first_name, `first_name`),
@@ -170,11 +146,35 @@ try {
             'address'    => $compositeAddress ?: null,
             'id'         => $userId
         ]);
+
+        // if user was in mysql but not yet in json, sync it
+        if (!$found) {
+            $selectStmt = $pdo->prepare("SELECT id, username, first_name, last_name, email, contact_number, role, avatar, created_at, default_street, default_barangay, default_city, default_province, default_landmark, default_lat, default_lng, address FROM users WHERE id = :id LIMIT 1");
+            $selectStmt->execute(['id' => $userId]);
+            $sqlUser = $selectStmt->fetch();
+            if ($sqlUser) {
+                $updatedUser = $sqlUser;
+                $users[] = $sqlUser;
+                $found = true;
+            }
+        }
     }
 } catch (Exception $e) {
-    // Graceful fallback to JSON storage
+    // if db fails, continue with json file
+    error_log("db update notice: " . $e->getMessage());
 }
 
+if (!$found) {
+    sendResponse([
+        'success' => false,
+        'message' => 'User account not found.'
+    ], 404);
+}
+
+// save updated list to users.json
+writeDataStore('users', $users);
+
+// send back success response
 sendResponse([
     'success' => true,
     'message' => 'Profile details and default delivery address updated successfully!',

@@ -1,18 +1,9 @@
-/**
- * ============================================================================
- * BAKE HOUSE - Home Page Stylesheet (Artisanal BakeSmart Design)
- * ============================================================================
- */
-
 .home-page-container {
   width: 100%;
   overflow-x: hidden;
   background-color: var(--color-bg-warm, #FDFBF7);
 }
 
-/* ==========================================================================
-   1. HERO SECTION (Dark Panoramic with Frosted Glass Box)
-   ========================================================================== */
 .bakesmart-hero {
   position: relative;
   width: 100%;
@@ -145,9 +136,6 @@
   transform: translateY(-2px);
 }
 
-/* ==========================================================================
-   2. FEATURED CATEGORIES SECTION (SELECTION)
-   ========================================================================== */
 .categories-section {
   max-width: 1280px;
   margin: 0 auto;
@@ -277,18 +265,12 @@
   margin: 0;
 }
 
-/* ==========================================================================
-   3. HOME FEATURED WRAPPER
-   ========================================================================== */
 .home-featured-wrapper {
   max-width: 1280px;
   margin: 0 auto;
   padding: 0 clamp(20px, 4vw, 40px);
 }
 
-/* ==========================================================================
-   4. OUR PROCESS / HOW IT WORKS SECTION (Picture 1 style)
-   ========================================================================== */
 .process-section {
   background-color: var(--color-bg-peach, #FAF3EB);
   width: 100%;
@@ -375,9 +357,6 @@
   margin: 0;
 }
 
-/* ==========================================================================
-   5. STAY IN THE DOUGH SECTION (Picture 1 Dark Espresso Card)
-   ========================================================================== */
 .stay-in-dough-section {
   max-width: 1040px;
   margin: clamp(40px, 6vw, 70px) auto clamp(60px, 8vw, 90px);
@@ -469,9 +448,6 @@
   animation: fadeIn 0.3s ease;
 }
 
-/* ==========================================================================
-   RESPONSIVE MEDIA QUERIES
-   ========================================================================== */
 @media (max-width: 1024px) {
   .category-cards-grid {
     grid-template-columns: repeat(3, 1fr);

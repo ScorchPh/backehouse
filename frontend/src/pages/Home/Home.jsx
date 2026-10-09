@@ -1,9 +1,3 @@
-/**
- * ============================================================================
- * BAKE HOUSE - Home Page Component (Artisanal BakeSmart Theme)
- * ============================================================================
- */
-
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import "./Home.css";
@@ -32,7 +26,6 @@ function Home() {
 
   return (
     <div className="home-page-container">
-      {/* 1. HERO SECTION (Picture 1 style) */}
       <section className="bakesmart-hero">
         <div className="hero-bg-wrap">
           <img src={heroBg} alt="Artisanal Sourdough" className="hero-bg-img" />
@@ -59,7 +52,6 @@ function Home() {
         </div>
       </section>
 
-      {/* 2. FEATURED CATEGORIES SECTION (Picture 1 "SELECTION" style) */}
       <section className="categories-section">
         <div className="section-heading-center">
           <span className="section-label-gold">SELECTION</span>
@@ -68,7 +60,6 @@ function Home() {
         </div>
 
         <div className="category-cards-grid">
-          {/* Card 1: Sourdough */}
           <Link to="/menu?category=Bread" className="category-card">
             <div className="cat-img-wrapper">
               <img src={catSourdough} alt="Artisanal Sourdough" />
@@ -80,7 +71,6 @@ function Home() {
             </div>
           </Link>
 
-          {/* Card 2: Pastries */}
           <Link to="/menu?category=Pastry" className="category-card">
             <div className="cat-img-wrapper">
               <span className="cat-badge-top">HAND-LAMINATED</span>
@@ -93,7 +83,6 @@ function Home() {
             </div>
           </Link>
 
-          {/* Card 3: Custom Cakes */}
           <Link to="/personalize" className="category-card">
             <div className="cat-img-wrapper">
               <img src={catCakes} alt="Artisanal Custom Cakes" />
@@ -107,12 +96,10 @@ function Home() {
         </div>
       </section>
 
-      {/* 3. FEATURED PRODUCTS COLLECTION (Picture 2 Card Style) */}
       <section className="home-featured-wrapper">
         <FeaturedProducts />
       </section>
 
-      {/* 4. HOW IT WORKS / OUR PROCESS SECTION (Picture 1 style) */}
       <section className="process-section">
         <div className="process-container">
           <div className="process-illustration-col">
@@ -126,7 +113,6 @@ function Home() {
             <h2>How it Works</h2>
 
             <div className="process-steps-list">
-              {/* Step 1 */}
               <div className="process-step-item">
                 <div className="step-icon-badge">
                   <span>📅</span>
@@ -140,7 +126,6 @@ function Home() {
                 </div>
               </div>
 
-              {/* Step 2 */}
               <div className="process-step-item">
                 <div className="step-icon-badge">
                   <span>👨‍🍳</span>
@@ -154,7 +139,6 @@ function Home() {
                 </div>
               </div>
 
-              {/* Step 3 */}
               <div className="process-step-item">
                 <div className="step-icon-badge">
                   <span>🚚</span>
@@ -172,7 +156,6 @@ function Home() {
         </div>
       </section>
 
-      {/* 5. STAY IN THE DOUGH (Picture 1 Newsletter card style) */}
       <section className="stay-in-dough-section">
         <div className="stay-in-dough-card">
           <h2>Stay in the Dough</h2>
@@ -202,7 +185,6 @@ function Home() {
         </div>
       </section>
 
-      {/* 6. VISIT OUR BAKERY */}
       <Location />
     </div>
   );

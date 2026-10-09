@@ -28,7 +28,6 @@
     font-weight: 800;
 }
 
-/* Fulfillment Options Grid */
 .fulfillment-options-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -82,7 +81,6 @@
     color: #7A7067;
 }
 
-/* Pickup Info Box */
 .pickup-info-box {
     background: #FAF6F0;
     padding: 18px 22px;
@@ -97,7 +95,6 @@
     line-height: 1.5;
 }
 
-/* Inputs */
 .checkout-section input[type="text"] {
     width: 100%;
     padding: 13px 16px;

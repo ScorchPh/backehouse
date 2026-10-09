@@ -1,17 +1,3 @@
-/**
- * ============================================================================
- * BAKE HOUSE - Checkout Page Component
- * ============================================================================
- * Capstone Project Explanation:
- * Collects customer delivery / store pickup options and payment selection.
- * Features:
- * 1. Fulfillment Selection: Door-to-Door Delivery (₱50 fee) vs. Store Pickup (₱0 fee).
- * 2. Dynamic Address Display: Delivery requires street/barangay; Store Pickup sets
- *    the bakery branch address automatically.
- * 3. Submits order to PHP backend API (/api/orders/create_order.php).
- * ============================================================================
- */
-
 import { useState } from "react";
 import "./Checkout.css";
 import { useCart } from "../../context/CartContext";
@@ -27,13 +13,8 @@ function Checkout() {
   const { cartItems, clearCart } = useCart();
   const { addOrder } = useOrders();
   const navigate = useNavigate();
-
-  const currentUser = authService.getCurrentUser();
-
-  // Fulfillment Method: 'Delivery' vs. 'Pickup'
+  const [currentUser, setCurrentUser] = useState(() => authService.getCurrentUser());
   const [fulfillmentType, setFulfillmentType] = useState("Delivery");
-
-  // Form Fields
   const [fullName, setFullName] = useState(
     currentUser ? `${currentUser.first_name || ""} ${currentUser.last_name || ""}`.trim() : ""
   );
@@ -45,10 +26,8 @@ function Checkout() {
   const [landmark, setLandmark] = useState(currentUser?.default_landmark || "");
   const [paymentMethod, setPaymentMethod] = useState("Cash on Delivery");
   const [saveAsDefault, setSaveAsDefault] = useState(false);
-
-  // Live Map Location & ETA Analytics (Shopee-Style Pin Drop)
   const [deliveryLocationInfo, setDeliveryLocationInfo] = useState({
-    coordinates: (currentUser?.default_lat && currentUser?.default_lng)
+    coordinates: (currentUser?.default_lat && currentUser?.default_lng && !isNaN(parseFloat(currentUser.default_lat)))
       ? { lat: parseFloat(currentUser.default_lat), lng: parseFloat(currentUser.default_lng) }
       : { lat: 10.2540, lng: 123.9490 },
     distanceKm: 1.2,
@@ -56,14 +35,54 @@ function Checkout() {
     estimatedDeliveryTime: "25–35 Minutes",
     arrivalWindow: ""
   });
+  useEffect(() => {
+    const handleAuthChange = () => {
+      const user = authService.getCurrentUser();
+      setCurrentUser(user);
+      if (user) {
+        if (!fullName && (user.first_name || user.last_name)) {
+          setFullName(`${user.first_name || ""} ${user.last_name || ""}`.trim());
+        }
+        if (!contactNumber && user.contact_number) {
+          setContactNumber(user.contact_number);
+        }
+        if (!street && (user.default_street || user.street)) {
+          setStreet(user.default_street || user.street || "");
+        }
+        if (user.default_barangay) {
+          setBarangay(user.default_barangay);
+        }
+        if (user.default_city) {
+          setCity(user.default_city);
+        }
+        if (user.default_province) {
+          setProvince(user.default_province);
+        }
+        if (!landmark && user.default_landmark) {
+          setLandmark(user.default_landmark);
+        }
+        if (user.default_lat && user.default_lng) {
+          const lat = parseFloat(user.default_lat);
+          const lng = parseFloat(user.default_lng);
+          if (!isNaN(lat) && !isNaN(lng)) {
+            setDeliveryLocationInfo((prev) => ({
+              ...prev,
+              coordinates: { lat, lng }
+            }));
+          }
+        }
+      }
+    };
+
+    window.addEventListener("authChange", handleAuthChange);
+    return () => window.removeEventListener("authChange", handleAuthChange);
+  }, [fullName, contactNumber, street, landmark]);
 
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-
-  // Status Modal (Clean, high-visibility dialog for errors and success)
   const [modalState, setModalState] = useState({
     isOpen: false,
-    type: "error", // 'error' | 'success' | 'warning' | 'info'
+    type: "error",
     title: "",
     message: "",
     primaryText: "Got It",
@@ -93,8 +112,6 @@ function Checkout() {
     (total, item) => total + item.price * item.quantity,
     0
   );
-
-  // Delivery fee is ₱50 for Home Delivery, and ₱0 for Store Pickup
   const deliveryFee = fulfillmentType === "Pickup" ? 0 : (cartItems.length > 0 ? 50 : 0);
   const total = subtotal + deliveryFee;
 
@@ -167,8 +184,6 @@ function Checkout() {
     const destinationAddress = fulfillmentType === "Pickup"
       ? "Store Pickup (Poblacion, Cordova, Cebu Bakery Branch)"
       : `${street}, Brgy. ${barangay}, ${city}, ${province}${landmark ? ` (Landmark: ${landmark})` : ""}`;
-
-    // Check if order contains a scheduled item (custom cake or scheduled advance order)
     const scheduledItem = cartItems.find(
       (it) => it.scheduled_date || it.customization?.scheduled_date || it.customization?.is_scheduled
     );
@@ -200,7 +215,6 @@ function Checkout() {
       const res = await orderService.createOrder(orderPayload);
 
       if (res && res.success) {
-        // Detect if any items in the order were customized cakes
         const customCakeItem = cartItems.find(
           (it) => it.customization && (it.customization.size || it.customization.flavor || it.customization.occasion)
         );
@@ -222,12 +236,8 @@ function Checkout() {
             totalPrice: customCakeItem.price,
             purchasedAt: new Date().toISOString()
           };
-
-          // Store in localStorage for the persistent chat consultation box
           localStorage.setItem("bh_last_purchased_cake", JSON.stringify(cakeDetails));
           window.dispatchEvent(new Event("cakePurchased"));
-
-          // Post order summary message into the customer's own conversation thread as the customer
           const customerSenderName = fullName || (currentUser?.first_name ? `${currentUser.first_name} ${currentUser.last_name || ''}`.trim() : "Customer");
           const chatSessionId = currentUser?.id ? `session_user_${currentUser.id}` : `session_${res.order.id}`;
           localStorage.setItem("bh_cake_chat_session", chatSessionId);
@@ -240,8 +250,6 @@ function Checkout() {
             userId: currentUser?.id || null
           }).catch((err) => console.warn("Auto cake chat notification note:", err));
         }
-
-        // Save as customer's default delivery address if requested
         if (currentUser && saveAsDefault && fulfillmentType === "Delivery") {
           authService.updateProfile({
             id: currentUser.id,
@@ -258,8 +266,6 @@ function Checkout() {
             default_lng: deliveryLocationInfo?.coordinates?.lng,
           }).catch((err) => console.warn("Auto save default delivery address error:", err));
         }
-
-        // Successful checkout: show celebratory status modal
         addOrder(res.order);
         clearCart();
 
@@ -285,16 +291,7 @@ function Checkout() {
         });
       }
     } catch (err) {
-      /**
-       * ======================================================================
-       * FIRST-COME, FIRST-SERVED CONCURRENCY HANDLING
-       * ======================================================================
-       * If another customer completed checkout first and depleted available stock,
-       * the backend rejects this order with HTTP 400 and an explanatory error message.
-       * We display this message directly to the customer in a modal dialog.
-       * ======================================================================
-       */
-      console.warn("Order placement rejected:", err);
+            console.warn("Order placement rejected:", err);
       const errorMsg =
         err.message || "An unexpected error occurred while placing your order. Please try again.";
       setErrorMessage(errorMsg);
@@ -333,8 +330,6 @@ function Checkout() {
           ⚠️ {errorMessage}
         </div>
       )}
-
-      {/* 1. Fulfillment Method Selection (Delivery vs Store Pickup) */}
       <section className="checkout-section">
         <h2>Order Fulfillment Option</h2>
         <div className="fulfillment-options-grid">
@@ -371,8 +366,6 @@ function Checkout() {
           </label>
         </div>
       </section>
-
-      {/* 2. Customer Information */}
       <section className="checkout-section">
         <h2>Customer Information</h2>
         <input
@@ -393,8 +386,6 @@ function Checkout() {
           required
         />
       </section>
-
-      {/* 3. Delivery Address OR Store Pickup Branch Notice */}
       {fulfillmentType === "Delivery" ? (
         <section className="checkout-section">
           <h2>Delivery Address & Pinpoint Location</h2>
@@ -418,8 +409,6 @@ function Checkout() {
               </Link>
             </div>
           )}
-
-          {/* Interactive Shopee/Grab-Style Pinpoint Map */}
           <DeliveryMapPicker
             initialBarangay={barangay}
             initialCoordinates={deliveryLocationInfo.coordinates}
@@ -566,8 +555,6 @@ function Checkout() {
           </div>
         </section>
       )}
-
-      {/* 4. Payment Method */}
       <section className="checkout-section">
         <h2>Payment Method</h2>
 
@@ -601,8 +588,6 @@ function Checkout() {
           Maya (E-Wallet)
         </label>
       </section>
-
-      {/* 5. Order Summary */}
       <section className="checkout-section">
         <h2>Order Summary</h2>
 
@@ -667,8 +652,6 @@ function Checkout() {
       >
         {loading ? "Processing Order..." : fulfillmentType === "Pickup" ? "Place Pickup Order" : "Place Delivery Order"}
       </button>
-
-      {/* High-visibility Status Alert Dialog for Error and Success */}
       <StatusModal
         isOpen={modalState.isOpen}
         type={modalState.type}

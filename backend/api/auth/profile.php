@@ -1,26 +1,9 @@
 <?php
-/**
- * ============================================================================
- * BAKE HOUSE - User Profile API Endpoint
- * ============================================================================
- * Endpoint: GET /api/auth/profile.php?id=X or ?email=user@example.com
- *
- * PURPOSE:
- * Retrieves user profile information for displaying account settings, avatar,
- * and contact information in the header/profile page.
- * Never returns sensitive password hashes.
- * ============================================================================
- */
+// get user profile details by id or email
 
-// ----------------------------------------------------------------------------
-// STEP 1: Load Database Configuration & Helpers
-// ----------------------------------------------------------------------------
 require_once __DIR__ . '/../../config/db.php';
 
-
-// ----------------------------------------------------------------------------
-// STEP 2: Enforce HTTP Method Verification
-// ----------------------------------------------------------------------------
+// only allow GET method
 if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
     sendResponse([
         'success' => false,
@@ -28,10 +11,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
     ], 405);
 }
 
-
-// ----------------------------------------------------------------------------
-// STEP 3: Parse and Validate Identifier (ID or Email)
-// ----------------------------------------------------------------------------
+// check if id or email was passed
 $id    = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 $email = strtolower(trim($_GET['email'] ?? ''));
 
@@ -42,19 +22,16 @@ if ($id <= 0 && empty($email)) {
     ], 400);
 }
 
-
-// ----------------------------------------------------------------------------
-// STEP 4: Query User Record (Primary: MySQL/TiDB | Fallback: JSON)
-// ----------------------------------------------------------------------------
+// try looking up in mysql first
 $pdo = getDBConnection();
+$userFound = null;
 
 if ($pdo) {
-    // ------------------------------------------------------------------------
-    // CASE A: Live MySQL / TiDB Cloud Connection
-    // ------------------------------------------------------------------------
     try {
+        // don't select the password field for safety
         $fields = "id, username, first_name, last_name, email, contact_number, role, avatar, created_at, default_street, default_barangay, default_city, default_province, default_landmark, default_lat, default_lng, address";
         if ($id > 0) {
+            // using prepared statement to prevent sql injection
             $stmt = $pdo->prepare("SELECT {$fields} FROM users WHERE id = :id LIMIT 1");
             $stmt->execute(['id' => $id]);
         } else {
@@ -63,45 +40,39 @@ if ($pdo) {
         }
 
         $user = $stmt->fetch();
-
-        if (!$user) {
-            sendResponse([
-                'success' => false,
-                'message' => 'User not found.'
-            ], 404);
+        if ($user) {
+            $userFound = $user;
         }
-
-        sendResponse([
-            'success' => true,
-            'user'    => $user
-        ], 200);
-
     } catch (PDOException $e) {
-        sendResponse([
-            'success' => false,
-            'message' => 'Database error: ' . $e->getMessage()
-        ], 500);
+        // if mysql errors out, we just continue to json file fallback
+        error_log("mysql profile notice: " . $e->getMessage());
     }
+}
 
-} else {
-    // ------------------------------------------------------------------------
-    // CASE B: Offline / Fallback Mode (Using JSON file store)
-    // ------------------------------------------------------------------------
+// if mysql is offline or user not found there, check users.json
+if (!$userFound) {
     $users = readDataStore('users');
-
     foreach ($users as $u) {
         if (($id > 0 && (int)$u['id'] === $id) || (!empty($email) && strtolower($u['email']) === $email)) {
+            // make sure password is removed before sending
             unset($u['password']);
-            sendResponse([
-                'success' => true,
-                'user'    => $u
-            ], 200);
+            $userFound = $u;
+            break;
         }
     }
+}
 
+// send back user data or 404
+if ($userFound) {
+    sendResponse([
+        'success' => true,
+        'message' => 'Profile retrieved successfully.',
+        'user'    => $userFound
+    ], 200);
+} else {
     sendResponse([
         'success' => false,
-        'message' => 'User not found.'
+        'message' => 'User account not found.'
     ], 404);
 }
 ?>
