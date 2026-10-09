@@ -53,21 +53,12 @@ if ($pdo) {
     // CASE A: Live MySQL / TiDB Cloud Connection
     // ------------------------------------------------------------------------
     try {
+        $fields = "id, username, first_name, last_name, email, contact_number, role, avatar, created_at, default_street, default_barangay, default_city, default_province, default_landmark, default_lat, default_lng, address";
         if ($id > 0) {
-            $stmt = $pdo->prepare("
-                SELECT id, username, first_name, last_name, email, contact_number, role, avatar, created_at 
-                FROM users 
-                WHERE id = :id 
-                LIMIT 1
-            ");
+            $stmt = $pdo->prepare("SELECT {$fields} FROM users WHERE id = :id LIMIT 1");
             $stmt->execute(['id' => $id]);
         } else {
-            $stmt = $pdo->prepare("
-                SELECT id, username, first_name, last_name, email, contact_number, role, avatar, created_at 
-                FROM users 
-                WHERE LOWER(email) = :email 
-                LIMIT 1
-            ");
+            $stmt = $pdo->prepare("SELECT {$fields} FROM users WHERE LOWER(email) = :email LIMIT 1");
             $stmt->execute(['email' => $email]);
         }
 

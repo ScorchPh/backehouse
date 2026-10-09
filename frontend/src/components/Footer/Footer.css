@@ -1,79 +1,177 @@
 /**
  * ============================================================================
- * BAKE HOUSE - Footer Stylesheet (Fully Responsive)
+ * BAKE HOUSE - Footer Stylesheet (Picture 1 & 2 BakeSmart Dark Palette)
  * ============================================================================
  */
 
-.footer {
-    background: #6B4226;
-    color: white;
-    margin-top: clamp(50px, 8vw, 80px);
+.footer-bakesmart {
+  background-color: #20140D;
+  color: #EDE4DC;
+  margin-top: clamp(60px, 8vw, 100px);
+  border-top: 1px solid #332115;
 }
 
-.footer-container {
-    max-width: 1200px;
-    margin: auto;
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: clamp(24px, 4vw, 50px);
-    padding: clamp(40px, 6vw, 60px) clamp(20px, 4vw, 30px);
+.footer-main-container {
+  max-width: 1280px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr;
+  gap: clamp(24px, 4vw, 50px);
+  padding: clamp(50px, 6vw, 75px) clamp(20px, 4vw, 40px) clamp(40px, 5vw, 60px);
 }
 
-.footer-section h2,
-.footer-section h3 {
-    margin-bottom: 18px;
-    font-size: 1.25rem;
-    font-weight: 700;
-    color: #FFF8F0;
+.footer-brand-title {
+  font-family: var(--font-serif, 'Playfair Display', Georgia, serif);
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: #E59819;
+  margin: 0 0 14px;
+  letter-spacing: -0.01em;
 }
 
-.footer-section p {
-    margin-bottom: 12px;
-    line-height: 1.7;
-    color: #F5EAE0;
-    font-size: 0.95rem;
+.footer-brand-tagline {
+  color: #B5A496;
+  line-height: 1.7;
+  font-size: 0.92rem;
+  max-width: 360px;
+  margin: 0;
 }
 
-.footer-section a {
-    display: block;
-    color: #F5EAE0;
-    margin-bottom: 10px;
-    transition: .25s ease;
-    font-size: 0.95rem;
-    text-decoration: none;
+.footer-links-col h4 {
+  font-family: var(--font-serif, 'Playfair Display', Georgia, serif);
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #FFFFFF;
+  margin: 0 0 16px;
 }
 
-.footer-section a:hover {
-    color: #FFD27F;
-    transform: translateX(3px);
+.footer-links-col a {
+  display: block;
+  color: #B5A496;
+  text-decoration: none;
+  font-size: 0.9rem;
+  margin-bottom: 10px;
+  transition: all 0.2s ease;
 }
 
-.footer-bottom {
-    text-align: center;
-    border-top: 1px solid rgba(255, 255, 255, .15);
-    padding: 20px;
-    font-size: 0.9rem;
-    color: #EAD9CC;
+.footer-links-col a:hover {
+  color: #E59819;
+  transform: translateX(3px);
+}
+
+.footer-detail-text {
+  color: #B5A496;
+  font-size: 0.88rem;
+  line-height: 1.6;
+  margin: 0 0 8px;
+}
+
+/* ==========================================================================
+   BOTTOM BAR (Picture 1 & 2 exact bar style)
+   ========================================================================== */
+.footer-bottom-bar {
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 22px clamp(20px, 4vw, 40px);
+  background-color: #1A100A;
+}
+
+.footer-bar-inner {
+  max-width: 1280px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.footer-bar-left {
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.footer-bar-logo {
+  font-family: var(--font-serif, 'Playfair Display', Georgia, serif);
+  color: #E59819;
+  font-size: 1.05rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.footer-bar-copy {
+  font-size: 0.72rem;
+  color: #8C7B6E;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.footer-bar-links {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.footer-bar-links a {
+  color: #8C7B6E;
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  font-weight: 700;
+  text-decoration: none;
+  text-transform: uppercase;
+  transition: color 0.2s ease;
+}
+
+.footer-bar-links a:hover {
+  color: #E59819;
+}
+
+.footer-bar-icons {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-left: 6px;
+}
+
+.footer-bar-icons span,
+.footer-bar-icons a {
+  font-size: 0.95rem;
+  color: #B5A496;
+  text-decoration: none;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+
+.footer-bar-icons a:hover {
+  opacity: 0.75;
 }
 
 /* ==========================================================================
    RESPONSIVE BREAKPOINTS
    ========================================================================== */
 @media (max-width: 900px) {
-    .footer-container {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 35px;
-    }
+  .footer-main-container {
+    grid-template-columns: 1fr 1fr;
+    gap: 36px;
+  }
 }
 
-@media (max-width: 550px) {
-    .footer-container {
-        grid-template-columns: 1fr;
-        gap: 30px;
-        text-align: center;
-    }
+@media (max-width: 600px) {
+  .footer-main-container {
+    grid-template-columns: 1fr;
+    gap: 30px;
+  }
 
-    .footer-section a:hover {
-        transform: none;
-    }
+  .footer-bar-inner {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 14px;
+  }
+
+  .footer-bar-left {
+    flex-direction: column;
+    gap: 4px;
+  }
 }

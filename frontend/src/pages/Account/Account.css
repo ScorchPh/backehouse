@@ -297,8 +297,49 @@
     text-decoration: underline;
 }
 
-/* Profile View */
-.profile-view {
+/* Profile View & Tabs */
+.account-container.settings-active {
+    max-width: 1240px;
+    grid-template-columns: 340px 1fr;
+    transition: all 0.3s ease;
+}
+
+.account-tabs {
+    display: flex;
+    gap: 8px;
+    background: #F8EFE6;
+    padding: 6px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+    border: 1px solid #EADBCC;
+}
+
+.tab-btn {
+    flex: 1;
+    padding: 10px 16px;
+    background: transparent;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.92rem;
+    font-weight: 600;
+    color: #786C64;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.tab-btn:hover {
+    color: #6B4226;
+    background: rgba(255, 255, 255, 0.6);
+}
+
+.tab-btn.active {
+    background: #FFFFFF;
+    color: #6B4226;
+    box-shadow: 0 2px 8px rgba(107, 66, 38, 0.12);
+    font-weight: 700;
+}
+
+.overview-tab-content {
     display: flex;
     flex-direction: column;
     gap: 20px;
@@ -313,11 +354,12 @@
 }
 
 .profile-avatar {
-    width: 70px;
-    height: 70px;
+    width: 72px;
+    height: 72px;
     border-radius: 50%;
     object-fit: cover;
     border: 3px solid #6B4226;
+    box-shadow: 0 4px 12px rgba(107, 66, 38, 0.15);
 }
 
 .role-badge {
@@ -345,10 +387,262 @@
     color: #059669;
 }
 
-.profile-details p {
-    margin: 8px 0;
-    color: #4B5563;
+.profile-details {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    background: #FAFAFA;
+    padding: 16px;
+    border-radius: 12px;
+    border: 1px solid #EFEFEF;
+}
+
+.detail-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     font-size: 0.95rem;
+}
+
+.detail-label {
+    font-weight: 600;
+    color: #6B7280;
+}
+
+.detail-val {
+    font-weight: 600;
+    color: #1F2937;
+}
+
+/* Default Delivery Address Card */
+.profile-delivery-box {
+    background: #FCF8F3;
+    border: 1.5px solid #EBDBC9;
+    border-radius: 14px;
+    padding: 18px 20px;
+}
+
+.delivery-box-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 12px;
+    border-bottom: 1px dashed #DECCB8;
+    padding-bottom: 10px;
+}
+
+.delivery-box-header h4 {
+    margin: 0;
+    font-size: 0.98rem;
+    color: #6B4226;
+    font-weight: 700;
+}
+
+.delivery-box-header p {
+    margin: 4px 0 0;
+    font-size: 0.82rem;
+    color: #8C7B6E;
+}
+
+.quick-edit-link {
+    background: #FFFFFF;
+    border: 1px solid #D5C2AF;
+    color: #6B4226;
+    padding: 4px 12px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.quick-edit-link:hover {
+    background: #6B4226;
+    color: #FFFFFF;
+}
+
+.delivery-box-body {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.delivery-address-text {
+    margin: 0;
+    font-size: 0.93rem;
+    color: #2D3748;
+    line-height: 1.5;
+}
+
+.delivery-landmark-text {
+    margin: 0;
+    font-size: 0.88rem;
+    color: #718096;
+}
+
+.delivery-pin-badge {
+    margin-top: 6px;
+}
+
+.pin-tag {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.pin-tag.success {
+    background: #DCFCE7;
+    color: #15803D;
+    border: 1px solid #BBF7D0;
+}
+
+.pin-tag.warning {
+    background: #FEF3C7;
+    color: #B45309;
+    border: 1px solid #FDE68A;
+}
+
+.delivery-empty-state {
+    text-align: center;
+    padding: 12px 0;
+}
+
+.delivery-empty-state p {
+    color: #9CA3AF;
+    font-size: 0.9rem;
+    margin-bottom: 10px;
+}
+
+.set-address-cta-btn {
+    background: #6B4226;
+    color: #fff;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 0.88rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.set-address-cta-btn:hover {
+    background: #54331D;
+}
+
+/* Settings Edit Form */
+.settings-tab-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.settings-header h2 {
+    margin-bottom: 4px;
+}
+
+.settings-section {
+    background: #FAF7F2;
+    border: 1px solid #EDE4D8;
+    border-radius: 14px;
+    padding: 18px 20px;
+}
+
+.section-title {
+    font-size: 1.05rem;
+    color: #6B4226;
+    margin: 0 0 6px 0;
+    font-weight: 700;
+}
+
+.section-desc {
+    font-size: 0.85rem;
+    color: #786C64;
+    margin: 0 0 14px 0;
+}
+
+.field-label {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #4A3E38;
+    margin-bottom: 6px;
+}
+
+/* Interactive Map Accordion in Settings */
+.map-picker-accordion {
+    margin-top: 14px;
+    background: #FFFFFF;
+    border: 1.5px solid #E2D5C7;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.map-accordion-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    background: #FDF9F5;
+}
+
+.current-pin-coords {
+    display: block;
+    font-size: 0.8rem;
+    color: #92400E;
+    font-weight: 600;
+    margin-top: 2px;
+}
+
+.toggle-map-btn {
+    background: #6B4226;
+    color: #FFFFFF;
+    border: none;
+    padding: 7px 14px;
+    border-radius: 8px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.toggle-map-btn:hover {
+    background: #54331D;
+}
+
+.settings-map-container {
+    padding: 14px;
+    background: #FAF7F2;
+    border-top: 1px solid #E2D5C7;
+}
+
+.settings-btn-row {
+    display: flex;
+    gap: 12px;
+    margin-top: 8px;
+}
+
+.save-settings-btn {
+    flex: 2;
+}
+
+.cancel-btn {
+    flex: 1;
+    padding: 14px;
+    background: #F3F4F6;
+    color: #4B5563;
+    border: 1px solid #D1D5DB;
+    border-radius: 10px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.cancel-btn:hover {
+    background: #E5E7EB;
 }
 
 .profile-actions {
@@ -369,6 +663,15 @@
     cursor: pointer;
     border: none;
     transition: all 0.2s ease;
+}
+
+.edit-settings-btn {
+    background: #8B4513;
+    color: white !important;
+}
+
+.edit-settings-btn:hover {
+    background: #6B340E;
 }
 
 .primary-btn {
@@ -399,7 +702,8 @@
 }
 
 @media(max-width: 900px) {
-    .account-container {
+    .account-container,
+    .account-container.settings-active {
         grid-template-columns: 1fr;
     }
     .account-left {

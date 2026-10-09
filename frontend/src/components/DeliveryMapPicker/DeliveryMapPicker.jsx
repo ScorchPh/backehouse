@@ -73,16 +73,22 @@ const deliveryPinIcon = L.divIcon({
   popupAnchor: [0, -40]
 });
 
-function DeliveryMapPicker({ onLocationSelected, initialBarangay = "Poblacion" }) {
+function DeliveryMapPicker({ onLocationSelected, initialBarangay = "Poblacion", initialCoordinates = null }) {
   const mapContainerRef = useRef(null);
   const mapInstanceRef = useRef(null);
   const markerRef = useRef(null);
   const routeLineRef = useRef(null);
 
-  // Pin coordinates state (default near Cordova Poblacion)
-  const [pinPosition, setPinPosition] = useState({
-    lat: 10.2540,
-    lng: 123.9490
+  // Pin coordinates state (default near Cordova Poblacion or initialCoordinates)
+  const [pinPosition, setPinPosition] = useState(() => {
+    if (initialCoordinates && initialCoordinates.lat && initialCoordinates.lng) {
+      const lat = parseFloat(initialCoordinates.lat);
+      const lng = parseFloat(initialCoordinates.lng);
+      if (!isNaN(lat) && !isNaN(lng)) {
+        return { lat, lng };
+      }
+    }
+    return { lat: 10.2540, lng: 123.9490 };
   });
 
   const [distanceKm, setDistanceKm] = useState(1.2);

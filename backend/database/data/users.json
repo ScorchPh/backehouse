@@ -33,7 +33,15 @@
         "password": "$2y$12$2wKqUjQUWqinL05/BsDfeuK54AfKLVoH9.625RW1rCZZARNvBmtqa",
         "role": "customer",
         "avatar": "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200",
-        "created_at": "2026-08-31 00:45:24"
+        "created_at": "2026-08-31 00:45:24",
+        "default_street": "Villa Teresa Subd, Block 4",
+        "default_barangay": "Poblacion",
+        "default_city": "Cordova",
+        "default_province": "Cebu",
+        "default_landmark": "Near yellow gate",
+        "default_lat": 10.2545,
+        "default_lng": 123.9492,
+        "address": "Villa Teresa Subd, Block 4, Poblacion, Cordova, Cebu"
     },
     {
         "id": 4,

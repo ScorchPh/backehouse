@@ -38,16 +38,19 @@ function Checkout() {
     currentUser ? `${currentUser.first_name || ""} ${currentUser.last_name || ""}`.trim() : ""
   );
   const [contactNumber, setContactNumber] = useState(currentUser?.contact_number || "");
-  const [street, setStreet] = useState("");
-  const [barangay, setBarangay] = useState("Poblacion");
-  const [city, setCity] = useState("Cordova");
-  const [province, setProvince] = useState("Cebu");
-  const [landmark, setLandmark] = useState("");
+  const [street, setStreet] = useState(currentUser?.default_street || currentUser?.street || "");
+  const [barangay, setBarangay] = useState(currentUser?.default_barangay || "Poblacion");
+  const [city, setCity] = useState(currentUser?.default_city || "Cordova");
+  const [province, setProvince] = useState(currentUser?.default_province || "Cebu");
+  const [landmark, setLandmark] = useState(currentUser?.default_landmark || "");
   const [paymentMethod, setPaymentMethod] = useState("Cash on Delivery");
+  const [saveAsDefault, setSaveAsDefault] = useState(false);
 
   // Live Map Location & ETA Analytics (Shopee-Style Pin Drop)
   const [deliveryLocationInfo, setDeliveryLocationInfo] = useState({
-    coordinates: { lat: 10.2540, lng: 123.9490 },
+    coordinates: (currentUser?.default_lat && currentUser?.default_lng)
+      ? { lat: parseFloat(currentUser.default_lat), lng: parseFloat(currentUser.default_lng) }
+      : { lat: 10.2540, lng: 123.9490 },
     distanceKm: 1.2,
     transitMinutes: 5,
     estimatedDeliveryTime: "25–35 Minutes",
@@ -238,6 +241,24 @@ function Checkout() {
           }).catch((err) => console.warn("Auto cake chat notification note:", err));
         }
 
+        // Save as customer's default delivery address if requested
+        if (currentUser && saveAsDefault && fulfillmentType === "Delivery") {
+          authService.updateProfile({
+            id: currentUser.id,
+            first_name: currentUser.first_name,
+            last_name: currentUser.last_name,
+            email: currentUser.email,
+            contact_number: contactNumber || currentUser.contact_number,
+            default_street: street,
+            default_barangay: barangay,
+            default_city: city,
+            default_province: province,
+            default_landmark: landmark,
+            default_lat: deliveryLocationInfo?.coordinates?.lat,
+            default_lng: deliveryLocationInfo?.coordinates?.lng,
+          }).catch((err) => console.warn("Auto save default delivery address error:", err));
+        }
+
         // Successful checkout: show celebratory status modal
         addOrder(res.order);
         clearCart();
@@ -378,9 +399,30 @@ function Checkout() {
         <section className="checkout-section">
           <h2>Delivery Address & Pinpoint Location</h2>
 
+          {currentUser && (currentUser.default_street || currentUser.default_lat) && (
+            <div style={{
+              background: "#FFFBEB",
+              border: "1px solid #FDE68A",
+              borderRadius: "10px",
+              padding: "10px 14px",
+              marginBottom: "16px",
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              fontSize: "0.85rem",
+              color: "#92400E"
+            }}>
+              <span>🏠 <strong>Pre-filled from your saved default delivery location.</strong></span>
+              <Link to="/account" style={{ color: "#B45309", fontWeight: "700", textDecoration: "underline" }}>
+                Edit Settings
+              </Link>
+            </div>
+          )}
+
           {/* Interactive Shopee/Grab-Style Pinpoint Map */}
           <DeliveryMapPicker
             initialBarangay={barangay}
+            initialCoordinates={deliveryLocationInfo.coordinates}
             onLocationSelected={(info) => {
               setDeliveryLocationInfo(info);
               if (info?.addressDetails) {
@@ -485,6 +527,34 @@ function Checkout() {
               />
             </div>
           </div>
+
+          {currentUser && (
+            <div style={{
+              marginTop: "16px",
+              paddingTop: "14px",
+              borderTop: "1px dashed #E5E7EB",
+              display: "flex",
+              alignItems: "center"
+            }}>
+              <label style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "10px",
+                cursor: "pointer",
+                fontSize: "0.92rem",
+                color: "#6B4226",
+                fontWeight: "600"
+              }}>
+                <input
+                  type="checkbox"
+                  style={{ width: "18px", height: "18px", cursor: "pointer", accentColor: "#6B4226" }}
+                  checked={saveAsDefault}
+                  onChange={(e) => setSaveAsDefault(e.target.checked)}
+                />
+                <span>Save this address and map pin as my default delivery location for future orders</span>
+              </label>
+            </div>
+          )}
         </section>
       ) : (
         <section className="checkout-section pickup-notice-card">

@@ -1,298 +1,324 @@
-/* ============================================================================
-   BAKE HOUSE - Menu Stylesheet (Fully Responsive)
-   ============================================================================ */
+/**
+ * ============================================================================
+ * BAKE HOUSE - Menu / Browse Page Stylesheet (Picture 2 Artisanal Collection)
+ * ============================================================================
+ */
 
-.menu {
-    min-height: 100vh;
-    background: #FFF8F0;
+.bakesmart-menu-page {
+  width: 100%;
+  background-color: var(--color-bg-warm, #FDFBF7);
+  min-height: 80vh;
+  padding: clamp(35px, 5vw, 60px) clamp(16px, 4vw, 40px) 80px;
 }
 
-/* ===========================
-   HERO
-=========================== */
-
-.menu-hero {
-    text-align: center;
-    padding: clamp(40px, 6vw, 80px) 20px clamp(25px, 4vw, 40px);
-    max-width: 900px;
-    margin: auto;
+.menu-inner-container {
+  max-width: 1280px;
+  margin: 0 auto;
 }
 
-.menu-hero h1 {
-    font-size: clamp(2.2rem, 5vw, 3.4rem);
-    color: #6B4226;
-    margin-bottom: 16px;
-    font-weight: 800;
+/* ==========================================================================
+   1. TOP HEADER & CATEGORY PILLS (Picture 2 style)
+   ========================================================================== */
+.menu-header-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 24px;
+  margin-bottom: 28px;
+  flex-wrap: wrap;
 }
 
-.menu-hero p {
-    font-size: clamp(1rem, 2vw, 1.15rem);
-    color: #666;
-    line-height: 1.8;
-    max-width: 700px;
-    margin: auto;
+.menu-header-title-box {
+  flex: 1;
+  min-width: 280px;
 }
 
-/* ===========================
-   SEARCH & CATEGORY
-=========================== */
-
-.menu-filter {
-    max-width: 1200px;
-    margin: 20px auto clamp(30px, 5vw, 50px);
-    padding: 0 20px;
+.menu-header-title-box h1 {
+  font-family: var(--font-serif, 'Playfair Display', Georgia, serif);
+  font-size: clamp(2rem, 3.5vw, 2.7rem);
+  font-weight: 700;
+  color: #2D1D12;
+  margin: 0 0 8px;
+  letter-spacing: -0.01em;
 }
 
-.search-bar {
-    width: 100%;
-    box-sizing: border-box;
-    padding: 14px 22px;
-    background: #FFFFFF;
-    color: #2D2016;
-    border: 1.5px solid #E2DBD2;
-    border-radius: 30px;
-    font-size: 1rem;
-    outline: none;
-    transition: all 0.25s ease;
-    margin-bottom: 25px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+.menu-header-title-box p {
+  color: #7A6E64;
+  margin: 0;
+  font-size: 0.96rem;
+  line-height: 1.5;
+  max-width: 580px;
 }
 
-.search-bar::placeholder {
-    color: #A0968B;
+/* Category Pills Row */
+.category-pills-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
 }
 
-.search-bar:focus {
-    border-color: #6B4226;
-    box-shadow: 0 0 0 3px rgba(107, 66, 38, 0.15);
+.cat-pill-btn {
+  padding: 8px 18px;
+  background-color: transparent;
+  color: #55473E;
+  border: 1px solid #EAE0D5;
+  border-radius: 20px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
 }
 
-.category-buttons {
-    display: flex;
-    justify-content: center;
-    gap: 12px;
-    flex-wrap: wrap;
+.cat-pill-btn:hover {
+  background-color: #F5EEE6;
+  border-color: #D8C7B5;
+  color: #2D1D12;
 }
 
-.category-buttons button {
-    background: #FFFFFF;
-    color: #6B4226;
-    border: 1.5px solid #E5DFD7;
-    padding: 10px 22px;
-    border-radius: 30px;
-    cursor: pointer;
-    font-size: 0.95rem;
-    font-weight: 600;
-    transition: all 0.25s ease;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+.cat-pill-btn.active {
+  background-color: #2A1A10;
+  color: #FFFFFF;
+  border-color: #2A1A10;
+  box-shadow: 0 2px 8px rgba(42, 26, 16, 0.25);
 }
 
-.category-buttons button:hover {
-    background: #6B4226;
-    color: #FFFFFF !important;
-    border-color: #6B4226;
-    transform: translateY(-1px);
+/* ==========================================================================
+   2. SECONDARY FILTER & PREFERENCE BAR (Picture 2 style)
+   ========================================================================== */
+.menu-filter-controls-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  padding: 14px 0 24px;
+  border-top: 1px solid #EFE6DC;
+  margin-bottom: 30px;
+  flex-wrap: wrap;
 }
 
-.category-buttons button.active,
-.category-buttons .active {
-    background: #6B4226 !important;
-    color: #FFFFFF !important;
-    border-color: #6B4226 !important;
-    font-weight: 700;
-    box-shadow: 0 4px 12px rgba(107, 66, 38, 0.25);
+.filter-preferences-left {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  flex-wrap: wrap;
 }
 
-/* ===========================
-   BEST SELLERS
-=========================== */
-
-.best-sellers {
-    max-width: 1200px;
-    margin: clamp(40px, 5vw, 60px) auto;
-    padding: 0 20px;
+.menu-search-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
 }
 
-.section-title {
-    text-align: center;
-    margin-bottom: clamp(25px, 4vw, 40px);
+.search-icon-hint {
+  position: absolute;
+  left: 12px;
+  font-size: 0.85rem;
+  opacity: 0.6;
+  pointer-events: none;
 }
 
-.section-title h2 {
-    color: #6B4226;
-    font-size: clamp(1.8rem, 4vw, 2.3rem);
-    font-weight: 800;
-    margin-bottom: 10px;
+.menu-search-input {
+  padding: 8px 14px 8px 34px;
+  border: 1px solid #E2D7CC;
+  border-radius: 20px;
+  background-color: #FFFFFF;
+  font-size: 0.88rem;
+  color: #2D1D12;
+  width: 220px;
+  outline: none;
+  transition: all 0.2s ease;
 }
 
-.section-title p {
-    color: #777;
-    font-size: 1rem;
+.menu-search-input:focus {
+  border-color: #E59819;
+  box-shadow: 0 0 0 3px rgba(229, 152, 25, 0.15);
+  width: 260px;
 }
 
-.featured-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-    gap: clamp(18px, 3vw, 30px);
+.filter-checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  cursor: pointer;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #55473E;
+  user-select: none;
 }
 
-.featured-card {
-    background: #fff;
-    border-radius: 18px;
-    overflow: hidden;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, .08);
-    transition: .3s;
-    border: 1px solid #F3EAE0;
+.filter-checkbox-label input[type="checkbox"] {
+  accent-color: #2A1A10;
+  width: 15px;
+  height: 15px;
+  cursor: pointer;
 }
 
-.featured-card:hover {
-    transform: translateY(-6px);
-    box-shadow: 0 16px 35px rgba(0, 0, 0, .12);
+.filter-sort-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
-.featured-card img {
-    width: 100%;
-    height: 240px;
-    object-fit: cover;
-    background: #FAF6F0;
+.sort-label {
+  font-size: 0.86rem;
+  color: #7A6E64;
+  font-weight: 500;
 }
 
-.featured-content {
-    padding: clamp(18px, 3vw, 25px);
+.menu-sort-select {
+  padding: 7px 12px;
+  border: 1px solid #E2D7CC;
+  border-radius: 8px;
+  background-color: #FFFFFF;
+  color: #2D1D12;
+  font-size: 0.86rem;
+  font-weight: 600;
+  outline: none;
+  cursor: pointer;
+  transition: border-color 0.2s ease;
 }
 
-.featured-content h3 {
-    color: #6B4226;
-    margin-bottom: 10px;
-    font-size: 1.25rem;
+.menu-sort-select:focus {
+  border-color: #E59819;
 }
 
-.featured-content p {
-    color: #555;
-    line-height: 1.7;
-    margin-bottom: 20px;
-    font-size: 0.95rem;
+/* ==========================================================================
+   3. 4-COLUMN PRODUCTS GRID (Picture 2 style)
+   ========================================================================== */
+.bakesmart-grid-4col {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: clamp(18px, 2.4vw, 28px);
 }
 
-.price {
-    display: block;
-    font-size: 1.35rem;
-    font-weight: bold;
-    color: #222;
-    margin-bottom: 20px;
+.menu-loading-state,
+.menu-empty-state {
+  text-align: center;
+  padding: 80px 20px;
+  color: #7A6E64;
 }
 
-.featured-content button {
-    width: 100%;
-    padding: 14px;
-    border: none;
-    background: #6B4226;
-    color: #fff;
-    border-radius: 10px;
-    cursor: pointer;
-    font-weight: 700;
-    font-size: 1rem;
-    transition: .3s;
+.menu-empty-state h3 {
+  font-family: var(--font-serif, 'Playfair Display', Georgia, serif);
+  font-size: 1.6rem;
+  color: #2D1D12;
+  margin: 0 0 8px;
 }
 
-.featured-content button:hover {
-    background: #54331D;
-    transform: translateY(-1px);
+.reset-filter-btn {
+  margin-top: 16px;
+  padding: 9px 22px;
+  background-color: #2A1A10;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 20px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
 }
 
-/* ===========================
-   ALL PRODUCTS
-=========================== */
-
-.all-products {
-    max-width: 1200px;
-    margin: clamp(40px, 5vw, 60px) auto clamp(60px, 8vw, 90px);
-    padding: 0 20px;
+.reset-filter-btn:hover {
+  background-color: #4A3222;
 }
 
-.products-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-    gap: clamp(18px, 3vw, 30px);
+/* ==========================================================================
+   4. PAGINATION ROW (Picture 2 style)
+   ========================================================================== */
+.bakesmart-pagination-row {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  margin-top: clamp(45px, 6vw, 65px);
 }
 
-.product-card {
-    background: #fff;
-    border-radius: 16px;
-    overflow: hidden;
-    box-shadow: 0 8px 20px rgba(0, 0, 0, .08);
-    transition: .3s;
-    border: 1px solid #F3EAE0;
+.page-num-btn,
+.page-nav-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: 8px;
+  border: 1px solid #EAE0D5;
+  background-color: #FFFFFF;
+  color: #55473E;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
 }
 
-.product-card:hover {
-    transform: translateY(-6px);
-    box-shadow: 0 14px 30px rgba(0, 0, 0, .12);
+.page-num-btn:hover,
+.page-nav-btn:hover:not(:disabled) {
+  background-color: #F8F2EB;
+  border-color: #D8C7B5;
+  color: #2D1D12;
 }
 
-.product-card img {
-    width: 100%;
-    height: 220px;
-    object-fit: cover;
-    background: #FAF6F0;
+.page-num-btn.active {
+  background-color: #2A1A10;
+  border-color: #2A1A10;
+  color: #FFFFFF;
+  font-weight: 700;
+  box-shadow: 0 2px 8px rgba(42, 26, 16, 0.25);
 }
 
-.product-card h3 {
-    color: #6B4226;
-    margin: 18px 18px 10px;
-    font-size: 1.2rem;
-}
-
-.product-card p {
-    color: #666;
-    margin: 0 18px 18px;
-    line-height: 1.7;
-    font-size: 0.92rem;
-}
-
-.product-card .price {
-    display: block;
-    margin: 0 18px 18px;
-    font-size: 1.25rem;
-    font-weight: bold;
-    color: #222;
-}
-
-.product-card button {
-    width: calc(100% - 36px);
-    margin: 0 18px 18px;
-    padding: 13px;
-    background: #6B4226;
-    color: #fff;
-    border: none;
-    border-radius: 10px;
-    cursor: pointer;
-    font-weight: 700;
-    transition: .3s;
-}
-
-.product-card button:hover {
-    background: #54331D;
+.page-nav-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
 }
 
 /* ==========================================================================
    RESPONSIVE BREAKPOINTS
    ========================================================================== */
-@media (max-width: 600px) {
-    .category-buttons {
-        gap: 8px;
-    }
+@media (max-width: 1140px) {
+  .bakesmart-grid-4col {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
 
-    .category-buttons button {
-        padding: 9px 16px;
-        font-size: 0.88rem;
-    }
+@media (max-width: 820px) {
+  .bakesmart-grid-4col {
+    grid-template-columns: repeat(2, 1fr);
+  }
 
-    .featured-grid,
-    .products-grid {
-        grid-template-columns: 1fr;
-        max-width: 380px;
-        margin-left: auto;
-        margin-right: auto;
-    }
+  .menu-header-bar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .menu-filter-controls-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 14px;
+  }
+
+  .filter-sort-right {
+    justify-content: flex-end;
+  }
+}
+
+@media (max-width: 520px) {
+  .bakesmart-grid-4col {
+    grid-template-columns: 1fr;
+    max-width: 360px;
+    margin: 0 auto;
+  }
+
+  .menu-search-input {
+    width: 100%;
+  }
+
+  .menu-search-input:focus {
+    width: 100%;
+  }
+
+  .filter-preferences-left {
+    flex-direction: column;
+    align-items: stretch;
+  }
 }

@@ -9,12 +9,16 @@
  * 3. Google Sign-In Single Sign-On (SSO).
  * 4. Quick 1-Click Capstone Demo Account Fillers (Admin, Staff, Customer).
  * 5. Authenticated Profile View with role badges and order navigation.
+ * 6. Customer Account Settings: Edit personal info (Name, Contact, Email)
+ *    and Default Shopee-Style Delivery Location (Street, Barangay, City,
+ *    Landmark, and Interactive Pinpoint Map Coordinates).
  * ============================================================================
  */
 
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { authService } from "../../services/authService";
+import DeliveryMapPicker from "../../components/DeliveryMapPicker/DeliveryMapPicker";
 import "./Account.css";
 
 function Account() {
@@ -22,7 +26,10 @@ function Account() {
   const [currentUser, setCurrentUser] = useState(() => authService.getCurrentUser());
   const [isLogin, setIsLogin] = useState(true);
 
-  // Form input states
+  // Tab state for logged-in user: 'overview' or 'settings'
+  const [activeTab, setActiveTab] = useState("overview");
+
+  // Form input states (Auth)
   const [loginIdentifier, setLoginIdentifier] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
   
@@ -33,16 +40,56 @@ function Account() {
   const [regPassword, setRegPassword] = useState("");
   const [regConfirmPassword, setRegConfirmPassword] = useState("");
 
-  // Feedback states
+  // Customer Settings / Edit Details States
+  const [editFirstName, setEditFirstName] = useState("");
+  const [editLastName, setEditLastName] = useState("");
+  const [editEmail, setEditEmail] = useState("");
+  const [editContact, setEditContact] = useState("");
+  const [editStreet, setEditStreet] = useState("");
+  const [editBarangay, setEditBarangay] = useState("Poblacion");
+  const [editCity, setEditCity] = useState("Cordova");
+  const [editProvince, setEditProvince] = useState("Cebu");
+  const [editLandmark, setEditLandmark] = useState("");
+  const [editLat, setEditLat] = useState(10.2540);
+  const [editLng, setEditLng] = useState(123.9490);
+  const [showMapPicker, setShowMapPicker] = useState(false);
+  const [savingSettings, setSavingSettings] = useState(false);
+  const [settingsMessage, setSettingsMessage] = useState({ text: "", type: "" });
+
+  // Feedback states (Login/Register)
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
 
+  const populateEditFields = (user) => {
+    if (!user) return;
+    setEditFirstName(user.first_name || "");
+    setEditLastName(user.last_name || "");
+    setEditEmail(user.email || "");
+    setEditContact(user.contact_number || "");
+    setEditStreet(user.default_street || user.street || "");
+    setEditBarangay(user.default_barangay || "Poblacion");
+    setEditCity(user.default_city || "Cordova");
+    setEditProvince(user.default_province || "Cebu");
+    setEditLandmark(user.default_landmark || "");
+    setEditLat(user.default_lat ? parseFloat(user.default_lat) : 10.2540);
+    setEditLng(user.default_lng ? parseFloat(user.default_lng) : 123.9490);
+  };
+
   useEffect(() => {
     const handleAuthChange = () => {
-      setCurrentUser(authService.getCurrentUser());
+      const user = authService.getCurrentUser();
+      setCurrentUser(user);
+      if (user) {
+        populateEditFields(user);
+      }
     };
     window.addEventListener("authChange", handleAuthChange);
+
+    if (currentUser) {
+      populateEditFields(currentUser);
+    }
+
     return () => window.removeEventListener("authChange", handleAuthChange);
   }, []);
 
@@ -84,6 +131,7 @@ function Account() {
       if (res.success) {
         setSuccessMessage(res.message);
         setCurrentUser(res.user);
+        populateEditFields(res.user);
         if (res.user.role === 'admin' || res.user.role === 'staff') {
           setTimeout(() => navigate('/admin'), 700);
         }
@@ -103,7 +151,6 @@ function Account() {
     setSuccessMessage("");
     try {
       setLoading(true);
-      // Simulate Google Profile payload
       const googleProfile = {
         email: "google.user@gmail.com",
         name: "Google Customer",
@@ -117,6 +164,7 @@ function Account() {
       if (res.success) {
         setSuccessMessage(res.message);
         setCurrentUser(res.user);
+        populateEditFields(res.user);
       }
     } catch (err) {
       setErrorMessage(err.message || "Google Sign-In failed.");
@@ -157,6 +205,7 @@ function Account() {
       if (res.success) {
         setSuccessMessage(res.message);
         setCurrentUser(res.user);
+        populateEditFields(res.user);
       }
     } catch (err) {
       setErrorMessage(err.message || "Registration failed.");
@@ -165,15 +214,74 @@ function Account() {
     }
   };
 
+  /**
+   * Save Customer Settings (Personal Info & Default Delivery Location)
+   */
+  const handleSaveSettings = async (e) => {
+    e.preventDefault();
+    setSettingsMessage({ text: "", type: "" });
+
+    if (!editFirstName.trim() || !editLastName.trim()) {
+      setSettingsMessage({
+        text: "Please provide both first and last name.",
+        type: "error"
+      });
+      return;
+    }
+
+    try {
+      setSavingSettings(true);
+      const payload = {
+        id: currentUser.id,
+        first_name: editFirstName.trim(),
+        last_name: editLastName.trim(),
+        email: editEmail.trim(),
+        contact_number: editContact.trim(),
+        default_street: editStreet.trim(),
+        default_barangay: editBarangay.trim(),
+        default_city: editCity.trim(),
+        default_province: editProvince.trim(),
+        default_landmark: editLandmark.trim(),
+        default_lat: editLat,
+        default_lng: editLng,
+      };
+
+      const res = await authService.updateProfile(payload);
+      if (res && res.success) {
+        setCurrentUser(res.user);
+        setSettingsMessage({
+          text: "✨ Details updated successfully! Your saved address and map pin will automatically fill during checkout.",
+          type: "success"
+        });
+        setTimeout(() => {
+          setActiveTab("overview");
+        }, 1500);
+      } else {
+        setSettingsMessage({
+          text: res.message || "Failed to save profile changes.",
+          type: "error"
+        });
+      }
+    } catch (err) {
+      setSettingsMessage({
+        text: err.message || "Error saving settings. Please check your connection.",
+        type: "error"
+      });
+    } finally {
+      setSavingSettings(false);
+    }
+  };
+
   const handleLogout = () => {
     authService.logout();
     setCurrentUser(null);
+    setActiveTab("overview");
     setSuccessMessage("Logged out successfully.");
   };
 
   return (
     <div className="account-page">
-      <div className="account-container">
+      <div className={`account-container ${currentUser && activeTab === 'settings' ? 'settings-active' : ''}`}>
         {/* Left Side Branding */}
         <div className="account-left">
           <h1>BAKE HOUSE</h1>
@@ -189,53 +297,357 @@ function Account() {
         {/* Right Side Form or Profile */}
         <div className="account-right">
           {currentUser ? (
-            /* Logged-In User Profile Card */
+            /* Logged-In User Profile & Settings Container */
             <div className="profile-view">
-              <div className="profile-header">
-                <img
-                  src={currentUser.avatar || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200"}
-                  alt="Profile Avatar"
-                  className="profile-avatar"
-                />
-                <div>
-                  <h2>{currentUser.first_name} {currentUser.last_name}</h2>
-                  <span className={`role-badge ${currentUser.role}`}>
-                    {currentUser.role === 'admin' && '👑 Administrator'}
-                    {currentUser.role === 'staff' && '👨‍🍳 Bakery Staff'}
-                    {currentUser.role === 'customer' && '🛍️ Valued Customer'}
-                  </span>
-                </div>
-              </div>
-
-              <div className="profile-details">
-                <p><strong>Username:</strong> @{currentUser.username}</p>
-                <p><strong>Email:</strong> {currentUser.email}</p>
-                {currentUser.contact_number && (
-                  <p><strong>Contact:</strong> {currentUser.contact_number}</p>
-                )}
-              </div>
-
-              <div className="profile-actions">
-                {currentUser.role === 'customer' && (
-                  <Link to="/my-orders" className="profile-btn primary-btn">
-                    📦 View My Orders
-                  </Link>
-                )}
-
-                {(currentUser.role === 'admin' || currentUser.role === 'staff') && (
-                  <Link to="/admin" className="profile-btn primary-btn">
-                    ⚙️ Open {currentUser.role === 'admin' ? 'Admin Panel' : 'Staff Queue'}
-                  </Link>
-                )}
-
-                <Link to="/menu" className="profile-btn secondary-btn">
-                  🥐 Browse Bakery Menu
-                </Link>
-
-                <button onClick={handleLogout} className="profile-btn logout-btn">
-                  🚪 Logout
+              {/* Account Tabs Header */}
+              <div className="account-tabs">
+                <button
+                  type="button"
+                  className={`tab-btn ${activeTab === 'overview' ? 'active' : ''}`}
+                  onClick={() => {
+                    setActiveTab('overview');
+                    setSettingsMessage({ text: "", type: "" });
+                  }}
+                >
+                  👤 Profile Overview
+                </button>
+                <button
+                  type="button"
+                  className={`tab-btn ${activeTab === 'settings' ? 'active' : ''}`}
+                  onClick={() => {
+                    populateEditFields(currentUser);
+                    setActiveTab('settings');
+                    setSettingsMessage({ text: "", type: "" });
+                  }}
+                >
+                  ⚙️ Edit Details & Location
                 </button>
               </div>
+
+              {activeTab === 'overview' ? (
+                /* TAB 1: Profile Overview */
+                <div className="overview-tab-content">
+                  <div className="profile-header">
+                    <img
+                      src={currentUser.avatar || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200"}
+                      alt="Profile Avatar"
+                      className="profile-avatar"
+                    />
+                    <div>
+                      <h2>{currentUser.first_name} {currentUser.last_name}</h2>
+                      <span className={`role-badge ${currentUser.role}`}>
+                        {currentUser.role === 'admin' && '👑 Administrator'}
+                        {currentUser.role === 'staff' && '👨‍🍳 Bakery Staff'}
+                        {currentUser.role === 'customer' && '🛍️ Valued Customer'}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="profile-details">
+                    <div className="detail-item">
+                      <span className="detail-label">Username:</span>
+                      <span className="detail-val">@{currentUser.username}</span>
+                    </div>
+                    <div className="detail-item">
+                      <span className="detail-label">Email:</span>
+                      <span className="detail-val">{currentUser.email || "Not specified"}</span>
+                    </div>
+                    <div className="detail-item">
+                      <span className="detail-label">Contact:</span>
+                      <span className="detail-val">{currentUser.contact_number || "Not specified"}</span>
+                    </div>
+                  </div>
+
+                  {/* Customer Default Delivery Details Card */}
+                  <div className="profile-delivery-box">
+                    <div className="delivery-box-header">
+                      <div>
+                        <h4>🏠 Default Delivery Address (Auto-filled at Checkout)</h4>
+                        <p>Your preferred delivery spot and Shopee-style pinpoint location.</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          populateEditFields(currentUser);
+                          setActiveTab('settings');
+                        }}
+                        className="quick-edit-link"
+                      >
+                        ✏️ Edit
+                      </button>
+                    </div>
+
+                    {currentUser.default_street || currentUser.address ? (
+                      <div className="delivery-box-body">
+                        <p className="delivery-address-text">
+                          <strong>Address:</strong>{" "}
+                          {[
+                            currentUser.default_street,
+                            currentUser.default_barangay ? `Brgy. ${currentUser.default_barangay}` : null,
+                            currentUser.default_city,
+                            currentUser.default_province
+                          ].filter(Boolean).join(", ") || currentUser.address}
+                        </p>
+                        {currentUser.default_landmark && (
+                          <p className="delivery-landmark-text">
+                            <strong>Landmark:</strong> {currentUser.default_landmark}
+                          </p>
+                        )}
+                        <div className="delivery-pin-badge">
+                          {currentUser.default_lat && currentUser.default_lng ? (
+                            <span className="pin-tag success">
+                              📍 Map Pinpoint Set ({Number(currentUser.default_lat).toFixed(4)}, {Number(currentUser.default_lng).toFixed(4)})
+                            </span>
+                          ) : (
+                            <span className="pin-tag warning">
+                              📍 No default map pin set yet
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="delivery-empty-state">
+                        <p>No default delivery address set yet.</p>
+                        <button
+                          type="button"
+                          className="set-address-cta-btn"
+                          onClick={() => {
+                            populateEditFields(currentUser);
+                            setActiveTab('settings');
+                          }}
+                        >
+                          ➕ Set Default Address & Map Pin
+                        </button>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="profile-actions">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        populateEditFields(currentUser);
+                        setActiveTab('settings');
+                      }}
+                      className="profile-btn edit-settings-btn"
+                    >
+                      ⚙️ Edit Profile & Location Details
+                    </button>
+
+                    {currentUser.role === 'customer' && (
+                      <Link to="/my-orders" className="profile-btn primary-btn">
+                        📦 View My Orders
+                      </Link>
+                    )}
+
+                    {(currentUser.role === 'admin' || currentUser.role === 'staff') && (
+                      <Link to="/admin" className="profile-btn primary-btn">
+                        ⚙️ Open {currentUser.role === 'admin' ? 'Admin Panel' : 'Staff Queue'}
+                      </Link>
+                    )}
+
+                    <Link to="/menu" className="profile-btn secondary-btn">
+                      🥐 Browse Bakery Menu
+                    </Link>
+
+                    <button onClick={handleLogout} className="profile-btn logout-btn">
+                      🚪 Logout
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                /* TAB 2: Customer Settings & Edit Form */
+                <form onSubmit={handleSaveSettings} className="settings-tab-form">
+                  <div className="settings-header">
+                    <h2>Edit Your Details</h2>
+                    <p className="subtitle">
+                      Update your contact information and default Shopee-style delivery location.
+                    </p>
+                  </div>
+
+                  {settingsMessage.text && (
+                    <div className={`alert ${settingsMessage.type === 'success' ? 'success-alert' : 'error-alert'}`}>
+                      {settingsMessage.text}
+                    </div>
+                  )}
+
+                  {/* Section 1: Personal Info */}
+                  <div className="settings-section">
+                    <h3 className="section-title">👤 Personal Details</h3>
+                    <div className="form-row">
+                      <div>
+                        <label className="field-label">First Name *</label>
+                        <input
+                          type="text"
+                          value={editFirstName}
+                          onChange={(e) => setEditFirstName(e.target.value)}
+                          placeholder="e.g. Juan"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label className="field-label">Last Name *</label>
+                        <input
+                          type="text"
+                          value={editLastName}
+                          onChange={(e) => setEditLastName(e.target.value)}
+                          placeholder="e.g. Dela Cruz"
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    <div className="form-row">
+                      <div>
+                        <label className="field-label">Email Address *</label>
+                        <input
+                          type="email"
+                          value={editEmail}
+                          onChange={(e) => setEditEmail(e.target.value)}
+                          placeholder="name@example.com"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label className="field-label">Contact Number (+63 / 09...)</label>
+                        <input
+                          type="text"
+                          value={editContact}
+                          onChange={(e) => setEditContact(e.target.value)}
+                          placeholder="+63 912 345 6782"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Section 2: Default Delivery Location */}
+                  <div className="settings-section">
+                    <h3 className="section-title">🏠 Default Delivery Address (Shopee Style)</h3>
+                    <p className="section-desc">
+                      These details will automatically pre-fill your checkout form so you can place orders with 1 tap.
+                    </p>
+
+                    <label className="field-label">House No. / Street / Unit / Subdivision *</label>
+                    <input
+                      type="text"
+                      value={editStreet}
+                      onChange={(e) => setEditStreet(e.target.value)}
+                      placeholder="e.g. Blk 4 Lot 12 Villa Teresa Subdivision, or 123 Rizal St."
+                    />
+
+                    <div className="form-row">
+                      <div>
+                        <label className="field-label">Barangay *</label>
+                        <input
+                          type="text"
+                          value={editBarangay}
+                          onChange={(e) => setEditBarangay(e.target.value)}
+                          placeholder="e.g. Poblacion, Gabi, Bangbang"
+                        />
+                      </div>
+                      <div>
+                        <label className="field-label">City / Municipality *</label>
+                        <input
+                          type="text"
+                          value={editCity}
+                          onChange={(e) => setEditCity(e.target.value)}
+                          placeholder="Cordova"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="form-row">
+                      <div>
+                        <label className="field-label">Province</label>
+                        <input
+                          type="text"
+                          value={editProvince}
+                          onChange={(e) => setEditProvince(e.target.value)}
+                          placeholder="Cebu"
+                        />
+                      </div>
+                      <div>
+                        <label className="field-label">Landmark / Delivery Notes (Optional)</label>
+                        <input
+                          type="text"
+                          value={editLandmark}
+                          onChange={(e) => setEditLandmark(e.target.value)}
+                          placeholder="e.g. Near yellow gate, beside sari-sari store"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Section 3: Interactive Map Pinpoint Accordion */}
+                    <div className="map-picker-accordion">
+                      <div className="map-accordion-header">
+                        <div>
+                          <strong>📍 Default Map Pinpoint (Lat & Lng)</strong>
+                          <span className="current-pin-coords">
+                            {editLat && editLng
+                              ? `${Number(editLat).toFixed(4)}, ${Number(editLng).toFixed(4)}`
+                              : "Not selected"}
+                          </span>
+                        </div>
+                        <button
+                          type="button"
+                          className="toggle-map-btn"
+                          onClick={() => setShowMapPicker(!showMapPicker)}
+                        >
+                          {showMapPicker ? "🔼 Hide Map Pin" : "🔽 Pinpoint on Map"}
+                        </button>
+                      </div>
+
+                      {showMapPicker && (
+                        <div className="settings-map-container">
+                          <DeliveryMapPicker
+                            initialBarangay={editBarangay}
+                            initialCoordinates={{ lat: editLat, lng: editLng }}
+                            onLocationSelected={(info) => {
+                              if (info?.coordinates) {
+                                setEditLat(info.coordinates.lat);
+                                setEditLng(info.coordinates.lng);
+                              }
+                              if (info?.addressDetails) {
+                                if (info.addressDetails.street && !editStreet) {
+                                  setEditStreet(info.addressDetails.street);
+                                }
+                                if (info.addressDetails.barangay) {
+                                  setEditBarangay(info.addressDetails.barangay);
+                                }
+                                if (info.addressDetails.city) {
+                                  setEditCity(info.addressDetails.city);
+                                }
+                                if (info.addressDetails.province) {
+                                  setEditProvince(info.addressDetails.province);
+                                }
+                              }
+                            }}
+                          />
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Form Action Buttons */}
+                  <div className="settings-btn-row">
+                    <button
+                      type="submit"
+                      className="account-btn save-settings-btn"
+                      disabled={savingSettings}
+                    >
+                      {savingSettings ? "Saving Settings..." : "💾 Save Changes"}
+                    </button>
+                    <button
+                      type="button"
+                      className="cancel-btn"
+                      onClick={() => setActiveTab('overview')}
+                      disabled={savingSettings}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </form>
+              )}
             </div>
           ) : isLogin ? (
             /* Login Form */

@@ -1,132 +1,526 @@
 /**
  * ============================================================================
- * BAKE HOUSE - Hero & Home Stylesheet (Fully Responsive)
+ * BAKE HOUSE - Home Page Stylesheet (Artisanal BakeSmart Design)
  * ============================================================================
  */
 
-.hero {
-    min-height: calc(100vh - 80px);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: clamp(40px, 6vw, 80px) clamp(20px, 5vw, 60px);
-    max-width: 1300px;
-    margin: 0 auto;
-    gap: 40px;
-}
-
-.hero-content {
-    flex: 1;
-    max-width: 620px;
-}
-
-.hero-content h1 {
-    font-size: clamp(2.3rem, 5vw, 3.8rem);
-    color: #6B4226;
-    margin-bottom: 20px;
-    line-height: 1.18;
-    font-weight: 800;
-}
-
-.hero-content p {
-    font-size: clamp(1rem, 2vw, 1.25rem);
-    line-height: 1.7;
-    margin-bottom: 35px;
-    color: #5C4A3E;
-}
-
-.hero-btn {
-    display: inline-block;
-    padding: 15px 36px;
-    background: #D97706;
-    color: #FFFFFF !important;
-    border-radius: 10px;
-    font-size: 1.1rem;
-    font-weight: 700;
-    text-decoration: none;
-    box-shadow: 0 4px 15px rgba(217, 119, 6, 0.35);
-    transition: all 0.25s ease;
-}
-
-.hero-btn:hover {
-    background: #B45F06;
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(217, 119, 6, 0.45);
-}
-
-.hero-image {
-    flex: 1;
-    max-width: 540px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-.hero-image img {
-    width: 100%;
-    max-height: 480px;
-    object-fit: cover;
-    border-radius: 24px;
-    box-shadow: 0 16px 40px rgba(107, 66, 38, 0.16);
-    border: 3px solid #FFF8F0;
-    transition: transform 0.3s ease;
-}
-
-.hero-image img:hover {
-    transform: scale(1.02);
+.home-page-container {
+  width: 100%;
+  overflow-x: hidden;
+  background-color: var(--color-bg-warm, #FDFBF7);
 }
 
 /* ==========================================================================
-   RESPONSIVE BREAKPOINTS
+   1. HERO SECTION (Dark Panoramic with Frosted Glass Box)
    ========================================================================== */
-@media (max-width: 900px) {
-    .hero {
-        flex-direction: column-reverse;
-        text-align: center;
-        padding: 40px 20px 60px;
-        min-height: 0;
-        gap: 32px;
-    }
-
-    .hero-content {
-        max-width: 100%;
-    }
-
-    .hero-image {
-        max-width: 450px;
-        width: 100%;
-    }
-
-    .hero-image img {
-        max-height: 360px;
-    }
+.bakesmart-hero {
+  position: relative;
+  width: 100%;
+  min-height: 560px;
+  max-height: 720px;
+  display: flex;
+  align-items: center;
+  background-color: #120B07;
+  overflow: hidden;
 }
 
-@media (max-width: 480px) {
-    .hero {
-        padding: 30px 16px 50px;
-        gap: 24px;
-    }
+.hero-bg-wrap {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+}
 
-    .hero-content h1 {
-        font-size: 2.1rem;
-        margin-bottom: 14px;
-    }
+.hero-bg-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 60%;
+  transform: scale(1.02);
+  transition: transform 10s ease;
+}
 
-    .hero-content p {
-        font-size: 0.95rem;
-        margin-bottom: 24px;
-    }
+.bakesmart-hero:hover .hero-bg-img {
+  transform: scale(1.05);
+}
 
-    .hero-btn {
-        width: 100%;
-        max-width: 260px;
-        padding: 13px 24px;
-        font-size: 1rem;
-    }
+.hero-gradient-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    rgba(14, 8, 4, 0.78) 0%,
+    rgba(14, 8, 4, 0.45) 50%,
+    rgba(14, 8, 4, 0.25) 100%
+  );
+}
 
-    .hero-image img {
-        max-height: 260px;
-        border-radius: 18px;
-    }
+.hero-inner-container {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 60px clamp(20px, 4vw, 50px);
+}
+
+.hero-frosted-card {
+  max-width: 580px;
+  background: rgba(18, 11, 7, 0.65);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 18px;
+  padding: clamp(32px, 4vw, 44px);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+  animation: fadeIn 0.8s ease;
+}
+
+.hero-frosted-card h1 {
+  font-family: var(--font-serif, 'Playfair Display', Georgia, serif);
+  font-size: clamp(2rem, 3.8vw, 3rem);
+  font-weight: 700;
+  line-height: 1.2;
+  color: #FFFFFF;
+  margin: 0 0 16px;
+  letter-spacing: -0.01em;
+}
+
+.hero-frosted-card p {
+  font-size: clamp(0.95rem, 1.4vw, 1.05rem);
+  line-height: 1.65;
+  color: rgba(255, 255, 255, 0.82);
+  margin: 0 0 28px;
+  font-weight: 400;
+}
+
+.hero-actions-row {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.hero-btn-gold {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 13px 32px;
+  background-color: #E59819;
+  color: #1A110A !important;
+  font-weight: 700;
+  font-size: 0.98rem;
+  border-radius: 8px;
+  text-decoration: none;
+  transition: all 0.25s ease;
+  box-shadow: 0 4px 15px rgba(229, 152, 25, 0.35);
+}
+
+.hero-btn-gold:hover {
+  background-color: #F5A623;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(229, 152, 25, 0.45);
+}
+
+.hero-btn-dark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 13px 28px;
+  background-color: rgba(28, 18, 12, 0.7);
+  color: #FFFFFF !important;
+  font-weight: 600;
+  font-size: 0.98rem;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  text-decoration: none;
+  transition: all 0.25s ease;
+}
+
+.hero-btn-dark:hover {
+  background-color: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.4);
+  transform: translateY(-2px);
+}
+
+/* ==========================================================================
+   2. FEATURED CATEGORIES SECTION (SELECTION)
+   ========================================================================== */
+.categories-section {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: clamp(60px, 8vw, 90px) clamp(20px, 4vw, 40px);
+}
+
+.section-heading-center {
+  text-align: center;
+  margin-bottom: clamp(35px, 5vw, 50px);
+}
+
+.section-label-gold {
+  display: inline-block;
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.2em;
+  color: #C5832B;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.section-heading-center h2 {
+  font-family: var(--font-serif, 'Playfair Display', Georgia, serif);
+  font-size: clamp(2rem, 3.5vw, 2.7rem);
+  font-weight: 700;
+  color: #2D1D12;
+  margin: 0;
+}
+
+.golden-divider-dash {
+  width: 48px;
+  height: 3px;
+  background-color: #C5832B;
+  margin: 14px auto 0;
+  border-radius: 2px;
+}
+
+.category-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: clamp(20px, 3vw, 32px);
+}
+
+.category-card {
+  position: relative;
+  border-radius: 16px;
+  overflow: hidden;
+  height: 380px;
+  text-decoration: none;
+  background-color: #1A110A;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
+  transition: transform 0.35s ease, box-shadow 0.35s ease;
+  display: block;
+}
+
+.category-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.2);
+}
+
+.cat-img-wrapper {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.cat-img-wrapper img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.6s ease;
+}
+
+.category-card:hover .cat-img-wrapper img {
+  transform: scale(1.08);
+}
+
+.cat-card-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to top,
+    rgba(14, 8, 4, 0.92) 0%,
+    rgba(14, 8, 4, 0.45) 45%,
+    rgba(14, 8, 4, 0.05) 100%
+  );
+}
+
+.cat-badge-top {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  z-index: 3;
+  background: rgba(22, 14, 9, 0.85);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #F3C47B;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  padding: 5px 12px;
+  border-radius: 20px;
+}
+
+.cat-card-content {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 26px 22px;
+  z-index: 3;
+}
+
+.cat-card-content h3 {
+  font-family: var(--font-serif, 'Playfair Display', Georgia, serif);
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #FFFFFF;
+  margin: 0 0 6px;
+}
+
+.cat-card-content p {
+  font-size: 0.88rem;
+  line-height: 1.45;
+  color: rgba(255, 255, 255, 0.75);
+  margin: 0;
+}
+
+/* ==========================================================================
+   3. HOME FEATURED WRAPPER
+   ========================================================================== */
+.home-featured-wrapper {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 clamp(20px, 4vw, 40px);
+}
+
+/* ==========================================================================
+   4. OUR PROCESS / HOW IT WORKS SECTION (Picture 1 style)
+   ========================================================================== */
+.process-section {
+  background-color: var(--color-bg-peach, #FAF3EB);
+  width: 100%;
+  padding: clamp(70px, 9vw, 100px) clamp(20px, 4vw, 40px);
+  margin: clamp(40px, 6vw, 70px) 0;
+}
+
+.process-container {
+  max-width: 1240px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(40px, 6vw, 80px);
+  align-items: center;
+}
+
+.process-illustration-col {
+  display: flex;
+  justify-content: center;
+}
+
+.illustration-frame {
+  width: 100%;
+  max-width: 520px;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 16px 45px rgba(80, 50, 30, 0.12);
+  border: 4px solid #FFFFFF;
+  background-color: #FFFFFF;
+}
+
+.illustration-frame img {
+  width: 100%;
+  height: auto;
+  display: block;
+  object-fit: cover;
+}
+
+.process-info-col h2 {
+  font-family: var(--font-serif, 'Playfair Display', Georgia, serif);
+  font-size: clamp(2rem, 3.6vw, 2.8rem);
+  font-weight: 700;
+  color: #2D1D12;
+  margin: 6px 0 35px;
+}
+
+.process-steps-list {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.process-step-item {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+}
+
+.step-icon-badge {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background-color: #E59819;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+  flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(229, 152, 25, 0.3);
+}
+
+.step-text h3 {
+  font-family: var(--font-serif, 'Playfair Display', Georgia, serif);
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #2D1D12;
+  margin: 0 0 6px;
+}
+
+.step-text p {
+  font-size: 0.92rem;
+  line-height: 1.6;
+  color: #6B5B50;
+  margin: 0;
+}
+
+/* ==========================================================================
+   5. STAY IN THE DOUGH SECTION (Picture 1 Dark Espresso Card)
+   ========================================================================== */
+.stay-in-dough-section {
+  max-width: 1040px;
+  margin: clamp(40px, 6vw, 70px) auto clamp(60px, 8vw, 90px);
+  padding: 0 clamp(20px, 4vw, 40px);
+}
+
+.stay-in-dough-card {
+  background-color: #382417;
+  background-image: radial-gradient(circle at 80% 20%, rgba(229, 152, 25, 0.08) 0%, transparent 60%);
+  border-radius: 20px;
+  padding: clamp(40px, 6vw, 60px) clamp(24px, 4vw, 50px);
+  text-align: center;
+  color: #FFFFFF;
+  box-shadow: 0 18px 45px rgba(35, 20, 10, 0.25);
+}
+
+.stay-in-dough-card h2 {
+  font-family: var(--font-serif, 'Playfair Display', Georgia, serif);
+  font-size: clamp(2rem, 3.5vw, 2.6rem);
+  font-weight: 700;
+  color: #FFFDF9;
+  margin: 0 0 12px;
+}
+
+.stay-in-dough-card p {
+  font-size: clamp(0.95rem, 1.3vw, 1.05rem);
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.82);
+  max-width: 620px;
+  margin: 0 auto 30px;
+}
+
+.dough-form {
+  display: flex;
+  gap: 12px;
+  max-width: 460px;
+  margin: 0 auto;
+}
+
+.dough-form input {
+  flex: 1;
+  padding: 13px 18px;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 8px;
+  color: #FFFFFF;
+  font-size: 0.95rem;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.dough-form input::placeholder {
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.dough-form input:focus {
+  background: rgba(255, 255, 255, 0.18);
+  border-color: #E59819;
+}
+
+.dough-btn {
+  padding: 13px 28px;
+  background-color: #E59819;
+  color: #1A110A;
+  font-weight: 700;
+  font-size: 0.95rem;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  white-space: nowrap;
+}
+
+.dough-btn:hover {
+  background-color: #F5A623;
+  transform: translateY(-1px);
+}
+
+.subscribed-feedback-pill {
+  margin-top: 18px;
+  display: inline-block;
+  padding: 8px 20px;
+  background: rgba(16, 185, 129, 0.2);
+  border: 1px solid rgba(16, 185, 129, 0.4);
+  color: #34D399;
+  border-radius: 20px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  animation: fadeIn 0.3s ease;
+}
+
+/* ==========================================================================
+   RESPONSIVE MEDIA QUERIES
+   ========================================================================== */
+@media (max-width: 1024px) {
+  .category-cards-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 860px) {
+  .category-cards-grid {
+    grid-template-columns: 1fr;
+    max-width: 440px;
+    margin: 0 auto;
+  }
+
+  .category-card {
+    height: 320px;
+  }
+
+  .process-container {
+    grid-template-columns: 1fr;
+    text-align: left;
+    gap: 40px;
+  }
+
+  .illustration-frame {
+    max-width: 440px;
+  }
+}
+
+@media (max-width: 600px) {
+  .hero-frosted-card {
+    padding: 24px 20px;
+  }
+
+  .hero-actions-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .hero-btn-gold,
+  .hero-btn-dark {
+    width: 100%;
+    text-align: center;
+  }
+
+  .dough-form {
+    flex-direction: column;
+  }
+
+  .dough-btn {
+    width: 100%;
+  }
 }

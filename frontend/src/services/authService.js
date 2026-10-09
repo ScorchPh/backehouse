@@ -65,6 +65,21 @@ export const authService = {
   },
 
   /**
+   * Update active user's profile and default delivery details
+   */
+  async updateProfile(profileData) {
+    const data = await apiRequest('/auth/update_profile.php', {
+      method: 'POST',
+      body: profileData,
+    });
+
+    if (data.success && data.user) {
+      this.setCurrentUser(data.user);
+    }
+    return data;
+  },
+
+  /**
    * Get active user from browser localStorage
    */
   getCurrentUser() {

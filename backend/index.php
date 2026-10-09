@@ -20,6 +20,7 @@ echo json_encode([
             'register' => '/api/auth/register.php',
             'google_login' => '/api/auth/google_login.php',
             'profile' => '/api/auth/profile.php',
+            'update_profile' => '/api/auth/update_profile.php',
             'customers' => '/api/auth/customers.php'
         ],
         'products' => [
