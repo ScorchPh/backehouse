@@ -78,6 +78,7 @@
 
 .badge-neutral {
   background-color: rgba(35, 20, 12, 0.75);
+  -webkit-backdrop-filter: blur(6px);
   backdrop-filter: blur(6px);
   color: #FAF4EE;
   border: 1px solid rgba(255, 255, 255, 0.15);
@@ -89,6 +90,7 @@
   bottom: 12px;
   right: 12px;
   background: rgba(30, 18, 11, 0.82);
+  -webkit-backdrop-filter: blur(6px);
   backdrop-filter: blur(6px);
   color: #FFFFFF;
   padding: 6px 14px;
