@@ -125,10 +125,14 @@ function AdminCakeChatModal({ isOpen, onClose }) {
   const [denyingOrderId, setDenyingOrderId] = useState(null);
   const [denialPreset, setDenialPreset] = useState(PRESET_DENIAL_REASONS[0]);
   const [customDenialReason, setCustomDenialReason] = useState("");
+  const [showScrollBottomBtn, setShowScrollBottomBtn] = useState(false);
 
+  const messagesContainerRef = useRef(null);
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
   const fileInputRef = useRef(null);
+  const isAtBottomRef = useRef(true);
+  const isInitialThreadLoadRef = useRef(true);
 
   const currentUser = authService.getCurrentUser();
   const adminName = currentUser ? (currentUser.first_name || currentUser.username) : "Baker";
@@ -190,7 +194,17 @@ function AdminCakeChatModal({ isOpen, onClose }) {
     try {
       const res = await cakeChatService.getMessages(sid);
       if (res && res.success && Array.isArray(res.messages)) {
-        setMessages(res.messages);
+        setMessages((prev) => {
+          // Avoid triggering unnecessary re-renders and scroll changes if messages haven't changed
+          if (
+            prev.length === res.messages.length &&
+            prev.length > 0 &&
+            prev[prev.length - 1]?.id === res.messages[res.messages.length - 1]?.id
+          ) {
+            return prev;
+          }
+          return res.messages;
+        });
         fetchOrdersForMessages(res.messages);
       }
     } catch (err) {
@@ -311,14 +325,40 @@ function AdminCakeChatModal({ isOpen, onClose }) {
   // When selected session changes, fetch immediately and mark as read
   useEffect(() => {
     if (selectedSessionId && isOpen) {
+      isInitialThreadLoadRef.current = true;
+      isAtBottomRef.current = true;
+      setShowScrollBottomBtn(false);
       loadMessages(selectedSessionId);
       markSessionRead(selectedSessionId);
     }
   }, [selectedSessionId, isOpen]);
 
-  // Scroll to bottom of chat
+  // Handle user scroll detection
+  const handleMessagesScroll = () => {
+    const container = messagesContainerRef.current;
+    if (!container) return;
+    // If distance from bottom is within 100px, treat as reading at bottom
+    const distanceFromBottom = container.scrollHeight - container.scrollTop - container.clientHeight;
+    const atBottom = distanceFromBottom <= 100;
+    isAtBottomRef.current = atBottom;
+    setShowScrollBottomBtn(!atBottom);
+  };
+
+  const scrollToBottom = (behavior = "smooth") => {
+    messagesEndRef.current?.scrollIntoView({ behavior });
+    isAtBottomRef.current = true;
+    setShowScrollBottomBtn(false);
+  };
+
+  // Scroll to bottom of chat only when at bottom or on initial thread load
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (isInitialThreadLoadRef.current) {
+      messagesEndRef.current?.scrollIntoView({ behavior: "auto" });
+      isInitialThreadLoadRef.current = false;
+    } else if (isAtBottomRef.current) {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
+    // If user scrolled up to read previous chat (isAtBottomRef.current === false), do NOT auto-scroll!
   }, [messages]);
 
   // Copy Order ID helper
@@ -393,6 +433,8 @@ function AdminCakeChatModal({ isOpen, onClose }) {
         created_at: new Date().toISOString()
       };
       setMessages((prev) => [...prev, optimistic]);
+      isAtBottomRef.current = true;
+      setTimeout(() => scrollToBottom("smooth"), 50);
 
       await cakeChatService.sendMessage({
         sessionId: selectedSessionId,
@@ -540,7 +582,12 @@ function AdminCakeChatModal({ isOpen, onClose }) {
                   </div>
                 </div>
 
-                <div className="conversation-messages">
+                <div className="conversation-messages-wrapper">
+                  <div
+                    className="conversation-messages"
+                    ref={messagesContainerRef}
+                    onScroll={handleMessagesScroll}
+                  >
                   {messages.length === 0 ? (
                     <div className="empty-messages">
                       <p>No messages in this conversation thread yet.</p>
@@ -742,6 +789,18 @@ function AdminCakeChatModal({ isOpen, onClose }) {
                   )}
                   <div ref={messagesEndRef} />
                 </div>
+
+                {showScrollBottomBtn && (
+                  <button
+                    type="button"
+                    className="btn-scroll-to-bottom"
+                    onClick={() => scrollToBottom("smooth")}
+                    title="Jump to latest messages"
+                  >
+                    ↓ Latest Messages
+                  </button>
+                )}
+              </div>
 
                 {/* Quick Reply Presets Toolbar */}
                 <div className="quick-replies-toolbar">

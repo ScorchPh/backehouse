@@ -544,15 +544,46 @@
   100% { transform: scale(0.95); opacity: 0.8; }
 }
 
-/* Body / Messages */
+.cake-chat-body-wrapper {
+  flex: 1;
+  min-height: 0;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
 .cake-chat-body {
   flex: 1;
+  min-height: 0;
   padding: 16px;
   background: #FAF8F5;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
   gap: 12px;
+}
+
+.cake-chat-scroll-bottom {
+  position: absolute;
+  bottom: 12px;
+  right: 16px;
+  background: #6B4226;
+  color: #FFFFFF;
+  border: 1px solid #FAF5EF;
+  border-radius: 18px;
+  padding: 6px 14px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(107, 66, 38, 0.3);
+  z-index: 10;
+  transition: all 0.2s ease;
+}
+
+.cake-chat-scroll-bottom:hover {
+  background: #8B5A2B;
+  transform: translateY(-2px);
 }
 
 .chat-bubble {

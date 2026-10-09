@@ -42,6 +42,10 @@ echo json_encode([
             'send_message' => '/api/contact/send_message.php',
             'get_messages' => '/api/contact/get_messages.php'
         ],
+        'settings' => [
+            'get_settings' => '/api/settings/get_settings.php',
+            'update_settings' => '/api/settings/update_settings.php'
+        ],
         'admin' => [
             'dashboard_stats' => '/api/admin/dashboard_stats.php',
             'reports' => '/api/admin/reports.php'

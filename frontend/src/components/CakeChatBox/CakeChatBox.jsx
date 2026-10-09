@@ -174,7 +174,11 @@ function CakeChatBox() {
   const [adminThreads, setAdminThreads] = useState([]);
   const [inputText, setInputText] = useState("");
   const [sending, setSending] = useState(false);
+  const [showScrollBottomBtn, setShowScrollBottomBtn] = useState(false);
+  const messagesContainerRef = useRef(null);
   const messagesEndRef = useRef(null);
+  const isAtBottomRef = useRef(true);
+  const isInitialLoadRef = useRef(true);
 
   // Determine user role
   const isAdminOrStaff = currentUser?.role === "admin" || currentUser?.role === "staff";
@@ -243,7 +247,16 @@ function CakeChatBox() {
     try {
       const res = await cakeChatService.getMessages(sessionId);
       if (res && res.success && Array.isArray(res.messages)) {
-        setMessages(res.messages);
+        setMessages((prev) => {
+          if (
+            prev.length === res.messages.length &&
+            prev.length > 0 &&
+            prev[prev.length - 1]?.id === res.messages[res.messages.length - 1]?.id
+          ) {
+            return prev;
+          }
+          return res.messages;
+        });
       }
     } catch (err) {
       console.warn("Could not poll cake chat messages:", err);
@@ -278,10 +291,40 @@ function CakeChatBox() {
     }
   }, [currentUser, isAdminOrStaff, fetchAdminThreads, fetchCustomerMessages]);
 
-  // Scroll to bottom when customer messages update
+  // Handle scroll detection in messages container
+  const handleMessagesScroll = () => {
+    const container = messagesContainerRef.current;
+    if (!container) return;
+    const distanceFromBottom = container.scrollHeight - container.scrollTop - container.clientHeight;
+    const atBottom = distanceFromBottom <= 100;
+    isAtBottomRef.current = atBottom;
+    setShowScrollBottomBtn(!atBottom);
+  };
+
+  const scrollToBottom = (behavior = "smooth") => {
+    messagesEndRef.current?.scrollIntoView({ behavior });
+    isAtBottomRef.current = true;
+    setShowScrollBottomBtn(false);
+  };
+
+  // Reset scroll state on open
+  useEffect(() => {
+    if (isOpen) {
+      isInitialLoadRef.current = true;
+      isAtBottomRef.current = true;
+      setShowScrollBottomBtn(false);
+    }
+  }, [isOpen]);
+
+  // Scroll to bottom when customer messages update only if at bottom or first load
   useEffect(() => {
     if (isOpen && !isAdminOrStaff) {
-      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+      if (isInitialLoadRef.current) {
+        messagesEndRef.current?.scrollIntoView({ behavior: "auto" });
+        isInitialLoadRef.current = false;
+      } else if (isAtBottomRef.current) {
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+      }
     }
   }, [messages, isOpen, isAdminOrStaff]);
 
@@ -423,6 +466,8 @@ function CakeChatBox() {
         created_at: new Date().toISOString()
       };
       setMessages((prev) => [...prev, tempMsg]);
+      isAtBottomRef.current = true;
+      setTimeout(() => scrollToBottom("smooth"), 50);
 
       await cakeChatService.sendMessage({
         sessionId,
@@ -654,7 +699,12 @@ function CakeChatBox() {
           )}
 
           {/* Message History */}
-          <div className="cake-chat-body">
+          <div className="cake-chat-body-wrapper">
+            <div
+              className="cake-chat-body"
+              ref={messagesContainerRef}
+              onScroll={handleMessagesScroll}
+            >
             {/* Default Greeting */}
             <div className="chat-bubble baker-bubble system-welcome">
               <span className="bubble-sender">👨‍🍳 Chef Baker</span>
@@ -728,7 +778,19 @@ function CakeChatBox() {
               );
             })}
 
-            <div ref={messagesEndRef} />
+              <div ref={messagesEndRef} />
+            </div>
+
+            {showScrollBottomBtn && (
+              <button
+                type="button"
+                className="cake-chat-scroll-bottom"
+                onClick={() => scrollToBottom("smooth")}
+                title="Jump to latest messages"
+              >
+                ↓ Latest
+              </button>
+            )}
           </div>
 
           {/* Quick Suggestion Chips */}

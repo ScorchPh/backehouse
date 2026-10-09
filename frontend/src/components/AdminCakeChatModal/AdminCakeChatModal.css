@@ -318,14 +318,50 @@
   color: #FFFFFF;
 }
 
+.conversation-messages-wrapper {
+  flex: 1;
+  min-height: 0;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
 .conversation-messages {
   flex: 1;
+  min-height: 0;
   padding: 20px;
   background: #FAF8F5;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
   gap: 14px;
+}
+
+.btn-scroll-to-bottom {
+  position: absolute;
+  bottom: 16px;
+  right: 24px;
+  background: #6B4226;
+  color: #FFFFFF;
+  border: 1px solid #FAF5EF;
+  border-radius: 20px;
+  padding: 7px 15px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(107, 66, 38, 0.35);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+  z-index: 10;
+}
+
+.btn-scroll-to-bottom:hover {
+  background: #8B5A2B;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(107, 66, 38, 0.45);
 }
 
 .empty-messages,

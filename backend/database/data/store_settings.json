@@ -1,0 +1,15 @@
+{
+    "bakery_name": "BAKE HOUSE",
+    "email": "info@bakehouse.com",
+    "contact_number": "0917-123-4567",
+    "address": "Poblacion, Cordova, Cebu, Philippines",
+    "social_links": {
+        "facebook": "https://facebook.com",
+        "instagram": "https://instagram.com",
+        "tiktok": "https://tiktok.com"
+    },
+    "order_settings": {
+        "accept_orders": true,
+        "allow_customization": true
+    }
+}

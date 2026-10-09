@@ -4,15 +4,54 @@
  * ============================================================================
  */
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import "./Contact.css";
 import { contactService } from "../../services/contactService";
+import { settingsService } from "../../services/settingsService";
 
 function Contact() {
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [subject, setSubject] = useState("");
   const [message, setMessage] = useState("");
+
+  const [settings, setSettings] = useState(() => settingsService.getCachedSettings());
+
+  useEffect(() => {
+    async function loadStoreSettings() {
+      const data = await settingsService.getSettings();
+      if (data) {
+        setSettings(data);
+      }
+    }
+    loadStoreSettings();
+
+    const handleSettingsUpdate = (e) => {
+      if (e.detail) {
+        setSettings(e.detail);
+      } else {
+        loadStoreSettings();
+      }
+    };
+
+    window.addEventListener("storeSettingsUpdated", handleSettingsUpdate);
+    window.addEventListener("storage", handleSettingsUpdate);
+
+    return () => {
+      window.removeEventListener("storeSettingsUpdated", handleSettingsUpdate);
+      window.removeEventListener("storage", handleSettingsUpdate);
+    };
+  }, []);
+
+  const formatSocialUrl = (url, fallback) => {
+    if (!url || typeof url !== "string") return fallback;
+    const trimmed = url.trim();
+    if (!trimmed || trimmed === "#") return fallback;
+    if (!/^https?:\/\//i.test(trimmed)) {
+      return `https://${trimmed}`;
+    }
+    return trimmed;
+  };
 
   const [loading, setLoading] = useState(false);
   const [statusMessage, setStatusMessage] = useState({ text: "", isError: false });
@@ -65,20 +104,17 @@ function Contact() {
       <div className="contact-info">
         <div className="info-card">
           <h3>📍 Address</h3>
-          <p>
-            Poblacion, Cordova,<br />
-            Cebu, Philippines
-          </p>
+          <p>{settings?.address || "Poblacion, Cordova, Cebu, Philippines"}</p>
         </div>
 
         <div className="info-card">
           <h3>📞 Phone</h3>
-          <p>+63 912 345 6789</p>
+          <p>{settings?.contact_number || "+63 912 345 6789"}</p>
         </div>
 
         <div className="info-card">
           <h3>📧 Email</h3>
-          <p>info@bakehouse.com</p>
+          <p>{settings?.email || "info@bakehouse.com"}</p>
         </div>
 
         <div className="info-card">
@@ -182,9 +218,30 @@ function Contact() {
         </p>
 
         <div className="social-links">
-          <a href="#">Facebook</a>
-          <a href="#">Instagram</a>
-          <a href="#">TikTok</a>
+          <a
+            href={formatSocialUrl(settings?.social_links?.facebook, "https://facebook.com")}
+            target="_blank"
+            rel="noopener noreferrer"
+            title="Visit our Facebook page"
+          >
+            Facebook
+          </a>
+          <a
+            href={formatSocialUrl(settings?.social_links?.instagram, "https://instagram.com")}
+            target="_blank"
+            rel="noopener noreferrer"
+            title="Visit our Instagram profile"
+          >
+            Instagram
+          </a>
+          <a
+            href={formatSocialUrl(settings?.social_links?.tiktok, "https://tiktok.com")}
+            target="_blank"
+            rel="noopener noreferrer"
+            title="Visit our TikTok page"
+          >
+            TikTok
+          </a>
         </div>
       </div>
     </div>

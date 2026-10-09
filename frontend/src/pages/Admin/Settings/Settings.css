@@ -217,6 +217,150 @@
   color: white;
 }
 
+/* Section Title with Badge */
+.section-title-badge-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.section-badge {
+  display: inline-block;
+  background: #FAF5EF;
+  color: #8b4513;
+  border: 1px solid #D8C8BA;
+  border-radius: 12px;
+  padding: 3px 10px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Actions Span Row */
+.settings-actions-span {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-top: 5px;
+}
+
+/* Social Media Settings Form */
+.social-settings-form {
+  grid-template-columns: 1fr;
+  max-width: 800px;
+}
+
+.social-form-group {
+  margin-bottom: 8px;
+}
+
+.social-form-group label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #3d2415;
+  font-size: 13.5px;
+}
+
+.social-badge-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  font-size: 11px;
+  font-weight: 800;
+  color: white;
+  flex-shrink: 0;
+}
+
+.facebook-icon {
+  background: #1877f2;
+}
+
+.instagram-icon {
+  background: radial-gradient(circle at 30% 107%, #fdf497 0%, #fdf497 5%, #fd5949 45%, #d6249f 60%, #285aeb 90%);
+  font-size: 12px;
+}
+
+.tiktok-icon {
+  background: #000000;
+  font-size: 12px;
+}
+
+.social-input-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.social-input-row input {
+  flex: 1;
+}
+
+.social-test-link-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 10px 14px;
+  background: #FAF5EF;
+  color: #8b4513;
+  border: 1px solid #dcc8b6;
+  border-radius: 7px;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+}
+
+.social-test-link-btn:hover {
+  background: #8b4513;
+  color: #FFFFFF;
+  border-color: #8b4513;
+}
+
+.form-field-hint {
+  font-size: 12px;
+  color: #888;
+  margin-top: -2px;
+  line-height: 1.4;
+}
+
+.social-actions-row {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-top: 10px;
+}
+
+.save-success-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 7px 16px;
+  background: #ECFDF5;
+  color: #059669;
+  border: 1px solid #A7F3D0;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  animation: fadeIn 0.25s ease;
+}
+
+.settings-error-banner {
+  background: #FEE2E2;
+  border: 1px solid #FCA5A5;
+  color: #B91C1C;
+  padding: 12px 18px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
 /* Responsive */
 
 @media (max-width: 700px) {
@@ -226,5 +370,14 @@
 
   .settings-form {
     grid-template-columns: 1fr;
+  }
+
+  .social-input-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .social-test-link-btn {
+    justify-content: center;
   }
 }
