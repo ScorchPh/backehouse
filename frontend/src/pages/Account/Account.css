@@ -596,13 +596,18 @@
 }
 
 .dashboard-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
     margin-bottom: 24px;
     padding-bottom: 16px;
     border-bottom: 1px solid #F3EDE7;
 }
 
 .dashboard-card-header h2 {
-    font-size: 1.6rem;
+    font-size: 1.55rem;
     color: #4A2810;
     margin: 0 0 6px 0;
     font-weight: 700;
@@ -612,6 +617,29 @@
     margin: 0;
     color: #8C7B6E;
     font-size: 0.92rem;
+}
+
+.header-quick-edit {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    font-size: 0.88rem;
+    font-weight: 600;
+    background: #FAF7F2;
+    border: 1.5px solid #E4D5C6;
+    color: #6B4226;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.header-quick-edit:hover {
+    background: #6B4226;
+    color: #FFFFFF;
+    border-color: #6B4226;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(107, 66, 38, 0.15);
 }
 
 .account-tabs {
@@ -652,76 +680,132 @@
 .overview-tab-content {
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 22px;
 }
 
-.profile-header {
-    display: flex;
-    align-items: center;
-    gap: 18px;
-    padding-bottom: 16px;
-    border-bottom: 1px solid #E5E7EB;
+/* Personal Information Card Section */
+.overview-section {
+    background: #FAFAFA;
+    border: 1px solid #EFEAE3;
+    border-radius: 16px;
+    padding: 20px 22px;
 }
 
-.profile-avatar {
-    width: 72px;
-    height: 72px;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 3px solid #6B4226;
-    box-shadow: 0 4px 12px rgba(107, 66, 38, 0.15);
+.overview-section-header {
+    margin-bottom: 14px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #EDE6DC;
 }
 
-.role-badge {
-    display: inline-block;
-    padding: 4px 12px;
-    border-radius: 20px;
-    font-size: 0.8rem;
+.overview-section-header h4 {
+    margin: 0;
+    font-size: 1.02rem;
+    color: #4A2810;
     font-weight: 700;
-    margin-top: 6px;
-    text-transform: uppercase;
 }
 
-.role-badge.admin {
-    background: #FEE2E2;
-    color: #DC2626;
+.overview-details-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 12px;
 }
 
-.role-badge.staff {
-    background: #DBEAFE;
-    color: #2563EB;
-}
-
-.role-badge.customer {
-    background: #D1FAE5;
-    color: #059669;
-}
-
-.profile-details {
+.overview-detail-item {
     display: flex;
     flex-direction: column;
-    gap: 8px;
-    background: #FAFAFA;
-    padding: 16px;
-    border-radius: 12px;
-    border: 1px solid #EFEFEF;
+    gap: 4px;
+    background: #FFFFFF;
+    padding: 12px 16px;
+    border-radius: 10px;
+    border: 1px solid #ECE4DA;
 }
 
-.detail-item {
+.overview-detail-label {
+    font-size: 0.78rem;
+    color: #8C7B6E;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.overview-detail-val {
+    font-size: 0.96rem;
+    color: #2D3748;
+    font-weight: 600;
+    word-break: break-all;
+}
+
+/* Clean Dashboard Shortcuts */
+.overview-shortcuts-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 16px;
+    margin-top: 4px;
+}
+
+.overview-shortcut-card {
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    font-size: 0.95rem;
+    gap: 14px;
+    background: #FFFFFF;
+    border: 1.5px solid #EBDBC9;
+    padding: 18px 20px;
+    border-radius: 14px;
+    text-decoration: none;
+    color: inherit;
+    transition: all 0.25s ease;
+    box-shadow: 0 2px 8px rgba(107, 66, 38, 0.04);
 }
 
-.detail-label {
-    font-weight: 600;
-    color: #6B7280;
+.overview-shortcut-card:hover {
+    transform: translateY(-3px);
+    border-color: #8B4513;
+    box-shadow: 0 8px 20px rgba(107, 66, 38, 0.12);
+    background: #FFFDF9;
 }
 
-.detail-val {
-    font-weight: 600;
-    color: #1F2937;
+.shortcut-icon {
+    font-size: 1.7rem;
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #FDF6EE;
+    border: 1px solid #F2DFCC;
+    border-radius: 12px;
+    flex-shrink: 0;
+}
+
+.shortcut-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.shortcut-info h5 {
+    margin: 0 0 4px 0;
+    font-size: 1rem;
+    color: #4A2810;
+    font-weight: 700;
+}
+
+.shortcut-info p {
+    margin: 0;
+    font-size: 0.82rem;
+    color: #786C64;
+    line-height: 1.35;
+}
+
+.shortcut-arrow {
+    font-size: 1.25rem;
+    color: #8B4513;
+    font-weight: 700;
+    transition: transform 0.2s ease;
+}
+
+.overview-shortcut-card:hover .shortcut-arrow {
+    transform: translateX(4px);
+    color: #6B340E;
 }
 
 .profile-delivery-box {

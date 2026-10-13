@@ -423,7 +423,7 @@ function Account() {
                 ⚙️ Edit Details & Location
               </button>
               {currentUser.role === 'customer' && (
-                <Link to="/orders" className="sidebar-nav-btn">
+                <Link to="/my-orders" className="sidebar-nav-btn">
                   📦 My Orders
                 </Link>
               )}
@@ -446,39 +446,53 @@ function Account() {
             {activeTab === 'overview' ? (
               <div className="dashboard-card overview-card">
                 <div className="dashboard-card-header">
-                  <h2>👤 Profile Overview</h2>
-                  <p className="subtitle">View your profile details and saved delivery address.</p>
+                  <div>
+                    <h2>👤 Account Overview</h2>
+                    <p className="subtitle">
+                      Welcome, <strong>{currentUser.first_name || currentUser.username}</strong>! View your profile details and saved delivery address.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      populateEditFields(currentUser);
+                      setActiveTab('settings');
+                    }}
+                    className="quick-edit-link header-quick-edit"
+                  >
+                    ⚙️ Edit Details
+                  </button>
                 </div>
-                <div className="profile-header">
-                  <img
-                    src={currentUser.avatar || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200"}
-                    alt="Profile Avatar"
-                    className="profile-avatar"
-                  />
-                    <div>
-                      <h2>{currentUser.first_name} {currentUser.last_name}</h2>
-                      <span className={`role-badge ${currentUser.role}`}>
-                        {currentUser.role === 'admin' && '👑 Administrator'}
-                        {currentUser.role === 'staff' && '👨‍🍳 Bakery Staff'}
-                        {currentUser.role === 'customer' && '🛍️ Valued Customer'}
-                      </span>
+
+                <div className="overview-tab-content">
+                  {/* Personal Information */}
+                  <div className="overview-section">
+                    <div className="overview-section-header">
+                      <h4>👤 Personal Details</h4>
+                    </div>
+                    <div className="overview-details-grid">
+                      <div className="overview-detail-item">
+                        <span className="overview-detail-label">Full Name</span>
+                        <span className="overview-detail-val">
+                          {currentUser.first_name} {currentUser.last_name}
+                        </span>
+                      </div>
+                      <div className="overview-detail-item">
+                        <span className="overview-detail-label">Username</span>
+                        <span className="overview-detail-val">@{currentUser.username}</span>
+                      </div>
+                      <div className="overview-detail-item">
+                        <span className="overview-detail-label">Email Address</span>
+                        <span className="overview-detail-val">{currentUser.email || "Not specified"}</span>
+                      </div>
+                      <div className="overview-detail-item">
+                        <span className="overview-detail-label">Contact Number</span>
+                        <span className="overview-detail-val">{currentUser.contact_number || "Not specified"}</span>
+                      </div>
                     </div>
                   </div>
 
-                  <div className="profile-details">
-                    <div className="detail-item">
-                      <span className="detail-label">Username:</span>
-                      <span className="detail-val">@{currentUser.username}</span>
-                    </div>
-                    <div className="detail-item">
-                      <span className="detail-label">Email:</span>
-                      <span className="detail-val">{currentUser.email || "Not specified"}</span>
-                    </div>
-                    <div className="detail-item">
-                      <span className="detail-label">Contact:</span>
-                      <span className="detail-val">{currentUser.contact_number || "Not specified"}</span>
-                    </div>
-                  </div>
+                  {/* Delivery Address */}
                   <div className="profile-delivery-box">
                     <div className="delivery-box-header">
                       <div>
@@ -493,7 +507,7 @@ function Account() {
                         }}
                         className="quick-edit-link"
                       >
-                        ✏️ Edit
+                        ✏️ Edit Location
                       </button>
                     </div>
 
@@ -542,39 +556,41 @@ function Account() {
                     )}
                   </div>
 
-                  <div className="profile-actions">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        populateEditFields(currentUser);
-                        setActiveTab('settings');
-                      }}
-                      className="profile-btn edit-settings-btn"
-                    >
-                      ⚙️ Edit Profile & Location Details
-                    </button>
-
+                  {/* Clean Dashboard Shortcuts */}
+                  <div className="overview-shortcuts-row">
                     {currentUser.role === 'customer' && (
-                      <Link to="/my-orders" className="profile-btn primary-btn">
-                        📦 View My Orders
+                      <Link to="/my-orders" className="overview-shortcut-card">
+                        <div className="shortcut-icon">📦</div>
+                        <div className="shortcut-info">
+                          <h5>My Orders</h5>
+                          <p>View order progress, receipts & re-order favorites</p>
+                        </div>
+                        <span className="shortcut-arrow">→</span>
                       </Link>
                     )}
 
                     {(currentUser.role === 'admin' || currentUser.role === 'staff') && (
-                      <Link to="/admin" className="profile-btn primary-btn">
-                        ⚙️ Open {currentUser.role === 'admin' ? 'Admin Panel' : 'Staff Queue'}
+                      <Link to="/admin" className="overview-shortcut-card">
+                        <div className="shortcut-icon">⚙️</div>
+                        <div className="shortcut-info">
+                          <h5>{currentUser.role === 'admin' ? 'Admin Portal' : 'Staff Queue'}</h5>
+                          <p>Manage bakery queues, products & kitchen workflow</p>
+                        </div>
+                        <span className="shortcut-arrow">→</span>
                       </Link>
                     )}
 
-                    <Link to="/menu" className="profile-btn secondary-btn">
-                      🥐 Browse Bakery Menu
+                    <Link to="/menu" className="overview-shortcut-card">
+                      <div className="shortcut-icon">🥐</div>
+                      <div className="shortcut-info">
+                        <h5>Bakery Menu</h5>
+                        <p>Discover handcrafted breads, cookies & custom cakes</p>
+                      </div>
+                      <span className="shortcut-arrow">→</span>
                     </Link>
-
-                    <button onClick={handleLogout} className="profile-btn logout-btn">
-                      🚪 Logout
-                    </button>
                   </div>
                 </div>
+              </div>
               ) : (
                 <div className="dashboard-card settings-card">
                   <form onSubmit={handleSaveSettings} className="settings-tab-form">
