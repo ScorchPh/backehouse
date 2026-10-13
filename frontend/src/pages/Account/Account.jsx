@@ -381,108 +381,80 @@ function Account() {
   };
 
   return (
-    <div className="account-page">
-      <div className={`account-container ${currentUser && activeTab === 'settings' ? 'settings-active' : ''}`}>
-        <div className="account-left">
-          <div className="account-carousel-bg" aria-hidden="true">
-            {BREAD_PASTRY_SLIDES.map((slide, idx) => (
-              <div
-                key={idx}
-                className={`carousel-slide ${idx === currentSlide ? "active" : ""}`}
-                style={{
-                  backgroundImage: `url(${slide.image}), url(${slide.fallback || catPastries})`
-                }}
+    <div className={`account-page ${currentUser ? "dashboard-page" : "auth-page"}`}>
+      {currentUser ? (
+        <div className="account-dashboard-layout">
+          <aside className="dashboard-sidebar">
+            <div className="sidebar-profile-card">
+              <img
+                src={currentUser.avatar || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200"}
+                alt="Profile Avatar"
+                className="sidebar-avatar"
               />
-            ))}
-            <div className="carousel-overlay" />
-          </div>
-          <div className="account-left-content">
-            <div className="account-left-header">
-              <span className="brand-badge">🥖 Artisanal Bakery</span>
-              <h1>BAKE HOUSE</h1>
-              <p className="brand-tagline">
-                Freshly baked happiness delivered to your doorstep. Handcrafted daily with love.
-              </p>
+              <h2 className="sidebar-name">{currentUser.first_name} {currentUser.last_name}</h2>
+              <span className="sidebar-username">@{currentUser.username}</span>
+              <span className={`role-badge ${currentUser.role || 'customer'}`}>
+                {currentUser.role === 'admin' && '👑 Administrator'}
+                {currentUser.role === 'staff' && '👨‍🍳 Bakery Staff'}
+                {currentUser.role === 'customer' && '🛍️ Valued Customer'}
+              </span>
             </div>
-            <div className="carousel-highlight-card">
-              <span className="slide-tag">{BREAD_PASTRY_SLIDES[currentSlide].tag}</span>
-              <h3 className="slide-title">{BREAD_PASTRY_SLIDES[currentSlide].title}</h3>
-              <p className="slide-desc">{BREAD_PASTRY_SLIDES[currentSlide].desc}</p>
-            </div>
-            <div className="carousel-controls">
+
+            <nav className="sidebar-nav">
               <button
                 type="button"
-                className="carousel-arrow"
-                onClick={() =>
-                  setCurrentSlide((prev) => (prev - 1 + BREAD_PASTRY_SLIDES.length) % BREAD_PASTRY_SLIDES.length)
-                }
-                title="Previous pastry"
-                aria-label="Previous pastry"
+                className={`sidebar-nav-btn ${activeTab === 'overview' ? 'active' : ''}`}
+                onClick={() => {
+                  setActiveTab('overview');
+                  setSettingsMessage({ text: "", type: "" });
+                }}
               >
-                ‹
+                👤 Profile Overview
               </button>
+              <button
+                type="button"
+                className={`sidebar-nav-btn ${activeTab === 'settings' ? 'active' : ''}`}
+                onClick={() => {
+                  populateEditFields(currentUser);
+                  setActiveTab('settings');
+                  setSettingsMessage({ text: "", type: "" });
+                }}
+              >
+                ⚙️ Edit Details & Location
+              </button>
+              {currentUser.role === 'customer' && (
+                <Link to="/orders" className="sidebar-nav-btn">
+                  📦 My Orders
+                </Link>
+              )}
+              {(currentUser.role === 'admin' || currentUser.role === 'staff') && (
+                <Link to="/admin" className="sidebar-nav-btn">
+                  🛠️ Admin Portal
+                </Link>
+              )}
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="sidebar-nav-btn logout-sidebar-btn"
+              >
+                🚪 Logout
+              </button>
+            </nav>
+          </aside>
 
-              <div className="carousel-dots">
-                {BREAD_PASTRY_SLIDES.map((_, idx) => (
-                  <button
-                    key={idx}
-                    type="button"
-                    className={`carousel-dot ${idx === currentSlide ? "active" : ""}`}
-                    onClick={() => setCurrentSlide(idx)}
-                    aria-label={`Show ${BREAD_PASTRY_SLIDES[idx].title}`}
+          <main className="dashboard-main-content">
+            {activeTab === 'overview' ? (
+              <div className="dashboard-card overview-card">
+                <div className="dashboard-card-header">
+                  <h2>👤 Profile Overview</h2>
+                  <p className="subtitle">View your profile details and saved delivery address.</p>
+                </div>
+                <div className="profile-header">
+                  <img
+                    src={currentUser.avatar || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200"}
+                    alt="Profile Avatar"
+                    className="profile-avatar"
                   />
-                ))}
-              </div>
-
-              <button
-                type="button"
-                className="carousel-arrow"
-                onClick={() =>
-                  setCurrentSlide((prev) => (prev + 1) % BREAD_PASTRY_SLIDES.length)
-                }
-                title="Next pastry"
-                aria-label="Next pastry"
-              >
-                ›
-              </button>
-            </div>
-          </div>
-        </div>
-        <div className="account-right">
-          {currentUser ? (
-            <div className="profile-view">
-              <div className="account-tabs">
-                <button
-                  type="button"
-                  className={`tab-btn ${activeTab === 'overview' ? 'active' : ''}`}
-                  onClick={() => {
-                    setActiveTab('overview');
-                    setSettingsMessage({ text: "", type: "" });
-                  }}
-                >
-                  👤 Profile Overview
-                </button>
-                <button
-                  type="button"
-                  className={`tab-btn ${activeTab === 'settings' ? 'active' : ''}`}
-                  onClick={() => {
-                    populateEditFields(currentUser);
-                    setActiveTab('settings');
-                    setSettingsMessage({ text: "", type: "" });
-                  }}
-                >
-                  ⚙️ Edit Details & Location
-                </button>
-              </div>
-
-              {activeTab === 'overview' ? (
-                <div className="overview-tab-content">
-                  <div className="profile-header">
-                    <img
-                      src={currentUser.avatar || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200"}
-                      alt="Profile Avatar"
-                      className="profile-avatar"
-                    />
                     <div>
                       <h2>{currentUser.first_name} {currentUser.last_name}</h2>
                       <span className={`role-badge ${currentUser.role}`}>
@@ -604,7 +576,8 @@ function Account() {
                   </div>
                 </div>
               ) : (
-                <form onSubmit={handleSaveSettings} className="settings-tab-form">
+                <div className="dashboard-card settings-card">
+                  <form onSubmit={handleSaveSettings} className="settings-tab-form">
                   <div className="settings-header">
                     <h2>Edit Your Details</h2>
                     <p className="subtitle">
@@ -816,9 +789,79 @@ function Account() {
                     </button>
                   </div>
                 </form>
-              )}
+              </div>
+            )}
+          </main>
+        </div>
+      ) : (
+        <div className="account-container auth-container">
+          <div className="account-left">
+            <div className="account-carousel-bg" aria-hidden="true">
+              {BREAD_PASTRY_SLIDES.map((slide, idx) => (
+                <div
+                  key={idx}
+                  className={`carousel-slide ${idx === currentSlide ? "active" : ""}`}
+                  style={{
+                    backgroundImage: `url(${slide.image}), url(${slide.fallback || catPastries})`
+                  }}
+                />
+              ))}
+              <div className="carousel-overlay" />
             </div>
-          ) : isLogin ? (
+            <div className="account-left-content">
+              <div className="account-left-header">
+                <span className="brand-badge">🥖 Artisanal Bakery</span>
+                <h1>BAKE HOUSE</h1>
+                <p className="brand-tagline">
+                  Freshly baked happiness delivered to your doorstep. Handcrafted daily with love.
+                </p>
+              </div>
+              <div className="carousel-highlight-card">
+                <span className="slide-tag">{BREAD_PASTRY_SLIDES[currentSlide].tag}</span>
+                <h3 className="slide-title">{BREAD_PASTRY_SLIDES[currentSlide].title}</h3>
+                <p className="slide-desc">{BREAD_PASTRY_SLIDES[currentSlide].desc}</p>
+              </div>
+              <div className="carousel-controls">
+                <button
+                  type="button"
+                  className="carousel-arrow"
+                  onClick={() =>
+                    setCurrentSlide((prev) => (prev - 1 + BREAD_PASTRY_SLIDES.length) % BREAD_PASTRY_SLIDES.length)
+                  }
+                  title="Previous pastry"
+                  aria-label="Previous pastry"
+                >
+                  ‹
+                </button>
+
+                <div className="carousel-dots">
+                  {BREAD_PASTRY_SLIDES.map((_, idx) => (
+                    <button
+                      key={idx}
+                      type="button"
+                      className={`carousel-dot ${idx === currentSlide ? "active" : ""}`}
+                      onClick={() => setCurrentSlide(idx)}
+                      aria-label={`Show ${BREAD_PASTRY_SLIDES[idx].title}`}
+                    />
+                  ))}
+                </div>
+
+                <button
+                  type="button"
+                  className="carousel-arrow"
+                  onClick={() =>
+                    setCurrentSlide((prev) => (prev + 1) % BREAD_PASTRY_SLIDES.length)
+                  }
+                  title="Next pastry"
+                  aria-label="Next pastry"
+                >
+                  ›
+                </button>
+              </div>
+            </div>
+          </div>
+          <div className="account-right">
+            {isLogin ? (
             <form onSubmit={handleLoginSubmit}>
               <h2>Welcome Back</h2>
               <p className="subtitle">Sign in to continue your bakery journey.</p>
@@ -997,6 +1040,7 @@ function Account() {
           )}
         </div>
       </div>
+      )}
     </div>
   );
 }

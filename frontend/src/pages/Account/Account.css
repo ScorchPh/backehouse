@@ -2,9 +2,18 @@
     min-height: 100vh;
     display: flex;
     justify-content: center;
-    align-items: center;
     background: #FFF8F0;
+    box-sizing: border-box;
+}
+
+.account-page.auth-page {
+    align-items: center;
     padding: 60px 20px;
+}
+
+.account-page.dashboard-page {
+    align-items: flex-start;
+    padding: 40px 20px 80px;
 }
 
 .account-container {
@@ -463,10 +472,146 @@
     text-decoration: underline;
 }
 
-.account-container.settings-active {
-    max-width: 1240px;
-    grid-template-columns: 340px 1fr;
-    transition: all 0.3s ease;
+/* ============================================================================
+   ACCOUNT DASHBOARD LAYOUT (Logged-In View)
+   ============================================================================ */
+.account-dashboard-layout {
+    width: 100%;
+    max-width: 1160px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 290px 1fr;
+    gap: 28px;
+    align-items: start;
+}
+
+.dashboard-sidebar {
+    background: #FFFFFF;
+    border-radius: 20px;
+    padding: 28px 20px;
+    box-shadow: 0 8px 30px rgba(107, 66, 38, 0.08);
+    border: 1.5px solid #F0E6DC;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    position: sticky;
+    top: 90px;
+}
+
+.sidebar-profile-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #F3EDE7;
+}
+
+.sidebar-avatar {
+    width: 86px;
+    height: 86px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid #8B4513;
+    margin-bottom: 12px;
+    box-shadow: 0 4px 14px rgba(107, 66, 38, 0.16);
+}
+
+.sidebar-name {
+    font-size: 1.25rem;
+    color: #4A2810;
+    margin: 0 0 4px 0;
+    font-weight: 700;
+}
+
+.sidebar-username {
+    font-size: 0.85rem;
+    color: #8C7B6E;
+    margin-bottom: 10px;
+    font-weight: 500;
+}
+
+.sidebar-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.sidebar-nav-btn {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 12px 16px;
+    border-radius: 12px;
+    border: none;
+    background: transparent;
+    color: #6B5B52;
+    font-size: 0.94rem;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    box-sizing: border-box;
+    text-align: left;
+}
+
+.sidebar-nav-btn:hover {
+    background: #F8EFE6;
+    color: #6B4226;
+    transform: translateX(3px);
+}
+
+.sidebar-nav-btn.active {
+    background: #6B4226;
+    color: #FFFFFF;
+    box-shadow: 0 4px 12px rgba(107, 66, 38, 0.22);
+}
+
+.sidebar-nav-btn.logout-sidebar-btn {
+    color: #DC2626;
+    margin-top: 10px;
+    border: 1px solid #FEE2E2;
+    background: #FFF5F5;
+}
+
+.sidebar-nav-btn.logout-sidebar-btn:hover {
+    background: #FEE2E2;
+    color: #991B1B;
+    transform: none;
+}
+
+.dashboard-main-content {
+    min-width: 0;
+    width: 100%;
+}
+
+.dashboard-card {
+    background: #FFFFFF;
+    border-radius: 20px;
+    padding: 32px 36px;
+    box-shadow: 0 8px 30px rgba(107, 66, 38, 0.08);
+    border: 1.5px solid #F0E6DC;
+    box-sizing: border-box;
+}
+
+.dashboard-card-header {
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #F3EDE7;
+}
+
+.dashboard-card-header h2 {
+    font-size: 1.6rem;
+    color: #4A2810;
+    margin: 0 0 6px 0;
+    font-weight: 700;
+}
+
+.dashboard-card-header .subtitle {
+    margin: 0;
+    color: #8C7B6E;
+    font-size: 0.92rem;
 }
 
 .account-tabs {
@@ -863,9 +1008,76 @@
     background: #FCA5A5;
 }
 
+.settings-tab-form input {
+    width: 100%;
+    padding: 12px 14px;
+    margin-bottom: 12px;
+    border: 1.5px solid #E2D5C7;
+    border-radius: 10px;
+    font-size: 0.95rem;
+    box-sizing: border-box;
+    min-width: 0;
+    background: #FFFFFF;
+    transition: all 0.2s ease;
+}
+
+.settings-tab-form input:focus {
+    outline: none;
+    border-color: #8B4513;
+    box-shadow: 0 0 0 3px rgba(139, 69, 19, 0.12);
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 4px;
+}
+
+.form-row > div {
+    min-width: 0;
+}
+
 @media(max-width: 900px) {
-    .account-container,
-    .account-container.settings-active {
+    .account-dashboard-layout {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+    .dashboard-sidebar {
+        position: static;
+        padding: 20px;
+    }
+    .sidebar-profile-card {
+        flex-direction: row;
+        gap: 16px;
+        text-align: left;
+        align-items: center;
+        padding-bottom: 16px;
+    }
+    .sidebar-avatar {
+        margin-bottom: 0;
+        width: 68px;
+        height: 68px;
+    }
+    .sidebar-nav {
+        flex-direction: row;
+        flex-wrap: wrap;
+    }
+    .sidebar-nav-btn {
+        flex: 1;
+        min-width: 140px;
+        justify-content: center;
+        text-align: center;
+        padding: 10px 14px;
+        font-size: 0.88rem;
+    }
+    .dashboard-card {
+        padding: 24px 20px;
+    }
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+    .account-container {
         grid-template-columns: 1fr;
     }
     .account-left {
