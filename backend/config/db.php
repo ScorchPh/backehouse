@@ -129,6 +129,7 @@ function getDBConnection() {
                 "ALTER TABLE `users` ADD COLUMN `default_lat` DECIMAL(10, 7) NULL",
                 "ALTER TABLE `users` ADD COLUMN `default_lng` DECIMAL(10, 7) NULL",
                 "ALTER TABLE `users` ADD COLUMN `address` TEXT NULL",
+                "ALTER TABLE `users` MODIFY COLUMN `password` VARCHAR(255) NULL",
                 "ALTER TABLE `orders` ADD COLUMN `cancellation_reason` TEXT NULL",
                 "ALTER TABLE `orders` ADD COLUMN `delivery_coordinates` JSON NULL"
             ];

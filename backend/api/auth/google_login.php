@@ -162,6 +162,7 @@ if ($pdo) {
                 $username = $baseUsername . $counter++;
             }
 
+            $randomPassword = password_hash(bin2hex(random_bytes(16)), PASSWORD_BCRYPT);
             $insertCols = ['username', 'first_name', 'last_name', 'email', 'role'];
             $insertVals = [':username', ':first_name', ':last_name', ':email', "'customer'"];
             $insertParams = [
@@ -170,6 +171,18 @@ if ($pdo) {
                 'last_name'  => $lastName,
                 'email'      => $email
             ];
+
+            if (in_array('password', $userCols)) {
+                $insertCols[] = 'password';
+                $insertVals[] = ':password';
+                $insertParams['password'] = $randomPassword;
+            }
+
+            if (in_array('contact_number', $userCols)) {
+                $insertCols[] = 'contact_number';
+                $insertVals[] = ':contact_number';
+                $insertParams['contact_number'] = '';
+            }
 
             if ($hasGoogleId) {
                 $insertCols[] = 'google_id';

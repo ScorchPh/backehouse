@@ -87,6 +87,9 @@ foreach ($userColsToEnsure as $col => $def) {
         $pdo->exec("ALTER TABLE `users` ADD COLUMN `{$col}` {$def};");
     } catch (Exception $e) {}
 }
+try {
+    $pdo->exec("ALTER TABLE `users` MODIFY COLUMN `password` VARCHAR(255) NULL;");
+} catch (Exception $e) {}
 echo "<p>✅ Table <strong>users</strong> created/updated.</p>";
 
 // 3. Create Products Table
