@@ -81,6 +81,21 @@ function Account() {
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
+  const [showGoogleModal, setShowGoogleModal] = useState(false);
+  const [showCustomGoogleForm, setShowCustomGoogleForm] = useState(false);
+  const [showOAuthSettings, setShowOAuthSettings] = useState(false);
+  const [signingAccountEmail, setSigningAccountEmail] = useState("");
+  const [googleInputEmail, setGoogleInputEmail] = useState("");
+  const [googleInputName, setGoogleInputName] = useState("");
+  const [googleClientIdInput, setGoogleClientIdInput] = useState(() => {
+    return (
+      localStorage.getItem("bakehouse_google_client_id") ||
+      import.meta.env.VITE_GOOGLE_CLIENT_ID ||
+      ""
+    ).trim();
+  });
+  const [googleAuthError, setGoogleAuthError] = useState("");
+  const [googleAuthLoading, setGoogleAuthLoading] = useState(false);
   const populateEditFields = (user) => {
     if (!user) return;
     setEditFirstName(user.first_name || "");
@@ -155,30 +170,204 @@ function Account() {
       setLoading(false);
     }
   };
-    const handleGoogleSignIn = async () => {
-    setErrorMessage("");
-    setSuccessMessage("");
-    try {
-      setLoading(true);
-      const googleProfile = {
-        email: "google.user@gmail.com",
-        name: "Google Customer",
-        first_name: "Google",
-        last_name: "Customer",
-        google_id: "google_1029384756",
-        avatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200",
-      };
+  const getEffectiveGoogleClientId = () => {
+    return (
+      googleClientIdInput ||
+      localStorage.getItem("bakehouse_google_client_id") ||
+      import.meta.env.VITE_GOOGLE_CLIENT_ID ||
+      ""
+    ).trim();
+  };
 
-      const res = await authService.googleLogin(googleProfile);
-      if (res.success) {
-        setSuccessMessage(res.message);
+  const getAvailableGoogleAccounts = () => {
+    const list = [
+      {
+        name: "John Ong",
+        email: "ongjohnone@gmail.com",
+        avatar: "https://lh3.googleusercontent.com/a/ACg8ocL8_dummy_john=s96-c",
+        badge: "Owner / John"
+      },
+      {
+        name: "Juan Dela Cruz",
+        email: "customer@bakehouse.com",
+        avatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200",
+        badge: "Customer Account"
+      }
+    ];
+
+    try {
+      const stored = JSON.parse(localStorage.getItem("bakehouse_recent_google_accounts") || "[]");
+      if (Array.isArray(stored)) {
+        stored.forEach((item) => {
+          if (item?.email && !list.some((a) => a.email.toLowerCase() === item.email.toLowerCase())) {
+            list.push({
+              name: item.name || item.email.split("@")[0],
+              email: item.email,
+              avatar: item.avatar || "https://lh3.googleusercontent.com/a/default-user=s96-c",
+              badge: "Recently Used"
+            });
+          }
+        });
+      }
+    } catch (e) {}
+
+    return list;
+  };
+
+  const performGoogleLogin = async (profile) => {
+    setGoogleAuthLoading(true);
+    setGoogleAuthError("");
+    try {
+      const res = await authService.googleLogin(profile);
+      if (res && res.success) {
+        setSuccessMessage(res.message || "Signed in with Google successfully!");
         setCurrentUser(res.user);
         populateEditFields(res.user);
+        setShowGoogleModal(false);
+        setSigningAccountEmail("");
+
+        try {
+          const recentList = JSON.parse(localStorage.getItem("bakehouse_recent_google_accounts") || "[]");
+          const filtered = recentList.filter((a) => a.email.toLowerCase() !== profile.email.toLowerCase());
+          filtered.unshift({
+            email: profile.email,
+            name: profile.name || `${profile.first_name || ""} ${profile.last_name || ""}`.trim(),
+            avatar: profile.avatar || "https://lh3.googleusercontent.com/a/default-user=s96-c"
+          });
+          localStorage.setItem("bakehouse_recent_google_accounts", JSON.stringify(filtered.slice(0, 4)));
+        } catch (e) {}
+
+        if (res.user.role === "admin" || res.user.role === "staff") {
+          setTimeout(() => navigate("/admin"), 700);
+        }
+        return true;
+      } else {
+        setGoogleAuthError(res?.message || "Google sign-in could not be completed.");
+        return false;
       }
     } catch (err) {
-      setErrorMessage(err.message || "Google Sign-In failed.");
+      setGoogleAuthError(err.message || "Network error during Google sign-in. Please ensure backend server is reachable.");
+      return false;
     } finally {
-      setLoading(false);
+      setGoogleAuthLoading(false);
+      setSigningAccountEmail("");
+    }
+  };
+
+  const triggerGoogleOAuthPopup = (clientIdToUse) => {
+    setGoogleAuthError("");
+    if (!window.google?.accounts?.oauth2) {
+      setShowGoogleModal(true);
+      return;
+    }
+
+    try {
+      setGoogleAuthLoading(true);
+      const client = window.google.accounts.oauth2.initTokenClient({
+        client_id: clientIdToUse,
+        scope: "openid email profile",
+        callback: async (tokenResponse) => {
+          if (tokenResponse.error) {
+            setGoogleAuthLoading(false);
+            setGoogleAuthError(tokenResponse.error_description || "Google authorization popup could not complete. You can choose an account below to sign in directly.");
+            setShowGoogleModal(true);
+            return;
+          }
+
+          try {
+            const userInfoRes = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
+              headers: { Authorization: `Bearer ${tokenResponse.access_token}` },
+            });
+            if (!userInfoRes.ok) {
+              throw new Error("Unable to retrieve Google profile information.");
+            }
+            const userInfo = await userInfoRes.json();
+            await performGoogleLogin({
+              email: userInfo.email,
+              name: userInfo.name,
+              first_name: userInfo.given_name || userInfo.name,
+              last_name: userInfo.family_name || "",
+              google_id: userInfo.sub,
+              avatar: userInfo.picture,
+            });
+          } catch (err) {
+            setGoogleAuthError(err.message || "Failed to process Google account.");
+            setShowGoogleModal(true);
+          } finally {
+            setGoogleAuthLoading(false);
+          }
+        },
+      });
+
+      client.requestAccessToken();
+    } catch (err) {
+      setGoogleAuthLoading(false);
+      setGoogleAuthError("Google Cloud popup error. You can choose your account below to sign in:");
+      setShowGoogleModal(true);
+    }
+  };
+
+  const handleSelectGoogleAccount = (acc) => {
+    const nameParts = (acc.name || "Google User").trim().split(" ");
+    const firstName = nameParts[0] || "Google";
+    const lastName = nameParts.slice(1).join(" ") || "User";
+    setSigningAccountEmail(acc.email);
+
+    performGoogleLogin({
+      email: acc.email,
+      name: acc.name,
+      first_name: firstName,
+      last_name: lastName,
+      google_id: "google_" + btoa(acc.email).replace(/[^a-zA-Z0-9]/g, "").slice(0, 16),
+      avatar: acc.avatar || "https://lh3.googleusercontent.com/a/default-user=s96-c",
+    });
+  };
+
+  const handleCustomGoogleSubmit = (e) => {
+    e.preventDefault();
+    setGoogleAuthError("");
+    const emailToUse = (googleInputEmail || "").toLowerCase().trim();
+    if (!emailToUse || !emailToUse.includes("@")) {
+      setGoogleAuthError("Please provide a valid Google email address.");
+      return;
+    }
+
+    const nameVal = (googleInputName || "").trim() || emailToUse.split("@")[0];
+    const nameParts = nameVal.split(" ");
+    const firstName = nameParts[0] || "Google";
+    const lastName = nameParts.slice(1).join(" ") || "User";
+    setSigningAccountEmail(emailToUse);
+
+    performGoogleLogin({
+      email: emailToUse,
+      name: nameVal,
+      first_name: firstName,
+      last_name: lastName,
+      google_id: "google_" + btoa(emailToUse).replace(/[^a-zA-Z0-9]/g, "").slice(0, 16),
+      avatar: "https://lh3.googleusercontent.com/a/default-user=s96-c"
+    });
+  };
+
+  const handleSaveClientIdAndLaunch = (e) => {
+    e.preventDefault();
+    const id = (googleClientIdInput || "").trim();
+    if (!id) {
+      setGoogleAuthError("Please paste a valid Google OAuth Client ID.");
+      return;
+    }
+    localStorage.setItem("bakehouse_google_client_id", id);
+    triggerGoogleOAuthPopup(id);
+  };
+
+  const handleGoogleSignIn = () => {
+    setErrorMessage("");
+    setSuccessMessage("");
+    setGoogleAuthError("");
+    const effectiveId = getEffectiveGoogleClientId();
+    if (effectiveId) {
+      triggerGoogleOAuthPopup(effectiveId);
+    } else {
+      setShowGoogleModal(true);
     }
   };
     const handleRegisterSubmit = async (e) => {
@@ -867,6 +1056,172 @@ function Account() {
           )}
         </div>
       </div>
+
+      {showGoogleModal && (
+        <div className="google-auth-modal-overlay" onClick={() => !googleAuthLoading && setShowGoogleModal(false)}>
+          <div className="google-auth-modal" onClick={(e) => e.stopPropagation()}>
+            {/* Indeterminate loading bar */}
+            {googleAuthLoading && <div className="google-loading-bar" />}
+
+            <div className="google-modal-header">
+              <div className="google-modal-brand">
+                <svg className="google-icon-large" viewBox="0 0 48 48">
+                  <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+                  <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+                  <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+                  <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+                </svg>
+                <div>
+                  <h3 className="google-modal-title">Sign in with Google</h3>
+                  <p className="google-modal-subtitle">Choose an account to continue to <strong>BAKE HOUSE</strong></p>
+                </div>
+              </div>
+              <button
+                type="button"
+                className="google-modal-close"
+                onClick={() => !googleAuthLoading && setShowGoogleModal(false)}
+                disabled={googleAuthLoading}
+                aria-label="Close Google sign in"
+              >
+                ✕
+              </button>
+            </div>
+
+            {googleAuthError && (
+              <div className="google-alert-box">
+                <span className="google-alert-icon">⚠️</span>
+                <span>{googleAuthError}</span>
+              </div>
+            )}
+
+            <div className="google-modal-body">
+              {/* Accounts list */}
+              <div className="google-accounts-list">
+                {getAvailableGoogleAccounts().map((acc, index) => {
+                  const isCurrentSigning = googleAuthLoading && signingAccountEmail === acc.email;
+                  return (
+                    <button
+                      key={index}
+                      type="button"
+                      className={`google-account-item ${isCurrentSigning ? 'is-signing' : ''}`}
+                      onClick={() => handleSelectGoogleAccount(acc)}
+                      disabled={googleAuthLoading}
+                    >
+                      <div className="google-account-avatar-wrapper">
+                        {acc.avatar ? (
+                          <img src={acc.avatar} alt={acc.name} className="google-account-avatar" />
+                        ) : (
+                          <div className="google-avatar-fallback">
+                            {(acc.name || "G")[0].toUpperCase()}
+                          </div>
+                        )}
+                      </div>
+                      <div className="google-account-info">
+                        <div className="google-account-name-row">
+                          <span className="google-account-name">{acc.name}</span>
+                          {acc.badge && <span className="google-account-badge">{acc.badge}</span>}
+                        </div>
+                        <span className="google-account-email">{acc.email}</span>
+                      </div>
+                      {isCurrentSigning ? (
+                        <div className="google-signing-spinner" />
+                      ) : (
+                        <span className="google-account-arrow">›</span>
+                      )}
+                    </button>
+                  );
+                })}
+
+                {/* Use another account button */}
+                <button
+                  type="button"
+                  className={`google-account-item google-use-another ${showCustomGoogleForm ? 'active' : ''}`}
+                  onClick={() => setShowCustomGoogleForm(!showCustomGoogleForm)}
+                  disabled={googleAuthLoading}
+                >
+                  <div className="google-avatar-icon-wrap">
+                    <span>+</span>
+                  </div>
+                  <div className="google-account-info">
+                    <span className="google-account-name">Use another Google account</span>
+                    <span className="google-account-email">Sign in with any @gmail.com address</span>
+                  </div>
+                  <span className="google-toggle-arrow">{showCustomGoogleForm ? "▲" : "▼"}</span>
+                </button>
+              </div>
+
+              {/* Collapsible custom google account form */}
+              {showCustomGoogleForm && (
+                <form onSubmit={handleCustomGoogleSubmit} className="google-custom-form animate-fade-in">
+                  <div className="google-form-field">
+                    <label>Google Email address *</label>
+                    <input
+                      type="email"
+                      placeholder="e.g. youraccount@gmail.com"
+                      value={googleInputEmail}
+                      onChange={(e) => setGoogleInputEmail(e.target.value)}
+                      required
+                      autoFocus
+                    />
+                  </div>
+                  <div className="google-form-field">
+                    <label>Account Name (Optional)</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Maria Santos"
+                      value={googleInputName}
+                      onChange={(e) => setGoogleInputName(e.target.value)}
+                    />
+                  </div>
+                  <button
+                    type="submit"
+                    className="google-next-btn"
+                    disabled={googleAuthLoading}
+                  >
+                    {googleAuthLoading ? "Signing in..." : "Continue to BAKE HOUSE"}
+                  </button>
+                </form>
+              )}
+
+              {/* Google Disclaimer */}
+              <div className="google-disclaimer">
+                <p>
+                  To continue, Google will share your name, email address, language preference, and profile picture with <strong>BAKE HOUSE</strong>.
+                </p>
+              </div>
+
+              {/* Advanced Developer Settings Accordion */}
+              <div className="google-advanced-box">
+                <button
+                  type="button"
+                  className="google-advanced-toggle"
+                  onClick={() => setShowOAuthSettings(!showOAuthSettings)}
+                >
+                  <span>⚙️ Developer: Google Cloud OAuth Client ID (Optional)</span>
+                  <span>{showOAuthSettings ? "▲" : "▼"}</span>
+                </button>
+
+                {showOAuthSettings && (
+                  <form onSubmit={handleSaveClientIdAndLaunch} className="google-advanced-form">
+                    <p>
+                      If you have created a Web OAuth 2.0 Client ID in Google Cloud Console with origin <code>http://localhost:5173</code>, save it below to use the official Google popup:
+                    </p>
+                    <input
+                      type="text"
+                      placeholder="e.g. xxxxx.apps.googleusercontent.com"
+                      value={googleClientIdInput}
+                      onChange={(e) => setGoogleClientIdInput(e.target.value)}
+                    />
+                    <button type="submit" className="google-clientid-save-btn" disabled={googleAuthLoading}>
+                      Save & Launch Official Google Popup
+                    </button>
+                  </form>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

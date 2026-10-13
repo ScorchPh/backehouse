@@ -48,8 +48,13 @@ if (empty($current) || !is_array($current)) {
     ];
 }
 
-// Helper to sanitize URL
-function sanitizeSocialUrl($url) {
+/**
+ * Helper to sanitize URL
+ *
+ * @param mixed $url
+ * @return string
+ */
+function sanitizeSocialUrl(mixed $url): string {
     if (empty($url) || !is_string($url)) return '';
     $trimmed = trim($url);
     if ($trimmed === '') return '';

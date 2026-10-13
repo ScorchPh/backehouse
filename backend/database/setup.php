@@ -58,10 +58,34 @@ CREATE TABLE IF NOT EXISTS `users` (
     `role` ENUM('customer', 'staff', 'admin') NOT NULL DEFAULT 'customer',
     `google_id` VARCHAR(100) NULL UNIQUE,
     `avatar` VARCHAR(500) NULL,
+    `default_street` VARCHAR(255) NULL,
+    `default_barangay` VARCHAR(100) NULL,
+    `default_city` VARCHAR(100) NULL,
+    `default_province` VARCHAR(100) NULL,
+    `default_landmark` VARCHAR(255) NULL,
+    `default_lat` DECIMAL(10, 7) NULL,
+    `default_lng` DECIMAL(10, 7) NULL,
+    `address` TEXT NULL,
     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 ");
-echo "<p>✅ Table <strong>users</strong> created.</p>";
+
+$userColsToEnsure = [
+    'default_street'   => 'VARCHAR(255) NULL',
+    'default_barangay' => 'VARCHAR(100) NULL',
+    'default_city'     => 'VARCHAR(100) NULL',
+    'default_province' => 'VARCHAR(100) NULL',
+    'default_landmark' => 'VARCHAR(255) NULL',
+    'default_lat'      => 'DECIMAL(10, 7) NULL',
+    'default_lng'      => 'DECIMAL(10, 7) NULL',
+    'address'          => 'TEXT NULL'
+];
+foreach ($userColsToEnsure as $col => $def) {
+    try {
+        $pdo->exec("ALTER TABLE `users` ADD COLUMN `{$col}` {$def};");
+    } catch (Exception $e) {}
+}
+echo "<p>✅ Table <strong>users</strong> created/updated.</p>";
 
 // 3. Create Products Table
 $pdo->exec("

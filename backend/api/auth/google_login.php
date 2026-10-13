@@ -70,7 +70,8 @@ if ($pdo) {
     try {
         // Look up user by email or google_id
         $stmt = $pdo->prepare("
-            SELECT id, username, first_name, last_name, email, contact_number, role, avatar, google_id 
+            SELECT id, username, first_name, last_name, email, contact_number, role, avatar, google_id,
+                   default_street, default_barangay, default_city, default_province, default_landmark, default_lat, default_lng, address
             FROM users 
             WHERE email = :email OR (google_id IS NOT NULL AND google_id = :google_id) 
             LIMIT 1
@@ -82,19 +83,41 @@ if ($pdo) {
         $existing = $stmt->fetch();
 
         if ($existing) {
-            // Existing user: Link Google ID if not yet linked and update avatar
+            // Existing user: Link Google ID if not yet linked, update avatar & names if missing
             $update = $pdo->prepare("
                 UPDATE users 
-                SET google_id = COALESCE(google_id, :google_id), avatar = COALESCE(:avatar, avatar) 
+                SET google_id = COALESCE(google_id, :google_id),
+                    avatar = COALESCE(:avatar, avatar),
+                    first_name = CASE WHEN (first_name IS NULL OR first_name = '') THEN :first_name ELSE first_name END,
+                    last_name = CASE WHEN (last_name IS NULL OR last_name = '') THEN :last_name ELSE last_name END
                 WHERE id = :id
             ");
             $update->execute([
-                'google_id' => $googleId,
-                'avatar'    => $avatar,
-                'id'        => $existing['id']
+                'google_id'  => $googleId,
+                'avatar'     => $avatar,
+                'first_name' => $firstName,
+                'last_name'  => $lastName,
+                'id'         => $existing['id']
             ]);
 
             $existing['avatar'] = $avatar ?: $existing['avatar'];
+            if (empty($existing['first_name'])) $existing['first_name'] = $firstName;
+            if (empty($existing['last_name'])) $existing['last_name'] = $lastName;
+
+            // Also keep users.json in sync
+            try {
+                $fileUsers = readDataStore('users');
+                $updatedUsers = false;
+                foreach ($fileUsers as &$fu) {
+                    if ((isset($fu['email']) && strtolower($fu['email']) === $email) || (isset($fu['id']) && $fu['id'] == $existing['id'])) {
+                        $fu['google_id'] = $googleId;
+                        if (!empty($avatar)) $fu['avatar'] = $avatar;
+                        $updatedUsers = true;
+                        break;
+                    }
+                }
+                if ($updatedUsers) writeDataStore('users', $fileUsers);
+            } catch (Exception $e) {}
 
             sendResponse([
                 'success' => true,
@@ -115,8 +138,8 @@ if ($pdo) {
 
             // Create new Google customer record
             $insert = $pdo->prepare("
-                INSERT INTO users (username, first_name, last_name, email, role, google_id, avatar) 
-                VALUES (:username, :first_name, :last_name, :email, 'customer', :google_id, :avatar)
+                INSERT INTO users (username, first_name, last_name, email, role, google_id, avatar, default_street, default_barangay, default_city, default_province, default_landmark, default_lat, default_lng) 
+                VALUES (:username, :first_name, :last_name, :email, 'customer', :google_id, :avatar, '', 'Poblacion', 'Cordova', 'Cebu', '', 10.2540, 123.9490)
             ");
             $insert->execute([
                 'username'   => $username,
@@ -129,19 +152,36 @@ if ($pdo) {
 
             $newId = (int)$pdo->lastInsertId();
 
+            $newUser = [
+                'id'               => $newId,
+                'username'         => $username,
+                'first_name'       => $firstName,
+                'last_name'        => $lastName,
+                'email'            => $email,
+                'contact_number'   => '',
+                'role'             => 'customer',
+                'avatar'           => $avatar,
+                'google_id'        => $googleId,
+                'default_street'   => '',
+                'default_barangay' => 'Poblacion',
+                'default_city'     => 'Cordova',
+                'default_province' => 'Cebu',
+                'default_landmark' => '',
+                'default_lat'      => 10.2540,
+                'default_lng'      => 123.9490
+            ];
+
+            // Keep users.json in sync
+            try {
+                $fileUsers = readDataStore('users');
+                $fileUsers[] = $newUser;
+                writeDataStore('users', $fileUsers);
+            } catch (Exception $e) {}
+
             sendResponse([
                 'success' => true,
                 'message' => 'Google account registered and logged in successfully!',
-                'user'    => [
-                    'id'             => $newId,
-                    'username'       => $username,
-                    'first_name'     => $firstName,
-                    'last_name'      => $lastName,
-                    'email'          => $email,
-                    'contact_number' => '',
-                    'role'           => 'customer',
-                    'avatar'         => $avatar
-                ]
+                'user'    => $newUser
             ], 201);
         }
 

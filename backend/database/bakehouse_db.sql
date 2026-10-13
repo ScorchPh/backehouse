@@ -31,6 +31,14 @@ CREATE TABLE `users` (
     `password` VARCHAR(255) NOT NULL,
     `role` ENUM('admin', 'staff', 'customer') NOT NULL DEFAULT 'customer',
     `avatar` VARCHAR(255) NULL,
+    `default_street` VARCHAR(255) NULL,
+    `default_barangay` VARCHAR(100) NULL,
+    `default_city` VARCHAR(100) NULL,
+    `default_province` VARCHAR(100) NULL,
+    `default_landmark` VARCHAR(255) NULL,
+    `default_lat` DECIMAL(10, 7) NULL,
+    `default_lng` DECIMAL(10, 7) NULL,
+    `address` TEXT NULL,
     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
