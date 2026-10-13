@@ -126,6 +126,14 @@ function Account() {
       populateEditFields(currentUser);
     }
 
+    if (!googleClientIdInput) {
+      authService.getGoogleConfig().then((backendId) => {
+        if (backendId) {
+          setGoogleClientIdInput(backendId);
+        }
+      });
+    }
+
     return () => window.removeEventListener("authChange", handleAuthChange);
   }, []);
     const fillDemoAccount = (role) => {

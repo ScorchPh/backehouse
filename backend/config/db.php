@@ -11,12 +11,55 @@
 
 require_once __DIR__ . '/cors.php';
 
-// MySQL Configuration Settings (reads from cloud environment or defaults to local)
+/**
+ * Loads key-value pairs from a .env file into getenv(), $_ENV, and $_SERVER
+ * @param string $path
+ * @return void
+ */
+function loadEnvFile(string $path): void {
+    if (!file_exists($path) || !is_readable($path)) {
+        return;
+    }
+    $lines = file($path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+    if ($lines === false) {
+        return;
+    }
+    foreach ($lines as $line) {
+        $line = trim($line);
+        if ($line === '' || str_starts_with($line, '#')) {
+            continue;
+        }
+        if (str_contains($line, '=')) {
+            [$key, $value] = explode('=', $line, 2);
+            $key = trim($key);
+            $value = trim($value);
+
+            // Strip surrounding quotes
+            if (
+                (str_starts_with($value, '"') && str_ends_with($value, '"')) ||
+                (str_starts_with($value, "'") && str_ends_with($value, "'"))
+            ) {
+                $value = substr($value, 1, -1);
+            }
+
+            putenv("{$key}={$value}");
+            $_ENV[$key] = $value;
+            $_SERVER[$key] = $value;
+        }
+    }
+}
+
+// Automatically load backend/.env and backend/.env.local if present
+loadEnvFile(dirname(__DIR__) . '/.env');
+loadEnvFile(dirname(__DIR__) . '/.env.local');
+
+// MySQL Configuration Settings (reads from backend .env / environment or defaults to local)
 define('DB_HOST', trim((string)(getenv('DB_HOST') ?: '127.0.0.1')));
 define('DB_PORT', trim((string)(getenv('DB_PORT') ?: '3306')));
 define('DB_NAME', trim((string)(getenv('DB_NAME') ?: 'bakehouse_db')));
 define('DB_USER', trim((string)(getenv('DB_USER') ?: 'root')));
-define('DB_PASS', getenv('DB_PASS') !== false ? trim((string)getenv('DB_PASS')) : 'NewStr0ngP@ss!');
+define('DB_PASS', getenv('DB_PASS') !== false ? (string)getenv('DB_PASS') : 'NewStr0ngP@ss!');
+define('GOOGLE_CLIENT_ID', trim((string)(getenv('GOOGLE_CLIENT_ID') ?: '')));
 
 // File Storage Data Directory (for zero-config fallback)
 define('DATA_DIR', dirname(__DIR__) . '/database/data');

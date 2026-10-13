@@ -84,5 +84,14 @@ export const authService = {
 
   async getCustomers() {
     return await apiRequest('/auth/customers.php', { method: 'GET' });
+  },
+
+  async getGoogleConfig() {
+    try {
+      const res = await apiRequest('/auth/google_config.php', { method: 'GET' });
+      return res?.client_id || '';
+    } catch (e) {
+      return '';
+    }
   }
 };

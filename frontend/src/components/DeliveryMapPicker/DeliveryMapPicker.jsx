@@ -329,7 +329,7 @@ function DeliveryMapPicker({ onLocationSelected, initialBarangay = "Poblacion", 
   };
 
   const handleSearch = async (e) => {
-    e.preventDefault();
+    if (e && e.preventDefault) e.preventDefault();
     if (!searchQuery.trim()) return;
 
     try {
@@ -403,17 +403,23 @@ function DeliveryMapPicker({ onLocationSelected, initialBarangay = "Poblacion", 
         </button>
       </div>
 
-      <form onSubmit={handleSearch} className="map-search-form">
+      <div className="map-search-form">
         <input
           type="text"
           placeholder="Search subdivision, street, or landmark (e.g. Villa Teresa, Camella, Gabi)..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              handleSearch(e);
+            }
+          }}
         />
-        <button type="submit" disabled={isSearching}>
+        <button type="button" onClick={handleSearch} disabled={isSearching}>
           {isSearching ? "Searching..." : "🔍 Search"}
         </button>
-      </form>
+      </div>
 
       <div className="quick-areas-bar">
         <span>Quick Jump:</span>
