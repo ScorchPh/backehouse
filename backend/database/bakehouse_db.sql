@@ -28,9 +28,10 @@ CREATE TABLE `users` (
     `last_name` VARCHAR(100) NOT NULL,
     `email` VARCHAR(150) NOT NULL UNIQUE,
     `contact_number` VARCHAR(50) NULL,
-    `password` VARCHAR(255) NOT NULL,
+    `password` VARCHAR(255) NULL,
     `role` ENUM('admin', 'staff', 'customer') NOT NULL DEFAULT 'customer',
-    `avatar` VARCHAR(255) NULL,
+    `google_id` VARCHAR(100) NULL UNIQUE,
+    `avatar` VARCHAR(500) NULL,
     `default_street` VARCHAR(255) NULL,
     `default_barangay` VARCHAR(100) NULL,
     `default_city` VARCHAR(100) NULL,
@@ -95,6 +96,8 @@ CREATE TABLE `orders` (
     `delivery_fee` DECIMAL(10, 2) NOT NULL DEFAULT 50.00,
     `total` DECIMAL(10, 2) NOT NULL DEFAULT 0.00,
     `status` VARCHAR(50) NOT NULL DEFAULT 'Pending',
+    `cancellation_reason` TEXT NULL,
+    `delivery_coordinates` JSON NULL,
     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

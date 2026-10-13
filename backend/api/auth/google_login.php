@@ -68,39 +68,65 @@ if ($pdo) {
     // CASE A: Live MySQL / TiDB Cloud Connection
     // ------------------------------------------------------------------------
     try {
-        // Look up user by email or google_id
-        $stmt = $pdo->prepare("
-            SELECT id, username, first_name, last_name, email, contact_number, role, avatar, google_id,
-                   default_street, default_barangay, default_city, default_province, default_landmark, default_lat, default_lng, address
-            FROM users 
-            WHERE email = :email OR (google_id IS NOT NULL AND google_id = :google_id) 
-            LIMIT 1
-        ");
-        $stmt->execute([
-            'email'     => $email,
-            'google_id' => $googleId
-        ]);
+        // Ensure google_id column exists on cloud database
+        try {
+            $pdo->exec("ALTER TABLE `users` ADD COLUMN `google_id` VARCHAR(100) NULL UNIQUE");
+        } catch (Exception $e) {}
+
+        // Introspect available columns in users table
+        $userCols = [];
+        try {
+            $userCols = $pdo->query("DESCRIBE `users`")->fetchAll(PDO::FETCH_COLUMN);
+        } catch (Exception $e) {}
+
+        $hasGoogleId = in_array('google_id', $userCols);
+        $selectFields = ['id', 'username', 'first_name', 'last_name', 'email', 'contact_number', 'role'];
+        foreach (['avatar', 'google_id', 'default_street', 'default_barangay', 'default_city', 'default_province', 'default_landmark', 'default_lat', 'default_lng', 'address'] as $f) {
+            if (in_array($f, $userCols)) {
+                $selectFields[] = $f;
+            }
+        }
+        $fieldsStr = implode(', ', $selectFields);
+
+        $whereClause = $hasGoogleId 
+            ? "WHERE email = :email OR (google_id IS NOT NULL AND google_id = :google_id)"
+            : "WHERE email = :email";
+
+        $stmt = $pdo->prepare("SELECT {$fieldsStr} FROM users {$whereClause} LIMIT 1");
+        $queryParams = ['email' => $email];
+        if ($hasGoogleId) {
+            $queryParams['google_id'] = $googleId;
+        }
+        $stmt->execute($queryParams);
         $existing = $stmt->fetch();
 
         if ($existing) {
-            // Existing user: Link Google ID if not yet linked, update avatar & names if missing
-            $update = $pdo->prepare("
-                UPDATE users 
-                SET google_id = COALESCE(google_id, :google_id),
-                    avatar = COALESCE(:avatar, avatar),
-                    first_name = CASE WHEN (first_name IS NULL OR first_name = '') THEN :first_name ELSE first_name END,
-                    last_name = CASE WHEN (last_name IS NULL OR last_name = '') THEN :last_name ELSE last_name END
-                WHERE id = :id
-            ");
-            $update->execute([
-                'google_id'  => $googleId,
-                'avatar'     => $avatar,
-                'first_name' => $firstName,
-                'last_name'  => $lastName,
-                'id'         => $existing['id']
-            ]);
+            // Existing user: update available fields
+            $updateSets = [];
+            $updateParams = ['id' => $existing['id']];
+            if ($hasGoogleId) {
+                $updateSets[] = "google_id = COALESCE(google_id, :google_id)";
+                $updateParams['google_id'] = $googleId;
+            }
+            if (in_array('avatar', $userCols)) {
+                $updateSets[] = "avatar = COALESCE(:avatar, avatar)";
+                $updateParams['avatar'] = $avatar;
+            }
+            if (in_array('first_name', $userCols)) {
+                $updateSets[] = "first_name = CASE WHEN (first_name IS NULL OR first_name = '') THEN :first_name ELSE first_name END";
+                $updateParams['first_name'] = $firstName;
+            }
+            if (in_array('last_name', $userCols)) {
+                $updateSets[] = "last_name = CASE WHEN (last_name IS NULL OR last_name = '') THEN :last_name ELSE last_name END";
+                $updateParams['last_name'] = $lastName;
+            }
+            if (!empty($updateSets)) {
+                $updateSql = "UPDATE users SET " . implode(', ', $updateSets) . " WHERE id = :id";
+                $update = $pdo->prepare($updateSql);
+                $update->execute($updateParams);
+            }
 
-            $existing['avatar'] = $avatar ?: $existing['avatar'];
+            $existing['avatar'] = $avatar ?: ($existing['avatar'] ?? '');
             if (empty($existing['first_name'])) $existing['first_name'] = $firstName;
             if (empty($existing['last_name'])) $existing['last_name'] = $lastName;
 
@@ -136,19 +162,37 @@ if ($pdo) {
                 $username = $baseUsername . $counter++;
             }
 
-            // Create new Google customer record
-            $insert = $pdo->prepare("
-                INSERT INTO users (username, first_name, last_name, email, role, google_id, avatar, default_street, default_barangay, default_city, default_province, default_landmark, default_lat, default_lng) 
-                VALUES (:username, :first_name, :last_name, :email, 'customer', :google_id, :avatar, '', 'Poblacion', 'Cordova', 'Cebu', '', 10.2540, 123.9490)
-            ");
-            $insert->execute([
+            $insertCols = ['username', 'first_name', 'last_name', 'email', 'role'];
+            $insertVals = [':username', ':first_name', ':last_name', ':email', "'customer'"];
+            $insertParams = [
                 'username'   => $username,
                 'first_name' => $firstName,
                 'last_name'  => $lastName,
-                'email'      => $email,
-                'google_id'  => $googleId,
-                'avatar'     => $avatar
-            ]);
+                'email'      => $email
+            ];
+
+            if ($hasGoogleId) {
+                $insertCols[] = 'google_id';
+                $insertVals[] = ':google_id';
+                $insertParams['google_id'] = $googleId;
+            }
+            if (in_array('avatar', $userCols)) {
+                $insertCols[] = 'avatar';
+                $insertVals[] = ':avatar';
+                $insertParams['avatar'] = $avatar;
+            }
+            if (in_array('default_city', $userCols)) {
+                $insertCols[] = 'default_city';
+                $insertVals[] = "'Cordova'";
+            }
+            if (in_array('default_province', $userCols)) {
+                $insertCols[] = 'default_province';
+                $insertVals[] = "'Cebu'";
+            }
+
+            $insertSql = "INSERT INTO users (" . implode(', ', $insertCols) . ") VALUES (" . implode(', ', $insertVals) . ")";
+            $insert = $pdo->prepare($insertSql);
+            $insert->execute($insertParams);
 
             $newId = (int)$pdo->lastInsertId();
 

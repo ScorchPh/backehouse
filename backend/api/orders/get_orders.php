@@ -53,12 +53,28 @@ if ($pdo) {
     // CASE A: Live MySQL / TiDB Cloud Connection
     // ------------------------------------------------------------------------
     try {
+        // Auto-ensure cancellation_reason column exists and gracefully detect it
+        $hasCancellationReason = false;
+        try {
+            $cols = $pdo->query("SHOW COLUMNS FROM orders LIKE 'cancellation_reason'")->fetchAll();
+            if (!empty($cols)) {
+                $hasCancellationReason = true;
+            } else {
+                $pdo->exec("ALTER TABLE orders ADD COLUMN cancellation_reason TEXT NULL");
+                $hasCancellationReason = true;
+            }
+        } catch (Exception $e) {}
+
+        $cancellationField = $hasCancellationReason 
+            ? "COALESCE(o.cancellation_reason, '') as cancellation_reason," 
+            : "'' as cancellation_reason,";
+
         // Build base SQL query. We use 'WHERE 1=1' as a clean SQL design pattern
         // allowing us to dynamically append 'AND' conditions below without syntax errors.
         $sql = "
             SELECT o.id, o.user_id, o.customer_name, o.customer_contact, o.delivery_address, 
                    o.payment_method, o.subtotal, o.delivery_fee, o.total, o.status, 
-                   COALESCE(o.cancellation_reason, '') as cancellation_reason,
+                   {$cancellationField}
                    o.created_at,
                    DATE_FORMAT(o.created_at, '%M %d, %Y') as formatted_date
             FROM orders o

@@ -113,6 +113,32 @@ function getDBConnection() {
         }
 
         $pdo = new PDO($dsn, DB_USER, DB_PASS, $options);
+
+        // Self-healing schema auto-migration for cloud databases (Render / TiDB / Aiven)
+        static $schemaMigrated = false;
+        if (!$schemaMigrated) {
+            $schemaMigrated = true;
+            $migrations = [
+                "ALTER TABLE `users` ADD COLUMN `google_id` VARCHAR(100) NULL UNIQUE",
+                "ALTER TABLE `users` ADD COLUMN `avatar` VARCHAR(500) NULL",
+                "ALTER TABLE `users` ADD COLUMN `default_street` VARCHAR(255) NULL",
+                "ALTER TABLE `users` ADD COLUMN `default_barangay` VARCHAR(100) NULL",
+                "ALTER TABLE `users` ADD COLUMN `default_city` VARCHAR(100) NULL",
+                "ALTER TABLE `users` ADD COLUMN `default_province` VARCHAR(100) NULL",
+                "ALTER TABLE `users` ADD COLUMN `default_landmark` VARCHAR(255) NULL",
+                "ALTER TABLE `users` ADD COLUMN `default_lat` DECIMAL(10, 7) NULL",
+                "ALTER TABLE `users` ADD COLUMN `default_lng` DECIMAL(10, 7) NULL",
+                "ALTER TABLE `users` ADD COLUMN `address` TEXT NULL",
+                "ALTER TABLE `orders` ADD COLUMN `cancellation_reason` TEXT NULL",
+                "ALTER TABLE `orders` ADD COLUMN `delivery_coordinates` JSON NULL"
+            ];
+            foreach ($migrations as $sql) {
+                try {
+                    $pdo->exec($sql);
+                } catch (Exception $ignored) {}
+            }
+        }
+
         return $pdo;
     } catch (Exception $e) {
         $GLOBALS['last_db_error'] = $e->getMessage();

@@ -52,15 +52,26 @@ if ($pdo) {
     // CASE A: Live MySQL / TiDB Cloud Connection
     // ------------------------------------------------------------------------
     try {
-        // Auto-ensure column exists
+        // Auto-ensure cancellation_reason column exists and gracefully detect it
+        $hasCancellationReason = false;
         try {
-            $pdo->query("ALTER TABLE orders ADD COLUMN cancellation_reason TEXT NULL");
+            $cols = $pdo->query("SHOW COLUMNS FROM orders LIKE 'cancellation_reason'")->fetchAll();
+            if (!empty($cols)) {
+                $hasCancellationReason = true;
+            } else {
+                $pdo->exec("ALTER TABLE orders ADD COLUMN cancellation_reason TEXT NULL");
+                $hasCancellationReason = true;
+            }
         } catch (Exception $e) {}
+
+        $cancellationField = $hasCancellationReason 
+            ? "COALESCE(o.cancellation_reason, '') as cancellation_reason," 
+            : "'' as cancellation_reason,";
 
         $stmt = $pdo->prepare("
             SELECT o.id, o.user_id, o.customer_name, o.customer_contact, o.delivery_address,
                    o.payment_method, o.subtotal, o.delivery_fee, o.total, o.status, 
-                   COALESCE(o.cancellation_reason, '') as cancellation_reason,
+                   {$cancellationField}
                    o.created_at,
                    DATE_FORMAT(o.created_at, '%M %d, %Y - %h:%i %p') as formatted_date
             FROM orders o
