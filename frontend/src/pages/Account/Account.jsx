@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { authService } from "../../services/authService";
-import DeliveryMapPicker from "../../components/DeliveryMapPicker/DeliveryMapPicker";
+import DeliveryMapPicker, { POPULAR_AREAS } from "../../components/DeliveryMapPicker/DeliveryMapPicker";
 import catPastries from "../../assets/images/cat_pastries.jpg";
 import catSourdough from "../../assets/images/cat_sourdough.jpg";
 import heroBg from "../../assets/images/bakesmart_hero.jpg";
@@ -82,6 +82,8 @@ function Account() {
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [googleAuthLoading, setGoogleAuthLoading] = useState(false);
+  const [geocodingAddress, setGeocodingAddress] = useState(false);
+
   const populateEditFields = (user) => {
     if (!user) return;
     setEditFirstName(user.first_name || "");
@@ -89,14 +91,69 @@ function Account() {
     setEditEmail(user.email || "");
     setEditContact(user.contact_number || "");
     setEditStreet(user.default_street || user.street || "");
-    setEditBarangay(user.default_barangay || "Poblacion");
+    const userBarangay = user.default_barangay || "Poblacion";
+    setEditBarangay(userBarangay);
     setEditCity(user.default_city || "Cordova");
     setEditProvince(user.default_province || "Cebu");
     setEditLandmark(user.default_landmark || "");
     const parsedLat = parseFloat(user.default_lat);
     const parsedLng = parseFloat(user.default_lng);
-    setEditLat(!isNaN(parsedLat) ? parsedLat : 10.2540);
-    setEditLng(!isNaN(parsedLng) ? parsedLng : 123.9490);
+    if (!isNaN(parsedLat) && !isNaN(parsedLng) && (parsedLat !== 10.2540 || parsedLng !== 123.9490)) {
+      setEditLat(parsedLat);
+      setEditLng(parsedLng);
+    } else {
+      // Auto-pinpoint directly to coordinates of user's default barangay (e.g. Gabi -> 10.2705, 123.9575)
+      const match = POPULAR_AREAS.find((a) => a.name.toLowerCase() === userBarangay.trim().toLowerCase());
+      if (match) {
+        setEditLat(match.lat);
+        setEditLng(match.lng);
+      } else {
+        setEditLat(10.2540);
+        setEditLng(123.9490);
+      }
+    }
+  };
+
+  const handleBarangayChange = (val) => {
+    setEditBarangay(val);
+    const match = POPULAR_AREAS.find((a) => a.name.toLowerCase() === val.trim().toLowerCase());
+    if (match) {
+      setEditLat(match.lat);
+      setEditLng(match.lng);
+    }
+  };
+
+  const autoPinpointFromAddress = async () => {
+    setGeocodingAddress(true);
+    try {
+      const searchParts = [editStreet, editBarangay, editCity, editProvince, "Philippines"].filter(Boolean);
+      const query = searchParts.join(", ");
+      const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=1`;
+      const res = await fetch(url, { headers: { "Accept-Language": "en" } });
+      const data = await res.json();
+      if (data && data.length > 0) {
+        const lat = parseFloat(data[0].lat);
+        const lng = parseFloat(data[0].lon);
+        setEditLat(lat);
+        setEditLng(lng);
+        setShowMapPicker(true);
+      } else {
+        const match = POPULAR_AREAS.find((a) => a.name.toLowerCase() === editBarangay.trim().toLowerCase());
+        if (match) {
+          setEditLat(match.lat);
+          setEditLng(match.lng);
+          setShowMapPicker(true);
+        }
+      }
+    } catch (e) {
+      const match = POPULAR_AREAS.find((a) => a.name.toLowerCase() === editBarangay.trim().toLowerCase());
+      if (match) {
+        setEditLat(match.lat);
+        setEditLng(match.lng);
+      }
+    } finally {
+      setGeocodingAddress(false);
+    }
   };
   useEffect(() => {
     const handleAuthChange = () => {
@@ -454,7 +511,7 @@ function Account() {
                     <div className="delivery-box-header">
                       <div>
                         <h4>🏠 Default Delivery Address (Auto-filled at Checkout)</h4>
-                        <p>Your preferred delivery spot and Shopee-style pinpoint location.</p>
+                        <p>Your preferred delivery spot and pinpoint location.</p>
                       </div>
                       <button
                         type="button"
@@ -551,7 +608,7 @@ function Account() {
                   <div className="settings-header">
                     <h2>Edit Your Details</h2>
                     <p className="subtitle">
-                      Update your contact information and default Shopee-style delivery location.
+                      Update your contact information and default delivery location.
                     </p>
                   </div>
 
@@ -608,7 +665,7 @@ function Account() {
                     </div>
                   </div>
                   <div className="settings-section">
-                    <h3 className="section-title">🏠 Default Delivery Address (Shopee Style)</h3>
+                    <h3 className="section-title">🏠 Default Delivery Address</h3>
                     <p className="section-desc">
                       These details will automatically pre-fill your checkout form so you can place orders with 1 tap.
                     </p>
@@ -618,7 +675,12 @@ function Account() {
                       type="text"
                       value={editStreet}
                       onChange={(e) => setEditStreet(e.target.value)}
-                      placeholder="e.g. Blk 4 Lot 12 Villa Teresa Subdivision, or 123 Rizal St."
+                      onBlur={() => {
+                        if (editStreet.trim() && editBarangay) {
+                          autoPinpointFromAddress();
+                        }
+                      }}
+                      placeholder="e.g. Tumoy, Blk 4 Lot 12 Villa Teresa Subdivision, or 123 Rizal St."
                     />
 
                     <div className="form-row">
@@ -626,10 +688,16 @@ function Account() {
                         <label className="field-label">Barangay *</label>
                         <input
                           type="text"
+                          list="cordova-barangays"
                           value={editBarangay}
-                          onChange={(e) => setEditBarangay(e.target.value)}
-                          placeholder="e.g. Poblacion, Gabi, Bangbang"
+                          onChange={(e) => handleBarangayChange(e.target.value)}
+                          placeholder="e.g. Gabi, Poblacion, Bangbang"
                         />
+                        <datalist id="cordova-barangays">
+                          {POPULAR_AREAS.map((area) => (
+                            <option key={area.name} value={area.name} />
+                          ))}
+                        </datalist>
                       </div>
                       <div>
                         <label className="field-label">City / Municipality *</label>
@@ -672,13 +740,32 @@ function Account() {
                               : "Not selected"}
                           </span>
                         </div>
-                        <button
-                          type="button"
-                          className="toggle-map-btn"
-                          onClick={() => setShowMapPicker(!showMapPicker)}
-                        >
-                          {showMapPicker ? "🔼 Hide Map Pin" : "🔽 Pinpoint on Map"}
-                        </button>
+                        <div style={{ display: "flex", gap: "8px", alignItems: "center", flexWrap: "wrap" }}>
+                          <button
+                            type="button"
+                            className="toggle-map-btn"
+                            onClick={autoPinpointFromAddress}
+                            disabled={geocodingAddress}
+                            style={{
+                              background: "#FFFBEB",
+                              border: "1px solid #F59E0B",
+                              color: "#B45309",
+                              fontSize: "0.82rem",
+                              fontWeight: "600",
+                              cursor: "pointer"
+                            }}
+                            title="Auto-pinpoint coordinates based on your address above"
+                          >
+                            {geocodingAddress ? "⏳ Pinpointing..." : "🎯 Auto-Pinpoint Address"}
+                          </button>
+                          <button
+                            type="button"
+                            className="toggle-map-btn"
+                            onClick={() => setShowMapPicker(!showMapPicker)}
+                          >
+                            {showMapPicker ? "🔼 Hide Map Pin" : "🔽 Pinpoint on Map"}
+                          </button>
+                        </div>
                       </div>
 
                       {showMapPicker && (

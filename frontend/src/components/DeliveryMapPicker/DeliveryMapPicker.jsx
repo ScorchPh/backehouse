@@ -69,6 +69,14 @@ function DeliveryMapPicker({ onLocationSelected, initialBarangay = "Poblacion", 
         return { lat, lng };
       }
     }
+    if (initialBarangay) {
+      const match = POPULAR_AREAS.find(
+        (a) => a.name.toLowerCase() === initialBarangay.trim().toLowerCase()
+      );
+      if (match) {
+        return { lat: match.lat, lng: match.lng };
+      }
+    }
     return { lat: 10.2540, lng: 123.9490 };
   });
 
@@ -149,6 +157,47 @@ function DeliveryMapPicker({ onLocationSelected, initialBarangay = "Poblacion", 
       mapInstanceRef.current = null;
     };
   }, []);
+
+  // Dynamically sync pin and map when parent coordinates update (e.g. user profile loaded or address auto-pinpointed)
+  useEffect(() => {
+    if (!initialCoordinates) return;
+    const lat = parseFloat(initialCoordinates.lat);
+    const lng = parseFloat(initialCoordinates.lng);
+    if (isNaN(lat) || isNaN(lng)) return;
+
+    if (Math.abs(pinPosition.lat - lat) > 0.0001 || Math.abs(pinPosition.lng - lng) > 0.0001) {
+      setPinPosition({ lat, lng });
+      if (markerRef.current) {
+        markerRef.current.setLatLng([lat, lng]);
+      }
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.flyTo([lat, lng], 15, { duration: 0.8 });
+      }
+      calculateRoute(lat, lng);
+    }
+  }, [initialCoordinates?.lat, initialCoordinates?.lng]);
+
+  // Dynamically sync pin when barangay changes if coordinates weren't customized
+  useEffect(() => {
+    if (!initialBarangay) return;
+    const match = POPULAR_AREAS.find(
+      (a) => a.name.toLowerCase() === initialBarangay.trim().toLowerCase()
+    );
+    if (match) {
+      const lat = match.lat;
+      const lng = match.lng;
+      if (Math.abs(pinPosition.lat - lat) > 0.0001 || Math.abs(pinPosition.lng - lng) > 0.0001) {
+        setPinPosition({ lat, lng });
+        if (markerRef.current) {
+          markerRef.current.setLatLng([lat, lng]);
+        }
+        if (mapInstanceRef.current) {
+          mapInstanceRef.current.flyTo([lat, lng], 15, { duration: 0.8 });
+        }
+        calculateRoute(lat, lng);
+      }
+    }
+  }, [initialBarangay]);
 
   const getNearestNeighborhood = (lat, lng) => {
     let nearest = POPULAR_AREAS[0];
@@ -389,7 +438,7 @@ function DeliveryMapPicker({ onLocationSelected, initialBarangay = "Poblacion", 
     <div className="delivery-map-picker-card">
       <div className="map-picker-header">
         <div>
-          <h3>📍 Pinpoint Your Delivery Location (Shopee Style)</h3>
+          <h3>📍 Pinpoint Your Delivery Location</h3>
           <p>Drag the pin 📍 or tap on the map right at your subdivision, street, or house gate.</p>
         </div>
         <button
@@ -473,4 +522,5 @@ function DeliveryMapPicker({ onLocationSelected, initialBarangay = "Poblacion", 
   );
 }
 
+export { POPULAR_AREAS, STORE_LOCATION };
 export default DeliveryMapPicker;
