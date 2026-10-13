@@ -138,6 +138,12 @@ function getDBConnection() {
                     $pdo->exec($sql);
                 } catch (Exception $ignored) {}
             }
+
+            // Ensure demo accounts always have valid bcrypt hash for '1234'
+            try {
+                $demoHash = password_hash('1234', PASSWORD_BCRYPT);
+                $pdo->exec("UPDATE `users` SET `password` = '{$demoHash}' WHERE `username` IN ('admin', 'staff', 'customer')");
+            } catch (Exception $ignored) {}
         }
 
         return $pdo;

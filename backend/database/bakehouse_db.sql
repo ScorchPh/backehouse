@@ -47,9 +47,9 @@ CREATE TABLE `users` (
 -- Dumping data for table `users` (Password: 1234 for all accounts)
 -- ----------------------------------------------------------------------------
 INSERT INTO `users` (`id`, `username`, `first_name`, `last_name`, `email`, `contact_number`, `password`, `role`, `avatar`) VALUES
-(1, 'admin', 'Store', 'Administrator', 'admin@bakehouse.com', '+63 912 345 6780', '$2y$10$w09Zk6Z8uG.U1zXUfLqPwe0VpWq0Fz/R77Vj7BwP6qXpG3Z3vA3ry', 'admin', 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200'),
-(2, 'staff', 'Head', 'Baker', 'staff@bakehouse.com', '+63 912 345 6781', '$2y$10$w09Zk6Z8uG.U1zXUfLqPwe0VpWq0Fz/R77Vj7BwP6qXpG3Z3vA3ry', 'staff', 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200'),
-(3, 'customer', 'Juan', 'Dela Cruz', 'customer@bakehouse.com', '+63 912 345 6782', '$2y$10$w09Zk6Z8uG.U1zXUfLqPwe0VpWq0Fz/R77Vj7BwP6qXpG3Z3vA3ry', 'customer', 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200');
+(1, 'admin', 'Store', 'Administrator', 'admin@bakehouse.com', '+63 912 345 6780', '$2y$12$D2OusZUJV7nQttmcIemNfOvoZ6g15cD3uFpzvbxkVjdkbA32E8gVC', 'admin', 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200'),
+(2, 'staff', 'Head', 'Baker', 'staff@bakehouse.com', '+63 912 345 6781', '$2y$12$D2OusZUJV7nQttmcIemNfOvoZ6g15cD3uFpzvbxkVjdkbA32E8gVC', 'staff', 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200'),
+(3, 'customer', 'Juan', 'Dela Cruz', 'customer@bakehouse.com', '+63 912 345 6782', '$2y$12$D2OusZUJV7nQttmcIemNfOvoZ6g15cD3uFpzvbxkVjdkbA32E8gVC', 'customer', 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200');
 
 -- ----------------------------------------------------------------------------
 -- 2. Table structure for table `products`
