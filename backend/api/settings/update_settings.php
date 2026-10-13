@@ -101,6 +101,9 @@ if (isset($payload['order_settings']) && is_array($payload['order_settings'])) {
     if (isset($payload['order_settings']['allow_customization'])) {
         $current['order_settings']['allow_customization'] = (bool)$payload['order_settings']['allow_customization'];
     }
+    if (isset($payload['order_settings']['delivery_fee'])) {
+        $current['order_settings']['delivery_fee'] = max(0, (float)$payload['order_settings']['delivery_fee']);
+    }
 }
 
 // Persist to JSON data store

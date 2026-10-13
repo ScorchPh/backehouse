@@ -8,6 +8,7 @@ import { cakeChatService } from "../../services/cakeChatService";
 import { useNavigate, Link } from "react-router-dom";
 import DeliveryMapPicker from "../../components/DeliveryMapPicker/DeliveryMapPicker";
 import StatusModal from "../../components/StatusModal/StatusModal";
+import { settingsService } from "../../services/settingsService";
 
 function Checkout() {
   const { cartItems, clearCart } = useCart();
@@ -78,6 +79,26 @@ function Checkout() {
     return () => window.removeEventListener("authChange", handleAuthChange);
   }, [fullName, contactNumber, street, landmark]);
 
+  const [configuredDeliveryFee, setConfiguredDeliveryFee] = useState(30);
+
+  // Load configured delivery fee from Admin Settings
+  useEffect(() => {
+    async function loadStoreFee() {
+      try {
+        const settings = await settingsService.getSettings();
+        if (settings?.order_settings?.delivery_fee !== undefined) {
+          const fee = parseFloat(settings.order_settings.delivery_fee);
+          if (!isNaN(fee) && fee >= 0) {
+            setConfiguredDeliveryFee(fee);
+          }
+        }
+      } catch (e) {
+        console.warn("Could not load delivery fee from settings:", e);
+      }
+    }
+    loadStoreFee();
+  }, []);
+
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [modalState, setModalState] = useState({
@@ -112,7 +133,7 @@ function Checkout() {
     (total, item) => total + item.price * item.quantity,
     0
   );
-  const deliveryFee = fulfillmentType === "Pickup" ? 0 : (cartItems.length > 0 ? 50 : 0);
+  const deliveryFee = fulfillmentType === "Pickup" ? 0 : (cartItems.length > 0 ? configuredDeliveryFee : 0);
   const total = subtotal + deliveryFee;
 
   const handlePlaceOrder = async (e) => {

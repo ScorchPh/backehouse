@@ -27,7 +27,8 @@ function Settings() {
     },
     order_settings: {
       accept_orders: true,
-      allow_customization: true
+      allow_customization: true,
+      delivery_fee: 30
     }
   });
 
@@ -133,6 +134,22 @@ function Settings() {
       });
     } catch (err) {
       console.error("Failed to update order setting:", err);
+    }
+  };
+
+  // 5. Save Order & Delivery Settings
+  const handleSaveOrderSettings = async (e) => {
+    e.preventDefault();
+    setSavingSection("orders");
+    try {
+      await settingsService.updateSettings({
+        order_settings: storeSettings.order_settings
+      });
+      triggerFeedback("orders");
+    } catch (err) {
+      setErrorMessage("Failed to save delivery & order settings: " + err.message);
+    } finally {
+      setSavingSection(null);
     }
   };
 
@@ -393,64 +410,109 @@ function Settings() {
         </form>
       </div>
 
-      {/* Order Settings */}
+      {/* Order & Delivery Settings */}
       <div className="settings-section">
-        <h2>Order Settings</h2>
+        <h2>Order & Delivery Settings</h2>
         <p className="section-description">
-          Configure basic order and cake personalization availability.
+          Configure standard delivery fee, customer checkout availability, and cake customization.
         </p>
 
-        <div className="setting-option">
-          <div>
-            <strong>Accept New Orders</strong>
-            <p>Allow customers to place new orders through online checkout.</p>
+        <form onSubmit={handleSaveOrderSettings} className="settings-form" style={{ marginTop: "1.2rem" }}>
+          <div className="form-group" style={{ maxWidth: "380px" }}>
+            <label>
+              <strong>Standard Delivery Fee (₱)</strong>
+            </label>
+            <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+              <span style={{ fontSize: "1.25rem", fontWeight: "800", color: "#8B4513" }}>₱</span>
+              <input
+                type="number"
+                min="0"
+                step="5"
+                placeholder="30"
+                value={storeSettings.order_settings?.delivery_fee ?? 30}
+                onChange={(e) =>
+                  setStoreSettings({
+                    ...storeSettings,
+                    order_settings: {
+                      ...storeSettings.order_settings,
+                      delivery_fee: e.target.value === "" ? "" : Number(e.target.value)
+                    }
+                  })
+                }
+                style={{ width: "130px", fontWeight: "700", fontSize: "1.05rem", padding: "10px 14px" }}
+              />
+              <span style={{ fontSize: "0.88rem", color: "#666" }}>PHP per delivery order</span>
+            </div>
+            <span className="form-field-hint">
+              This amount is charged automatically for home delivery orders at checkout. Store Pickup is always free (₱0).
+            </span>
           </div>
 
-          <label className="toggle">
-            <input
-              type="checkbox"
-              checked={!!storeSettings.order_settings?.accept_orders}
-              onChange={() => handleToggleOrderOption("accept_orders")}
-            />
-            <span></span>
-          </label>
-        </div>
+          <div className="setting-option" style={{ borderTop: "1px solid #F0E6DC", paddingTop: "14px", marginTop: "14px" }}>
+            <div>
+              <strong>Accept New Online Orders</strong>
+              <p>Allow customers to place new delivery and pickup orders at checkout.</p>
+            </div>
 
-        <div className="setting-option">
-          <div>
-            <strong>Allow Cake Customization</strong>
-            <p>Allow customers to customize 3D/2D cakes with custom flavors and messages.</p>
-          </div>
-
-          <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-            <Link
-              to="/admin/customizer"
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "0.4rem",
-                padding: "0.45rem 0.9rem",
-                backgroundColor: "var(--color-primary-50, #fdf6ec)",
-                color: "var(--color-primary-600, #b25e1a)",
-                border: "1px solid var(--color-primary-200, #f8d7b0)",
-                borderRadius: "8px",
-                fontSize: "0.85rem",
-                fontWeight: "600",
-                textDecoration: "none"
-              }}
-            >
-              🎂 Manage Customizer Options →
-            </Link>
             <label className="toggle">
               <input
                 type="checkbox"
-                checked={!!storeSettings.order_settings?.allow_customization}
-                onChange={() => handleToggleOrderOption("allow_customization")}
+                checked={!!storeSettings.order_settings?.accept_orders}
+                onChange={() => handleToggleOrderOption("accept_orders")}
               />
               <span></span>
             </label>
           </div>
-        </div>
+
+          <div className="setting-option">
+            <div>
+              <strong>Allow Cake Customization</strong>
+              <p>Allow customers to customize 3D/2D cakes with custom flavors and messages.</p>
+            </div>
+
+            <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+              <Link
+                to="/admin/customizer"
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "0.4rem",
+                  padding: "0.45rem 0.9rem",
+                  backgroundColor: "var(--color-primary-50, #fdf6ec)",
+                  color: "var(--color-primary-600, #b25e1a)",
+                  border: "1px solid var(--color-primary-200, #f8d7b0)",
+                  borderRadius: "8px",
+                  fontSize: "0.85rem",
+                  fontWeight: "600",
+                  textDecoration: "none"
+                }}
+              >
+                🎂 Manage Customizer Options →
+              </Link>
+              <label className="toggle">
+                <input
+                  type="checkbox"
+                  checked={!!storeSettings.order_settings?.allow_customization}
+                  onChange={() => handleToggleOrderOption("allow_customization")}
+                />
+                <span></span>
+              </label>
+            </div>
+          </div>
+
+          <div style={{ display: "flex", alignItems: "center", gap: "14px", marginTop: "16px" }}>
+            <button
+              type="submit"
+              className="save-btn"
+              disabled={savingSection === "orders"}
+            >
+              {savingSection === "orders" ? "Saving..." : "Save Delivery & Order Settings"}
+            </button>
+            {savedFeedback === "orders" && (
+              <span className="save-success-pill">✓ Delivery fee and order settings updated!</span>
+            )}
+          </div>
+        </form>
       </div>
 
       {/* Security */}

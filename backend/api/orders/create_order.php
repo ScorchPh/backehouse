@@ -58,7 +58,14 @@ if ($isCounterPOS) {
         $estimatedDeliveryTime = "15–25 Minutes";
     }
 } else {
-    $deliveryFee = isset($data['delivery_fee']) ? (float)$data['delivery_fee'] : 50.00;
+    if (isset($data['delivery_fee'])) {
+        $deliveryFee = max(0, (float)$data['delivery_fee']);
+    } else {
+        $storeSettings = readDataStore('store_settings');
+        $deliveryFee = isset($storeSettings['order_settings']['delivery_fee'])
+            ? (float)$storeSettings['order_settings']['delivery_fee']
+            : 30.00;
+    }
     if (empty($estimatedDeliveryTime)) {
         $estimatedDeliveryTime = "30–45 Minutes";
     }

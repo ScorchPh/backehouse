@@ -21,7 +21,8 @@ const DEFAULT_SETTINGS = {
   },
   order_settings: {
     accept_orders: true,
-    allow_customization: true
+    allow_customization: true,
+    delivery_fee: 30.00
   }
 };
 
