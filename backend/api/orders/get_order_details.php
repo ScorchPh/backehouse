@@ -93,11 +93,13 @@ if ($pdo) {
         $order['delivery_fee'] = (float)$order['delivery_fee'];
         $order['total']        = (float)$order['total'];
 
-        // Retrieve items from child table order_items
+        // Retrieve items from child table order_items and join products to fetch image
         $stmtItems = $pdo->prepare("
-            SELECT id, product_id, product_name, price, quantity, customization 
-            FROM order_items 
-            WHERE order_id = :order_id
+            SELECT oi.id, oi.product_id, oi.product_name, oi.price, oi.quantity, oi.customization,
+                   p.image
+            FROM order_items oi
+            LEFT JOIN products p ON oi.product_id = p.id
+            WHERE oi.order_id = :order_id
         ");
         $stmtItems->execute(['order_id' => $id]);
         $items = $stmtItems->fetchAll();

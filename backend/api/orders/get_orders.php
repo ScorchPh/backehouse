@@ -109,9 +109,11 @@ if ($pdo) {
 
         // Prepared statement to fetch the items for each order
         $stmtItems = $pdo->prepare("
-            SELECT id, product_name, price, quantity, customization 
-            FROM order_items 
-            WHERE order_id = :order_id
+            SELECT oi.id, oi.product_id, oi.product_name, oi.price, oi.quantity, oi.customization,
+                   p.image
+            FROM order_items oi
+            LEFT JOIN products p ON oi.product_id = p.id
+            WHERE oi.order_id = :order_id
         ");
 
         // Loop through each order to attach its line items and sanitize numeric types

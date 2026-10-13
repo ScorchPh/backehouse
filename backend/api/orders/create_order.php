@@ -83,6 +83,7 @@ foreach ($items as $idx => $item) {
         'product_name' => $item['name'] ?? 'Bakery Item',
         'price' => $price,
         'quantity' => $qty,
+        'image' => $item['image'] ?? null,
         'customization' => $item['customization'] ?? null
     ];
 }
@@ -109,12 +110,9 @@ foreach ($formattedItems as $fItem) {
 
 if ($isCounterPOS) {
     $orderStatus = $data['status'] ?? 'Completed';
-} else if ($needsBaking) {
-    $orderStatus = 'Pending'; // Needs custom kitchen baking & decorating
-} else if (strcasecmp($fulfillmentType, 'Pickup') === 0) {
-    $orderStatus = 'Ready for Pickup'; // Standard in-stock catalog products are already baked and ready for counter pickup
 } else {
-    $orderStatus = 'For Delivery'; // Standard in-stock delivery order ready for rider dispatch
+    // All online orders start as 'Pending' awaiting baker/kitchen review & confirmation
+    $orderStatus = 'Pending';
 }
 
 $total = max(0, $subtotal + $deliveryFee - $discountAmount);

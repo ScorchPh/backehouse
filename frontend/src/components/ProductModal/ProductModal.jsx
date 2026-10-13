@@ -17,6 +17,7 @@
 import { useState, useEffect } from "react";
 import { useCart } from "../../context/CartContext";
 import "./ProductModal.css";
+import { resolveProductImage, getProductFallbackImage } from "../../utils/productImages";
 
 function ProductModal({ product, onClose }) {
   const { cartItems, addToCart } = useCart();
@@ -66,12 +67,12 @@ function ProductModal({ product, onClose }) {
         </button>
 
         <img
-          src={product.image || "/uploads/productimg/chocolate_cake.jpg"}
+          src={resolveProductImage(product)}
           alt={product.name}
           className="modal-image"
           onError={(e) => {
             e.target.onerror = null;
-            e.target.src = "https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=500";
+            e.target.src = getProductFallbackImage(product);
           }}
         />
 

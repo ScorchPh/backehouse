@@ -1,5 +1,3 @@
-import placeholder from "../assets/images/placeholder.jfif";
-
 const products = [
   {
     id: 1,
@@ -7,87 +5,88 @@ const products = [
     description: "Rich chocolate sponge layered with creamy chocolate frosting.",
     category: "Cake",
     price: 650,
-    image: placeholder,
+    image: "/uploads/productimg/chocolate_cake.jpg",
     bestseller: true,
   },
-
   {
     id: 2,
     name: "Red Velvet Cake",
     description: "Soft red velvet cake with cream cheese frosting.",
     category: "Cake",
     price: 720,
-    image: placeholder,
+    image: "/uploads/productimg/red_velvet_cake.jpg",
     bestseller: true,
   },
-
   {
     id: 3,
     name: "Cheesecake",
     description: "Classic baked cheesecake with a buttery crust.",
     category: "Cake",
     price: 680,
-    image: placeholder,
+    image: "/uploads/productimg/cheesecake.jpg",
     bestseller: false,
   },
-
   {
     id: 4,
     name: "Butter Croissant",
     description: "Flaky buttery croissant baked fresh every morning.",
     category: "Pastry",
     price: 85,
-    image: placeholder,
+    image: "/uploads/productimg/butter_croissant.jpg",
     bestseller: true,
   },
-
   {
     id: 5,
     name: "Cinnamon Roll",
     description: "Soft cinnamon roll topped with cream cheese glaze.",
     category: "Pastry",
     price: 120,
-    image: placeholder,
+    image: "/uploads/productimg/cinnamon_roll.jpg",
     bestseller: false,
   },
-
   {
     id: 6,
     name: "Blueberry Muffin",
     description: "Moist muffin filled with juicy blueberries.",
     category: "Pastry",
     price: 95,
-    image: placeholder,
+    image: "/uploads/productimg/blueberry_muffin.jpg",
     bestseller: false,
   },
-
   {
     id: 7,
     name: "Cheese Bread",
     description: "Soft bread filled with melted cheese.",
     category: "Bread",
     price: 45,
-    image: placeholder,
+    image: "/uploads/productimg/cheese_bread.jpg",
     bestseller: false,
   },
-
   {
     id: 8,
     name: "Spanish Bread",
     description: "Sweet buttery bread with a delicious filling.",
     category: "Bread",
     price: 30,
-    image: placeholder,
+    image: "/uploads/productimg/spanish_bread.jpg",
     bestseller: false,
   },
-
   {
     id: 9,
     name: "Pandesal",
     description: "Freshly baked Filipino breakfast bread.",
     category: "Bread",
     price: 25,
-    image: placeholder,
+    image: "/uploads/productimg/pandesal.jpg",
+    bestseller: false,
+  },
+  {
+    id: 10,
+    name: "Ube Cake",
+    description: "Authentic purple yam chiffon cake with luscious halaya cream.",
+    category: "Cake",
+    price: 900,
+    image: "/uploads/productimg/ube_cake.jpg",
     bestseller: false,
   },
 ];

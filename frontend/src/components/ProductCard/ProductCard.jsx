@@ -5,6 +5,7 @@
  */
 
 import "./ProductCard.css";
+import { resolveProductImage, getProductFallbackImage } from "../../utils/productImages";
 
 function ProductCard({ product, onViewDetails }) {
   const isOutOfStock =
@@ -34,13 +35,12 @@ function ProductCard({ product, onViewDetails }) {
         )}
 
         <img
-          src={product.image || "/uploads/productimg/chocolate_cake.jpg"}
+          src={resolveProductImage(product)}
           alt={product.name}
           className="card-main-image"
           onError={(e) => {
             e.target.onerror = null;
-            e.target.src =
-              "https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=500";
+            e.target.src = getProductFallbackImage(product);
           }}
         />
 

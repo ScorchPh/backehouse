@@ -1,6 +1,7 @@
 import "./Cart.css";
 import { Link } from "react-router-dom";
 import { useCart } from "../../context/CartContext";
+import { resolveProductImage, getProductFallbackImage } from "../../utils/productImages";
 
 function Cart() {
   const {
@@ -38,8 +39,12 @@ function Cart() {
             {cartItems.map((item) => (
               <div className="cart-card" key={item.id}>
                 <img
-                  src={item.image}
+                  src={resolveProductImage(item)}
                   alt={item.name}
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.src = getProductFallbackImage(item);
+                  }}
                 />
 
                 <div className="cart-info">

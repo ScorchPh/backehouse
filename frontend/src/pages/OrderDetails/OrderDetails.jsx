@@ -17,6 +17,7 @@ import "./OrderDetails.css";
 import { useLocation, Link, useSearchParams } from "react-router-dom";
 import { orderService } from "../../services/orderService";
 import { QRCodeSVG } from "qrcode.react";
+import { resolveProductImage, getProductFallbackImage } from "../../utils/productImages";
 
 function OrderDetails() {
   const location = useLocation();
@@ -222,11 +223,11 @@ function OrderDetails() {
                   <div key={item.id || idx} className="item-row">
                     <div className="item-img-box">
                       <img
-                        src={item.image || "/uploads/productimg/chocolate_cake.jpg"}
+                        src={resolveProductImage(item)}
                         alt={item.product_name || item.name}
                         onError={(e) => {
                           e.target.onerror = null;
-                          e.target.src = "https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=500";
+                          e.target.src = getProductFallbackImage(item);
                         }}
                       />
                     </div>
