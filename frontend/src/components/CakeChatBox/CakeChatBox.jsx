@@ -16,6 +16,7 @@
  */
 
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { cakeChatService } from "../../services/cakeChatService";
 import { authService } from "../../services/authService";
 import { orderService } from "../../services/orderService";
@@ -165,6 +166,7 @@ function getStatusClarification(status, cancellationReason) {
 }
 
 function CakeChatBox() {
+  const navigate = useNavigate();
   // 1. All React Hooks (Always called unconditionally in constant order)
   const [currentUser, setCurrentUser] = useState(() => authService.getCurrentUser());
   const [isOpen, setIsOpen] = useState(false);
@@ -493,9 +495,25 @@ function CakeChatBox() {
   // CONDITIONAL RENDER: Executed AFTER all hooks have executed unconditionally
   // ==========================================================================
 
-  // 1. If not logged in (no account / logged out), do not render
+  // 1. If not logged in: Show floating chat button that prompts user to sign in
   if (!currentUser) {
-    return null;
+    return (
+      <div className="cake-chat-wrapper">
+        <button
+          type="button"
+          className="cake-chat-trigger"
+          onClick={() => {
+            navigate("/account?redirect=" + encodeURIComponent(window.location.pathname), {
+              state: { message: "Please sign in or create an account to chat with our master bakers." }
+            });
+          }}
+          title="Sign in to chat with our bakers"
+        >
+          <span className="chat-trigger-icon">💬</span>
+          <span className="chat-trigger-label">Chat with Baker</span>
+        </button>
+      </div>
+    );
   }
 
   // 2. If logged in as ADMIN or STAFF: Show the One-to-Many Chat Manager

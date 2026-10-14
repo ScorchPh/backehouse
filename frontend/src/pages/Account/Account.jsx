@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useSearchParams, useLocation } from "react-router-dom";
 import { authService } from "../../services/authService";
 import DeliveryMapPicker, { POPULAR_AREAS } from "../../components/DeliveryMapPicker/DeliveryMapPicker";
 import catPastries from "../../assets/images/cat_pastries.jpg";
@@ -44,6 +44,19 @@ const BREAD_PASTRY_SLIDES = [
 
 function Account() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const location = useLocation();
+  const redirectUrl = searchParams.get("redirect") || location.state?.redirect || null;
+  const redirectNotice = location.state?.message || (redirectUrl ? "Please sign in or create an account to proceed." : null);
+
+  const handlePostAuthRedirect = (user) => {
+    if (redirectUrl) {
+      setTimeout(() => navigate(redirectUrl), 600);
+    } else if (user?.role === "admin" || user?.role === "staff") {
+      setTimeout(() => navigate("/admin"), 700);
+    }
+  };
+
   const [currentUser, setCurrentUser] = useState(() => authService.getCurrentUser());
   const [isLogin, setIsLogin] = useState(true);
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -203,9 +216,7 @@ function Account() {
         setSuccessMessage(res.message);
         setCurrentUser(res.user);
         populateEditFields(res.user);
-        if (res.user.role === 'admin' || res.user.role === 'staff') {
-          setTimeout(() => navigate('/admin'), 700);
-        }
+        handlePostAuthRedirect(res.user);
       }
     } catch (err) {
       setErrorMessage(err.message || "Invalid login credentials. Please try again.");
@@ -261,9 +272,7 @@ function Account() {
               setSuccessMessage(res.message || "Google sign-in successful!");
               setCurrentUser(res.user);
               populateEditFields(res.user);
-              if (res.user.role === "admin" || res.user.role === "staff") {
-                setTimeout(() => navigate("/admin"), 700);
-              }
+              handlePostAuthRedirect(res.user);
             } else {
               setErrorMessage(res?.message || "Google sign-in failed.");
             }
@@ -311,6 +320,7 @@ function Account() {
         setSuccessMessage(res.message);
         setCurrentUser(res.user);
         populateEditFields(res.user);
+        handlePostAuthRedirect(res.user);
       }
     } catch (err) {
       setErrorMessage(err.message || "Registration failed.");
@@ -877,6 +887,24 @@ function Account() {
             </div>
           </div>
           <div className="account-right">
+            {redirectNotice && !currentUser && (
+              <div style={{
+                background: "#FFFBEB",
+                border: "1px solid #FDE68A",
+                color: "#92400E",
+                padding: "12px 16px",
+                borderRadius: "10px",
+                marginBottom: "20px",
+                fontSize: "0.92rem",
+                fontWeight: "600",
+                display: "flex",
+                alignItems: "center",
+                gap: "8px"
+              }}>
+                <span>🔐</span>
+                <span>{redirectNotice}</span>
+              </div>
+            )}
             {isLogin ? (
             <form onSubmit={handleLoginSubmit}>
               <h2>Welcome Back</h2>

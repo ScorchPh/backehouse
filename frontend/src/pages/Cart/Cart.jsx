@@ -1,6 +1,7 @@
 import "./Cart.css";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useCart } from "../../context/CartContext";
+import { authService } from "../../services/authService";
 import { resolveProductImage, getProductFallbackImage } from "../../utils/productImages";
 
 function Cart() {
@@ -132,12 +133,29 @@ function Cart() {
               <h2>Order Summary</h2>
               <p>Total Items: {totalItems}</p>
               <h3>Total: ₱{Number(totalPrice).toLocaleString()}</h3>
-              <Link
-                to="/checkout"
-                className="checkout-btn"
-              >
-                Proceed to Checkout
-              </Link>
+              {authService.getCurrentUser() ? (
+                <Link
+                  to="/checkout"
+                  className="checkout-btn"
+                >
+                  Proceed to Checkout
+                </Link>
+              ) : (
+                <>
+                  <button
+                    type="button"
+                    className="checkout-btn"
+                    onClick={() => navigate("/account?redirect=/checkout", {
+                      state: { message: "Please sign in or create an account to proceed to checkout." }
+                    })}
+                  >
+                    🔐 Sign In to Checkout
+                  </button>
+                  <p style={{ fontSize: "0.82rem", color: "#8C6A4F", textAlign: "center", marginTop: "10px", lineHeight: "1.4" }}>
+                    An account is required to place and track bakery orders.
+                  </p>
+                </>
+              )}
             </div>
           </div>
         </div>

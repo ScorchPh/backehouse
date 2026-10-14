@@ -17,8 +17,10 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useCart } from "../../context/CartContext";
+import { authService } from "../../services/authService";
 import { customizerService } from "../../services/customizerService";
 import AnalogTimePicker from "../../components/AnalogTimePicker/AnalogTimePicker";
+import StatusModal from "../../components/StatusModal/StatusModal";
 import "./Personalize.css";
 
 import customCakeImage from "../../assets/images/custom_cake.jpg";
@@ -39,6 +41,7 @@ function Personalize() {
   const [color, setColor] = useState("White");
   const [message, setMessage] = useState("");
   const [instructions, setInstructions] = useState("");
+  const [showAuthModal, setShowAuthModal] = useState(false);
 
   // Default advance date calculation based on admin advance_days
   const getMinDate = (days = 1) => {
@@ -105,6 +108,12 @@ function Personalize() {
   const totalPrice = basePrice + sizePriceModifier + flavorPriceModifier + shapePriceModifier;
 
   const handleAddToCart = () => {
+    const currentUser = authService.getCurrentUser();
+    if (!currentUser) {
+      setShowAuthModal(true);
+      return;
+    }
+
     const customCake = {
       id: Date.now(),
       name: `${occasion} Custom Cake`,
@@ -335,6 +344,23 @@ function Personalize() {
           </div>
         </div>
       )}
+
+      <StatusModal
+        isOpen={showAuthModal}
+        type="warning"
+        title="Account Required to Order Custom Cakes"
+        message="Please sign in or create an account before ordering a custom cake. An account allows our master bakers to link your cake design, chat with you in real time about your custom decorations, and update your baking schedule."
+        primaryText="Sign In / Register"
+        secondaryText="Cancel"
+        onPrimary={() => {
+          setShowAuthModal(false);
+          navigate("/account?redirect=/personalize", {
+            state: { message: "Please sign in or register to order and schedule your custom cake." }
+          });
+        }}
+        onSecondary={() => setShowAuthModal(false)}
+        onClose={() => setShowAuthModal(false)}
+      />
     </div>
   );
 }

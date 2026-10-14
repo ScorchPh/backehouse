@@ -348,6 +348,48 @@ function Checkout() {
     }
   };
 
+  if (!currentUser) {
+    return (
+      <div className="checkout">
+        <h1>Checkout</h1>
+        <section className="checkout-section" style={{ textAlign: "center", padding: "50px 24px" }}>
+          <div style={{ fontSize: "56px", marginBottom: "16px" }}>🔐</div>
+          <h2 style={{ fontSize: "1.75rem", color: "#6B4226", marginBottom: "12px" }}>
+            Account Required to Checkout
+          </h2>
+          <p style={{ color: "#78583E", maxWidth: "480px", margin: "0 auto 24px", lineHeight: "1.6", fontSize: "1rem" }}>
+            Please sign in or create an account before completing your order.
+            Having an account allows you to track your delivery in real-time, view official receipts, and consult directly with our bakers.
+          </p>
+          <div style={{ display: "flex", gap: "14px", justifyContent: "center", flexWrap: "wrap" }}>
+            <Link
+              to="/account?redirect=/checkout"
+              className="place-order-btn"
+              style={{ display: "inline-block", width: "auto", padding: "14px 28px", textDecoration: "none" }}
+            >
+              Sign In / Register
+            </Link>
+            <Link
+              to="/cart"
+              style={{
+                display: "inline-block",
+                padding: "14px 24px",
+                background: "#EBE3D8",
+                color: "#6B4226",
+                borderRadius: "12px",
+                fontWeight: "700",
+                textDecoration: "none",
+                alignSelf: "center"
+              }}
+            >
+              ← Return to Cart
+            </Link>
+          </div>
+        </section>
+      </div>
+    );
+  }
+
   if (cartItems.length === 0) {
     return (
       <div className="checkout" style={{ textAlign: "center", padding: "80px 20px" }}>
