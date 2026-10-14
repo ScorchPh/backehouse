@@ -163,14 +163,6 @@ function AdminLayout() {
               </Link>
 
               <Link
-                to="/admin/reports"
-                className={`bakesmart-nav-item ${isActive("/admin/reports") ? "active" : ""}`}
-              >
-                <span className="nav-icon">📊</span>
-                <span className="nav-label">Reports & Analytics</span>
-              </Link>
-
-              <Link
                 to="/admin/settings"
                 className={`bakesmart-nav-item ${isActive("/admin/settings") ? "active" : ""}`}
               >

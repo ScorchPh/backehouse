@@ -60,7 +60,7 @@ function AppContent() {
           <Route path="customizer" element={<CakeCustomizer />} />
           <Route path="cake-customizer" element={<CakeCustomizer />} />
           <Route path="customers" element={<Customers />} />
-          <Route path="reports" element={<Reports />} />
+          <Route path="reports" element={<Dashboard />} />
           <Route path="settings" element={<Settings />} />
         </Route>
       </Routes>
