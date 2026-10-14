@@ -492,7 +492,8 @@ function Queue() {
 
                     <div className="queue-status-pill-box">
                       <span className={`queue-status-badge status-${(order.status || "pending").toLowerCase().replace(/\s+/g, "-")}`}>
-                        ● {order.status || "Pending"}
+                        <span className="queue-status-dot"></span>
+                        {order.status || "Pending"}
                       </span>
                     </div>
                   </div>

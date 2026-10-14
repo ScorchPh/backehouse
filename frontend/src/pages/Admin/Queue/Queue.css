@@ -485,32 +485,73 @@
   color: #1E40AF;
 }
 
+.queue-status-pill-box {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-shrink: 0;
+}
+
 .queue-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   padding: 4px 10px;
   border-radius: 12px;
   font-size: 0.78rem;
   font-weight: 800;
+  white-space: nowrap;
+  line-height: 1.2;
+}
+
+.queue-status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
 }
 
 .queue-status-badge.status-pending {
   background: #FEF3C7;
   color: #B45309;
+  border: 1px solid #FCD34D;
+}
+
+.queue-status-badge.status-pending .queue-status-dot {
+  background: #D97706;
 }
 
 .queue-status-badge.status-confirmed {
   background: #DBEAFE;
   color: #1D4ED8;
+  border: 1px solid #BFDBFE;
+}
+
+.queue-status-badge.status-confirmed .queue-status-dot {
+  background: #2563EB;
 }
 
 .queue-status-badge.status-preparing {
   background: #F3E8FF;
   color: #6B21A8;
+  border: 1px solid #E9D5FF;
+}
+
+.queue-status-badge.status-preparing .queue-status-dot {
+  background: #9333EA;
 }
 
 .queue-status-badge.status-ready-for-pickup,
 .queue-status-badge.status-for-delivery {
   background: #D1FAE5;
   color: #047857;
+  border: 1px solid #A7F3D0;
+}
+
+.queue-status-badge.status-ready-for-pickup .queue-status-dot,
+.queue-status-badge.status-for-delivery .queue-status-dot {
+  background: #10B981;
 }
 
 /* Scheduled Banner in Card */
