@@ -168,7 +168,7 @@ function CakeChatBox() {
   // 1. All React Hooks (Always called unconditionally in constant order)
   const [currentUser, setCurrentUser] = useState(() => authService.getCurrentUser());
   const [isOpen, setIsOpen] = useState(false);
-  const [isOrderCollapsed, setIsOrderCollapsed] = useState(false);
+  const [isOrderCollapsed, setIsOrderCollapsed] = useState(true);
   const [isExpandedSize, setIsExpandedSize] = useState(false);
   const [messages, setMessages] = useState([]);
   const [adminThreads, setAdminThreads] = useState([]);
@@ -607,57 +607,59 @@ function CakeChatBox() {
                   }}
                   aria-expanded={!isOrderCollapsed}
                 >
-                  {isOrderCollapsed ? "▾ Show Details" : "▴ Collapse"}
+                  {isOrderCollapsed ? "▾ Show Status & Details" : "▴ Collapse"}
                 </button>
               </div>
 
-              {/* Order Status Clarification Callout */}
-              <div className={`order-status-card ${statusClarification.badgeClass}`}>
-                <div className="status-card-header">
-                  <span className="status-card-icon">{statusClarification.icon}</span>
-                  <div className="status-card-titles">
-                    <strong>{statusClarification.title}</strong>
-                    <span className="status-sub-label">Current Fulfillment Status</span>
-                  </div>
-                </div>
-
-                <p className="status-card-desc">{statusClarification.description}</p>
-
-                {/* Progress Pipeline Stepper (for active orders) */}
-                {!statusClarification.isDenied && (
-                  <div className="status-stepper-row">
-                    <div className={`step-node ${statusClarification.step >= 1 ? "step-active" : ""}`}>
-                      <span className="step-dot">{statusClarification.step > 1 ? "✓" : "1"}</span>
-                      <span className="step-name">Received</span>
-                    </div>
-                    <div className={`step-line ${statusClarification.step >= 2 ? "line-active" : ""}`}></div>
-                    <div className={`step-node ${statusClarification.step >= 2 ? "step-active" : ""}`}>
-                      <span className="step-dot">{statusClarification.step > 2 ? "✓" : "2"}</span>
-                      <span className="step-name">Accepted</span>
-                    </div>
-                    <div className={`step-line ${statusClarification.step >= 3 ? "line-active" : ""}`}></div>
-                    <div className={`step-node ${statusClarification.step >= 3 ? "step-active" : ""}`}>
-                      <span className="step-dot">{statusClarification.step > 3 ? "✓" : "3"}</span>
-                      <span className="step-name">Baking</span>
-                    </div>
-                    <div className={`step-line ${statusClarification.step >= 4 ? "line-active" : ""}`}></div>
-                    <div className={`step-node ${statusClarification.step >= 4 ? "step-active" : ""}`}>
-                      <span className="step-dot">{statusClarification.step > 4 ? "✓" : "4"}</span>
-                      <span className="step-name">Ready</span>
-                    </div>
-                  </div>
-                )}
-
-                {/* Special Guidance / Clarification Action Hint */}
-                {statusClarification.actionHint && (
-                  <div className="status-card-hint">
-                    {statusClarification.actionHint}
-                  </div>
-                )}
-              </div>
-
+              {/* Collapsible Content: Order Status Card & Specifications */}
               {!isOrderCollapsed && (
-                <div className="banner-details">
+                <>
+                  {/* Order Status Clarification Callout */}
+                  <div className={`order-status-card ${statusClarification.badgeClass}`}>
+                    <div className="status-card-header">
+                      <span className="status-card-icon">{statusClarification.icon}</span>
+                      <div className="status-card-titles">
+                        <strong>{statusClarification.title}</strong>
+                        <span className="status-sub-label">Current Fulfillment Status</span>
+                      </div>
+                    </div>
+
+                    <p className="status-card-desc">{statusClarification.description}</p>
+
+                    {/* Progress Pipeline Stepper (for active orders) */}
+                    {!statusClarification.isDenied && (
+                      <div className="status-stepper-row">
+                        <div className={`step-node ${statusClarification.step >= 1 ? "step-active" : ""}`}>
+                          <span className="step-dot">{statusClarification.step > 1 ? "✓" : "1"}</span>
+                          <span className="step-name">Received</span>
+                        </div>
+                        <div className={`step-line ${statusClarification.step >= 2 ? "line-active" : ""}`}></div>
+                        <div className={`step-node ${statusClarification.step >= 2 ? "step-active" : ""}`}>
+                          <span className="step-dot">{statusClarification.step > 2 ? "✓" : "2"}</span>
+                          <span className="step-name">Accepted</span>
+                        </div>
+                        <div className={`step-line ${statusClarification.step >= 3 ? "line-active" : ""}`}></div>
+                        <div className={`step-node ${statusClarification.step >= 3 ? "step-active" : ""}`}>
+                          <span className="step-dot">{statusClarification.step > 3 ? "✓" : "3"}</span>
+                          <span className="step-name">Baking</span>
+                        </div>
+                        <div className={`step-line ${statusClarification.step >= 4 ? "line-active" : ""}`}></div>
+                        <div className={`step-node ${statusClarification.step >= 4 ? "step-active" : ""}`}>
+                          <span className="step-dot">{statusClarification.step > 4 ? "✓" : "4"}</span>
+                          <span className="step-name">Ready</span>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Special Guidance / Clarification Action Hint */}
+                    {statusClarification.actionHint && (
+                      <div className="status-card-hint">
+                        {statusClarification.actionHint}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="banner-details">
                   <p><strong>Cake:</strong> {detectedOrder?.cakeName || purchasedCake?.cakeName || liveOrderDetails?.items?.[0]?.product_name || "Custom Cake"}</p>
                   {(detectedOrder?.specs?.length > 0 || purchasedCake?.size || liveOrderDetails?.items?.[0]?.customization) && (
                     <p>
@@ -689,7 +691,8 @@ function CakeChatBox() {
                         : ""}
                     </p>
                   )}
-                </div>
+                  </div>
+                </>
               )}
             </div>
           ) : (

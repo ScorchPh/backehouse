@@ -1261,3 +1261,80 @@
     display: none;
   }
 }
+
+/* Full Order & Fulfillment Details inside Cake Spec Card */
+.cake-order-fulfillment-details {
+  margin-top: 10px;
+  padding: 10px 12px;
+  background: #FFFDF9;
+  border: 1px solid #EADBCC;
+  border-radius: 8px;
+}
+
+.fulfillment-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 10px;
+}
+
+.fulfillment-detail-item {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.fulfillment-detail-item.full-width {
+  grid-column: 1 / -1;
+}
+
+.detail-item-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #8C6D53;
+}
+
+.detail-item-value {
+  font-size: 0.86rem;
+  color: #37281D;
+  font-weight: 600;
+}
+
+.detail-item-value.highlight-date {
+  color: #92400E;
+  font-weight: 700;
+}
+
+.detail-item-value.address-text {
+  font-size: 0.83rem;
+  color: #4B382A;
+  line-height: 1.35;
+  background: #F8F3ED;
+  padding: 4px 8px;
+  border-radius: 5px;
+  border-left: 3px solid #6B4226;
+}
+
+.fulfillment-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  width: fit-content;
+}
+
+.fulfillment-badge.badge-pickup {
+  background: #E0E7FF;
+  color: #3730A3;
+  border: 1px solid #C7D2FE;
+}
+
+.fulfillment-badge.badge-delivery {
+  background: #DCFCE7;
+  color: #166534;
+  border: 1px solid #BBF7D0;
+}

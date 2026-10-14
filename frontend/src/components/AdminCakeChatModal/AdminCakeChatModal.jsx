@@ -156,7 +156,8 @@ function AdminCakeChatModal({ isOpen, onClose }) {
             ...prev,
             [oid]: {
               status: res.order.status,
-              cancellation_reason: res.order.cancellation_reason || ""
+              cancellation_reason: res.order.cancellation_reason || "",
+              order: res.order
             }
           }));
         }
@@ -681,9 +682,18 @@ function AdminCakeChatModal({ isOpen, onClose }) {
                                   </div>
                                 )}
 
-                                {/* NOTE TO BE REVIEWED LATER: Live Order Status & Baker Decision Action Bar */}
+                                {/* Live Order Status, Fulfillment Details & Baker Decision Action Bar */}
                                 {cakeOrder.orderId && (() => {
                                   const orderInfo = orderStatuses[cakeOrder.orderId] || null;
+                                  const orderDetails = orderInfo?.order || null;
+                                  const isPickup = orderDetails?.fulfillment_type?.toLowerCase() === "pickup" || 
+                                    orderDetails?.delivery_address?.toLowerCase().includes("store pickup") || 
+                                    orderDetails?.delivery_address?.toLowerCase().includes("pickup");
+                                  
+                                  const customItem = orderDetails?.items?.find((it) => it.customization) || orderDetails?.items?.[0];
+                                  const schedDate = orderDetails?.scheduled_date || customItem?.customization?.scheduled_date || customItem?.scheduled_date;
+                                  const schedTime = orderDetails?.scheduled_time || customItem?.customization?.scheduled_time || customItem?.scheduled_time;
+
                                   const normStatus = (orderInfo?.status || "Pending").toLowerCase().trim();
                                   const isAccepted = normStatus === "confirmed" || normStatus === "accepted";
                                   const isDenied = normStatus === "denied" || normStatus === "cancelled";
@@ -692,18 +702,66 @@ function AdminCakeChatModal({ isOpen, onClose }) {
                                   const isCompleted = normStatus === "completed";
 
                                   return (
-                                    <div className="cake-status-baker-section">
-                                      <div className="cake-status-row">
-                                        <span className="status-title-label">Live Fulfillment Status:</span>
-                                        <span className={`baker-status-pill status-${normStatus.replace(/\s+/g, '-')}`}>
-                                          {isAccepted && "✅ Accepted & Confirmed"}
-                                          {isDenied && "❌ Denied / Declined"}
-                                          {isPreparing && "👨‍🍳 In Kitchen (Baking)"}
-                                          {isReady && "📦 Ready for Pickup"}
-                                          {isCompleted && "🎉 Order Completed"}
-                                          {!isAccepted && !isDenied && !isPreparing && !isReady && !isCompleted && "⏳ Pending Baker Review"}
-                                        </span>
+                                    <>
+                                      {/* Full Order & Fulfillment Details */}
+                                      <div className="cake-order-fulfillment-details">
+                                        <div className="fulfillment-detail-grid">
+                                          {/* Method: Pickup vs Delivery */}
+                                          <div className="fulfillment-detail-item">
+                                            <span className="detail-item-label">🚚 Fulfillment Method</span>
+                                            <span className={`fulfillment-badge ${isPickup ? "badge-pickup" : "badge-delivery"}`}>
+                                              {isPickup ? "🏪 Store Pickup" : "🛵 Home Delivery"}
+                                            </span>
+                                          </div>
+
+                                          {/* Event / Needed Date */}
+                                          <div className="fulfillment-detail-item">
+                                            <span className="detail-item-label">📅 Event / Needed Date</span>
+                                            <span className="detail-item-value highlight-date">
+                                              {schedDate ? `${schedDate}${schedTime ? ` @ ${schedTime}` : ""}` : "Standard Lead Time"}
+                                            </span>
+                                          </div>
+
+                                          {/* Delivery Address or Pickup Branch */}
+                                          <div className="fulfillment-detail-item full-width">
+                                            <span className="detail-item-label">{isPickup ? "📍 Pickup Location" : "📍 Delivery Address"}</span>
+                                            <span className="detail-item-value address-text">
+                                              {orderDetails?.delivery_address || (isPickup ? "Store Pickup (Poblacion, Cordova Branch)" : "Address provided at checkout")}
+                                            </span>
+                                          </div>
+
+                                          {/* Customer Contact */}
+                                          {orderDetails?.customer_contact && (
+                                            <div className="fulfillment-detail-item">
+                                              <span className="detail-item-label">📞 Customer Contact</span>
+                                              <span className="detail-item-value">{orderDetails.customer_contact}</span>
+                                            </div>
+                                          )}
+
+                                          {/* Payment Method & Total */}
+                                          {orderDetails?.total && (
+                                            <div className="fulfillment-detail-item">
+                                              <span className="detail-item-label">💳 Payment / Total</span>
+                                              <span className="detail-item-value">
+                                                {orderDetails.payment_method || "Payment on delivery/pickup"} • <strong>₱{parseFloat(orderDetails.total).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>
+                                              </span>
+                                            </div>
+                                          )}
+                                        </div>
                                       </div>
+
+                                      <div className="cake-status-baker-section">
+                                        <div className="cake-status-row">
+                                          <span className="status-title-label">Live Fulfillment Status:</span>
+                                          <span className={`baker-status-pill status-${normStatus.replace(/\s+/g, '-')}`}>
+                                            {isAccepted && "✅ Accepted & Confirmed"}
+                                            {isDenied && "❌ Denied / Declined"}
+                                            {isPreparing && "👨‍🍳 In Kitchen (Baking)"}
+                                            {isReady && "📦 Ready for Pickup"}
+                                            {isCompleted && "🎉 Order Completed"}
+                                            {!isAccepted && !isDenied && !isPreparing && !isReady && !isCompleted && "⏳ Pending Baker Review"}
+                                          </span>
+                                        </div>
 
                                       {isDenied && orderInfo?.cancellation_reason && (
                                         <div className="baker-denial-reason-box">
@@ -773,7 +831,8 @@ function AdminCakeChatModal({ isOpen, onClose }) {
                                           </button>
                                         )}
                                       </div>
-                                    </div>
+                                      </div>
+                                    </>
                                   );
                                 })()}
                               </div>
