@@ -55,12 +55,15 @@ if ($pdo) {
     // ------------------------------------------------------------------------
     // CASE A: Live MySQL / TiDB Cloud Connection
     // ------------------------------------------------------------------------
+    $userId = !empty($data['user_id']) ? intval($data['user_id']) : null;
+
     try {
         $stmt = $pdo->prepare("
-            INSERT INTO messages (name, email, subject, message) 
-            VALUES (:name, :email, :subject, :message)
+            INSERT INTO messages (user_id, name, email, subject, message) 
+            VALUES (:user_id, :name, :email, :subject, :message)
         ");
         $stmt->execute([
+            'user_id' => $userId,
             'name'    => $name,
             'email'   => $email,
             'subject' => $subject,

@@ -149,7 +149,8 @@ CREATE TABLE IF NOT EXISTS `order_items` (
     `price` DECIMAL(10, 2) NOT NULL,
     `quantity` INT NOT NULL DEFAULT 1,
     `customization` JSON NULL,
-    FOREIGN KEY (`order_id`) REFERENCES `orders`(`id`) ON DELETE CASCADE
+    FOREIGN KEY (`order_id`) REFERENCES `orders`(`id`) ON DELETE CASCADE,
+    FOREIGN KEY (`product_id`) REFERENCES `products`(`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 ");
 echo "<p>✅ Table <strong>order_items</strong> created.</p>";
@@ -178,11 +179,13 @@ echo "<p>✅ Table <strong>custom_cakes</strong> created.</p>";
 $pdo->exec("
 CREATE TABLE IF NOT EXISTS `messages` (
     `id` INT AUTO_INCREMENT PRIMARY KEY,
+    `user_id` INT NULL,
     `name` VARCHAR(150) NOT NULL,
     `email` VARCHAR(150) NOT NULL,
     `subject` VARCHAR(255) NOT NULL,
     `message` TEXT NOT NULL,
-    `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 ");
 echo "<p>✅ Table <strong>messages</strong> created.</p>";
