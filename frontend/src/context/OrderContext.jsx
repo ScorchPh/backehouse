@@ -22,10 +22,12 @@ export function OrderProvider({ children }) {
   /**
    * Fetch orders for current active user or store
    */
-  const refreshOrders = useCallback(async () => {
+  const refreshOrders = useCallback(async (isBackground = false) => {
     const user = authService.getCurrentUser();
     try {
-      setLoading(true);
+      if (!isBackground && orders.length === 0) {
+        setLoading(true);
+      }
       const params = {};
       if (user && user.role === 'customer') {
         params.userId = user.id;
@@ -39,34 +41,34 @@ export function OrderProvider({ children }) {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [orders.length]);
 
   // Fetch orders on initial load, auth changes, order updates, and periodic sync
   useEffect(() => {
-    refreshOrders();
+    refreshOrders(orders.length > 0);
 
     const handleAuthChange = () => {
-      refreshOrders();
+      refreshOrders(false);
     };
 
     const handleOrdersUpdate = () => {
-      refreshOrders();
+      refreshOrders(true);
     };
 
     window.addEventListener("authChange", handleAuthChange);
     window.addEventListener("ordersUpdated", handleOrdersUpdate);
 
-    // Auto-refresh periodically (every 15s) for live order updates
+    // Auto-refresh periodically (every 45s) for live order updates smoothly in background
     const timer = setInterval(() => {
-      refreshOrders();
-    }, 15000);
+      refreshOrders(true);
+    }, 45000);
 
     return () => {
       window.removeEventListener("authChange", handleAuthChange);
       window.removeEventListener("ordersUpdated", handleOrdersUpdate);
       clearInterval(timer);
     };
-  }, [refreshOrders]);
+  }, [refreshOrders, orders.length]);
 
   /**
    * Add a locally placed order or update state after API submission

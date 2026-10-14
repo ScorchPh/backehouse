@@ -276,20 +276,20 @@ function CakeChatBox() {
     }
   }, [currentUser, isAdminOrStaff]);
 
-  // Periodic polling every 3.5 seconds
+  // Periodic polling every 4 seconds only while the chat window is actually open
   useEffect(() => {
-    if (!currentUser) return;
+    if (!currentUser || !isOpen) return;
 
     if (isAdminOrStaff) {
       fetchAdminThreads();
-      const interval = setInterval(fetchAdminThreads, 3500);
+      const interval = setInterval(fetchAdminThreads, 4000);
       return () => clearInterval(interval);
     } else {
       fetchCustomerMessages();
-      const interval = setInterval(fetchCustomerMessages, 3500);
+      const interval = setInterval(fetchCustomerMessages, 4000);
       return () => clearInterval(interval);
     }
-  }, [currentUser, isAdminOrStaff, fetchAdminThreads, fetchCustomerMessages]);
+  }, [currentUser, isOpen, isAdminOrStaff, fetchAdminThreads, fetchCustomerMessages]);
 
   // Handle scroll detection in messages container
   const handleMessagesScroll = () => {

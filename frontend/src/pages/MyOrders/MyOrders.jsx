@@ -18,15 +18,31 @@ import { useOrders } from "../../context/OrderContext";
 function MyOrders() {
   const [currentUser] = useState(() => authService.getCurrentUser());
   const { orders: contextOrders } = useOrders();
-  const [ordersList, setOrdersList] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [ordersList, setOrdersList] = useState(() => {
+    try {
+      const cached = localStorage.getItem("bh_customer_orders_cache");
+      return cached ? JSON.parse(cached) : [];
+    } catch {
+      return [];
+    }
+  });
+  const [loading, setLoading] = useState(() => {
+    try {
+      const cached = localStorage.getItem("bh_customer_orders_cache");
+      return !cached || JSON.parse(cached).length === 0;
+    } catch {
+      return true;
+    }
+  });
 
   useEffect(() => {
     let isMounted = true;
 
-    async function loadCustomerOrders() {
+    async function loadCustomerOrders(isBackground = false) {
       try {
-        setLoading(true);
+        if (!isBackground && ordersList.length === 0) {
+          setLoading(true);
+        }
         const params = {};
         if (currentUser && currentUser.id) {
           params.userId = currentUser.id;
@@ -37,8 +53,12 @@ function MyOrders() {
         if (isMounted) {
           if (res && res.orders && res.orders.length > 0) {
             setOrdersList(res.orders);
+            try {
+              localStorage.setItem("bh_customer_orders_cache", JSON.stringify(res.orders));
+            } catch (e) {
+              console.warn("Could not cache customer orders:", e);
+            }
           } else if (contextOrders && contextOrders.length > 0) {
-            // Fallback to local session orders if API has no orders for this session
             setOrdersList(contextOrders);
           } else {
             setOrdersList([]);
@@ -46,7 +66,7 @@ function MyOrders() {
         }
       } catch (err) {
         console.warn("Could not fetch orders from API, using local context:", err);
-        if (isMounted) {
+        if (isMounted && ordersList.length === 0) {
           setOrdersList(contextOrders || []);
         }
       } finally {
@@ -56,12 +76,18 @@ function MyOrders() {
       }
     }
 
-    loadCustomerOrders();
+    loadCustomerOrders(ordersList.length > 0);
+
+    const handleUpdate = () => {
+      loadCustomerOrders(true);
+    };
+    window.addEventListener("ordersUpdated", handleUpdate);
 
     return () => {
       isMounted = false;
+      window.removeEventListener("ordersUpdated", handleUpdate);
     };
-  }, [currentUser?.id, contextOrders]);
+  }, [currentUser?.id]);
 
   return (
     <div className="orders-page">
