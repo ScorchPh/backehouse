@@ -22,12 +22,15 @@ header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
 // Specify allowed headers sent by client (e.g. Content-Type for JSON payloads)
 header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With");
 
+// Cache preflight OPTIONS requests for 24 hours (86400 seconds) so the browser doesn't send OPTIONS on every single fetch
+header("Access-Control-Max-Age: 86400");
+
 // Set default response Content-Type to JSON for API responses
 header("Content-Type: application/json; charset=UTF-8");
 
 // Handle HTTP preflight OPTIONS requests immediately
 if (isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    http_response_code(200);
+    http_response_code(204);
     exit();
 }
 ?>

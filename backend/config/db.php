@@ -114,10 +114,11 @@ function getDBConnection() {
 
         $pdo = new PDO($dsn, DB_USER, DB_PASS, $options);
 
-        // Self-healing schema auto-migration for cloud databases (Render / TiDB / Aiven)
-        static $schemaMigrated = false;
-        if (!$schemaMigrated) {
-            $schemaMigrated = true;
+        // Self-healing schema auto-migration: runs once per deploy, not on every HTTP request!
+        $lockFile = sys_get_temp_dir() . '/bakehouse_schema_migrated.lock';
+        $forceMigrate = isset($_GET['migrate']) && ($_GET['migrate'] === '1' || $_GET['migrate'] === 'true');
+        if ($forceMigrate || !file_exists($lockFile)) {
+            @touch($lockFile);
             $migrations = [
                 "ALTER TABLE `users` ADD COLUMN `google_id` VARCHAR(100) NULL UNIQUE",
                 "ALTER TABLE `users` ADD COLUMN `avatar` VARCHAR(500) NULL",
@@ -139,7 +140,7 @@ function getDBConnection() {
                 } catch (Exception $ignored) {}
             }
 
-            // Ensure demo accounts always have valid bcrypt hash for '1234'
+            // Ensure demo accounts have valid bcrypt hash for '1234'
             try {
                 $demoHash = password_hash('1234', PASSWORD_BCRYPT);
                 $pdo->exec("UPDATE `users` SET `password` = '{$demoHash}' WHERE `username` IN ('admin', 'staff', 'customer')");

@@ -16,22 +16,45 @@ import "./Orders.css";
 import { orderService } from "../../../services/orderService";
 
 function Orders() {
-  const [orders, setOrders] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [orders, setOrders] = useState(() => {
+    try {
+      const cached = localStorage.getItem("bh_admin_orders_cache");
+      return cached ? JSON.parse(cached) : [];
+    } catch {
+      return [];
+    }
+  });
+  const [loading, setLoading] = useState(() => {
+    try {
+      const cached = localStorage.getItem("bh_admin_orders_cache");
+      return !cached || JSON.parse(cached).length === 0;
+    } catch {
+      return true;
+    }
+  });
   const [statusFilter, setStatusFilter] = useState("all");
   const [fulfillmentFilter, setFulfillmentFilter] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedOrder, setSelectedOrder] = useState(null);
 
-  const fetchOrders = async () => {
+  const fetchOrders = async (isBackground = false) => {
     try {
-      setLoading(true);
+      if (!isBackground && orders.length === 0) {
+        setLoading(true);
+      }
       const res = await orderService.getOrders({
         status: statusFilter,
         search: searchTerm,
       });
       if (res && res.orders) {
         setOrders(res.orders);
+        if (statusFilter === "all" && !searchTerm) {
+          try {
+            localStorage.setItem("bh_admin_orders_cache", JSON.stringify(res.orders));
+          } catch (e) {
+            console.warn("Could not cache orders in localStorage:", e);
+          }
+        }
       }
     } catch (err) {
       console.error("Failed to fetch orders archive:", err);
@@ -41,10 +64,11 @@ function Orders() {
   };
 
   useEffect(() => {
-    fetchOrders();
+    const hasInitialData = orders.length > 0 && statusFilter === "all" && !searchTerm;
+    fetchOrders(hasInitialData);
 
     const handleOrdersUpdate = () => {
-      fetchOrders();
+      fetchOrders(true);
     };
     window.addEventListener("ordersUpdated", handleOrdersUpdate);
     return () => window.removeEventListener("ordersUpdated", handleOrdersUpdate);

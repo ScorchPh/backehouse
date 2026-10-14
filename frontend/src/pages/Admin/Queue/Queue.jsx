@@ -27,8 +27,22 @@ const PRESET_DENIAL_REASONS = [
 ];
 
 function Queue() {
-  const [orders, setOrders] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [orders, setOrders] = useState(() => {
+    try {
+      const cached = localStorage.getItem("bh_admin_queue_cache");
+      return cached ? JSON.parse(cached) : [];
+    } catch {
+      return [];
+    }
+  });
+  const [loading, setLoading] = useState(() => {
+    try {
+      const cached = localStorage.getItem("bh_admin_queue_cache");
+      return !cached || JSON.parse(cached).length === 0;
+    } catch {
+      return true;
+    }
+  });
   const [activeQueueTab, setActiveQueueTab] = useState("today"); // 'today' vs 'scheduled'
   const [updatingId, setUpdatingId] = useState(null);
   const [selectedOrder, setSelectedOrder] = useState(null);
@@ -39,12 +53,19 @@ function Queue() {
   const [customReasonText, setCustomReasonText] = useState("");
   const [isSubmittingDenial, setIsSubmittingDenial] = useState(false);
 
-  const fetchOrders = async () => {
+  const fetchOrders = async (isBackground = false) => {
     try {
-      setLoading(true);
+      if (!isBackground && orders.length === 0) {
+        setLoading(true);
+      }
       const res = await orderService.getOrders();
       if (res && res.orders) {
         setOrders(res.orders);
+        try {
+          localStorage.setItem("bh_admin_queue_cache", JSON.stringify(res.orders));
+        } catch (e) {
+          console.warn("Could not cache orders in localStorage:", e);
+        }
       }
     } catch (err) {
       console.error("Failed to fetch kitchen queue:", err);
@@ -54,13 +75,13 @@ function Queue() {
   };
 
   useEffect(() => {
-    fetchOrders();
+    fetchOrders(orders.length > 0);
     const handleOrdersUpdate = () => {
-      fetchOrders();
+      fetchOrders(true);
     };
     window.addEventListener("ordersUpdated", handleOrdersUpdate);
-    // Auto-refresh queue every 30 seconds for live kitchen operations
-    const interval = setInterval(fetchOrders, 30000);
+    // Auto-refresh queue every 30 seconds for live kitchen operations seamlessly in background
+    const interval = setInterval(() => fetchOrders(true), 30000);
     return () => {
       window.removeEventListener("ordersUpdated", handleOrdersUpdate);
       clearInterval(interval);

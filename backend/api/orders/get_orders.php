@@ -53,28 +53,12 @@ if ($pdo) {
     // CASE A: Live MySQL / TiDB Cloud Connection
     // ------------------------------------------------------------------------
     try {
-        // Auto-ensure cancellation_reason column exists and gracefully detect it
-        $hasCancellationReason = false;
-        try {
-            $cols = $pdo->query("SHOW COLUMNS FROM orders LIKE 'cancellation_reason'")->fetchAll();
-            if (!empty($cols)) {
-                $hasCancellationReason = true;
-            } else {
-                $pdo->exec("ALTER TABLE orders ADD COLUMN cancellation_reason TEXT NULL");
-                $hasCancellationReason = true;
-            }
-        } catch (Exception $e) {}
-
-        $cancellationField = $hasCancellationReason 
-            ? "COALESCE(o.cancellation_reason, '') as cancellation_reason," 
-            : "'' as cancellation_reason,";
-
         // Build base SQL query. We use 'WHERE 1=1' as a clean SQL design pattern
         // allowing us to dynamically append 'AND' conditions below without syntax errors.
         $sql = "
             SELECT o.id, o.user_id, o.customer_name, o.customer_contact, o.delivery_address, 
                    o.payment_method, o.subtotal, o.delivery_fee, o.total, o.status, 
-                   {$cancellationField}
+                   COALESCE(o.cancellation_reason, '') as cancellation_reason,
                    o.created_at,
                    DATE_FORMAT(o.created_at, '%M %d, %Y') as formatted_date
             FROM orders o
@@ -107,43 +91,44 @@ if ($pdo) {
         $stmt->execute($params);
         $orders = $stmt->fetchAll();
 
-        // Prepared statement to fetch the items for each order
-        $stmtItems = $pdo->prepare("
-            SELECT oi.id, oi.product_id, oi.product_name, oi.price, oi.quantity, oi.customization,
-                   p.image
-            FROM order_items oi
-            LEFT JOIN products p ON oi.product_id = p.id
-            WHERE oi.order_id = :order_id
-        ");
+        // High-Performance Batch Loading: Fetch all order items in a single query instead of N+1 roundtrips
+        if (!empty($orders)) {
+            $orderIds = array_column($orders, 'id');
+            $placeholders = implode(',', array_fill(0, count($orderIds), '?'));
+            
+            $stmtItems = $pdo->prepare("
+                SELECT oi.id, oi.order_id, oi.product_id, oi.product_name, oi.price, oi.quantity, oi.customization,
+                       p.image
+                FROM order_items oi
+                LEFT JOIN products p ON oi.product_id = p.id
+                WHERE oi.order_id IN ($placeholders)
+            ");
+            $stmtItems->execute($orderIds);
+            $allItems = $stmtItems->fetchAll();
 
-        // Loop through each order to attach its line items and sanitize numeric types
-        foreach ($orders as &$order) {
-            $order['subtotal']     = (float)$order['subtotal'];
-            $order['delivery_fee'] = (float)$order['delivery_fee'];
-            $order['total']        = (float)$order['total'];
-
-            // Fetch corresponding items from order_items table
-            $stmtItems->execute(['order_id' => $order['id']]);
-            $items = $stmtItems->fetchAll();
-
-            foreach ($items as &$item) {
-                $item['price']    = (float)$item['price'];
+            $itemsByOrderId = [];
+            foreach ($allItems as $item) {
+                $item['price'] = (float)$item['price'];
                 $item['quantity'] = (int)$item['quantity'];
-
-                // Decode JSON customization if custom cake options were stored
                 if (!empty($item['customization'])) {
                     $item['customization'] = is_string($item['customization']) 
                         ? json_decode($item['customization'], true) 
                         : $item['customization'];
                 }
+                $itemsByOrderId[$item['order_id']][] = $item;
             }
 
-            $order['items'] = $items;
+            foreach ($orders as &$order) {
+                $order['subtotal']     = (float)$order['subtotal'];
+                $order['delivery_fee'] = (float)$order['delivery_fee'];
+                $order['total']        = (float)$order['total'];
 
-            // Human-readable summary for tables (e.g. 'Chocolate Cake +2 more')
-            $order['items_summary'] = count($items) > 0 
-                ? $items[0]['product_name'] . (count($items) > 1 ? ' +' . (count($items) - 1) . ' more' : '') 
-                : 'No items';
+                $items = $itemsByOrderId[$order['id']] ?? [];
+                $order['items'] = $items;
+                $order['items_summary'] = count($items) > 0 
+                    ? $items[0]['product_name'] . (count($items) > 1 ? ' +' . (count($items) - 1) . ' more' : '') 
+                    : 'No items';
+            }
         }
 
         sendResponse([

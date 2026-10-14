@@ -12,6 +12,9 @@
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:8000/api' : 'https://backehouse.onrender.com/api');
 
+// In-flight request deduplication map for GET requests
+const inFlightRequests = new Map();
+
 /**
  * Core request wrapper
  * 
@@ -21,6 +24,14 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'htt
  */
 export async function apiRequest(endpoint, options = {}) {
   const url = `${API_BASE_URL}${endpoint}`;
+  const method = (options.method || 'GET').toUpperCase();
+
+  // Deduplicate simultaneous identical GET requests
+  if (method === 'GET' && !options.body) {
+    if (inFlightRequests.has(url)) {
+      return inFlightRequests.get(url);
+    }
+  }
 
   const headers = {
     'Content-Type': 'application/json',
@@ -37,17 +48,29 @@ export async function apiRequest(endpoint, options = {}) {
     config.body = JSON.stringify(options.body);
   }
 
-  try {
-    const response = await fetch(url, config);
-    const data = await response.json();
+  const fetchPromise = (async () => {
+    try {
+      const response = await fetch(url, config);
+      const data = await response.json();
 
-    if (!response.ok) {
-      throw new Error(data.message || `Request failed with status ${response.status}`);
+      if (!response.ok) {
+        throw new Error(data.message || `Request failed with status ${response.status}`);
+      }
+
+      return data;
+    } catch (error) {
+      console.error(`[API Error] ${endpoint}:`, error);
+      throw error;
+    } finally {
+      if (method === 'GET') {
+        inFlightRequests.delete(url);
+      }
     }
+  })();
 
-    return data;
-  } catch (error) {
-    console.error(`[API Error] ${endpoint}:`, error);
-    throw error;
+  if (method === 'GET' && !options.body) {
+    inFlightRequests.set(url, fetchPromise);
   }
+
+  return fetchPromise;
 }
