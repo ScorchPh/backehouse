@@ -58,13 +58,23 @@ if ($isCounterPOS) {
         $estimatedDeliveryTime = "15–25 Minutes";
     }
 } else {
-    if (isset($data['delivery_fee'])) {
+    if (isset($data['delivery_fee']) && is_numeric($data['delivery_fee'])) {
         $deliveryFee = max(0, (float)$data['delivery_fee']);
     } else {
-        $storeSettings = readDataStore('store_settings');
-        $deliveryFee = isset($storeSettings['order_settings']['delivery_fee'])
-            ? (float)$storeSettings['order_settings']['delivery_fee']
-            : 30.00;
+        $deliveryFee = 50.00;
+        try {
+            if ($pdo) {
+                $stmt = $pdo->prepare("SELECT `setting_value` FROM `store_settings` WHERE `setting_key` = 'store_config' LIMIT 1");
+                $stmt->execute();
+                $row = $stmt->fetch(PDO::FETCH_ASSOC);
+                if ($row && !empty($row['setting_value'])) {
+                    $cfg = json_decode($row['setting_value'], true);
+                    if (isset($cfg['order_settings']['delivery_fee'])) {
+                        $deliveryFee = (float)$cfg['order_settings']['delivery_fee'];
+                    }
+                }
+            }
+        } catch (Exception $e) {}
     }
     if (empty($estimatedDeliveryTime)) {
         $estimatedDeliveryTime = "30–45 Minutes";

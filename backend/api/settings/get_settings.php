@@ -45,8 +45,32 @@ $defaultSettings = [
     ]
 ];
 
-$stored = readDataStore('store_settings');
+$stored = null;
 
+// 1. Try fetching from MySQL / TiDB database first
+try {
+    $pdo = getDBConnection();
+    if ($pdo) {
+        $stmt = $pdo->prepare("SELECT `setting_value` FROM `store_settings` WHERE `setting_key` = 'store_config' LIMIT 1");
+        $stmt->execute();
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        if ($row && !empty($row['setting_value'])) {
+            $decoded = json_decode($row['setting_value'], true);
+            if (is_array($decoded)) {
+                $stored = $decoded;
+            }
+        }
+    }
+} catch (Exception $e) {
+    // Fall back to JSON file
+}
+
+// 2. Fall back to JSON data store if not found in MySQL
+if (empty($stored) || !is_array($stored)) {
+    $stored = readDataStore('store_settings');
+}
+
+// 3. Fall back to default settings if completely empty
 if (empty($stored) || !is_array($stored)) {
     writeDataStore('store_settings', $defaultSettings);
     $stored = $defaultSettings;

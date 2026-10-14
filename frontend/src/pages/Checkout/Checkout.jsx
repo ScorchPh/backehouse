@@ -79,7 +79,15 @@ function Checkout() {
     return () => window.removeEventListener("authChange", handleAuthChange);
   }, [fullName, contactNumber, street, landmark]);
 
-  const [configuredDeliveryFee, setConfiguredDeliveryFee] = useState(30);
+  const [configuredDeliveryFee, setConfiguredDeliveryFee] = useState(() => {
+    try {
+      const cached = settingsService.getCachedSettings();
+      const fee = parseFloat(cached?.order_settings?.delivery_fee);
+      return !isNaN(fee) && fee >= 0 ? fee : 50;
+    } catch {
+      return 50;
+    }
+  });
 
   // Load configured delivery fee from Admin Settings
   useEffect(() => {
@@ -97,6 +105,18 @@ function Checkout() {
       }
     }
     loadStoreFee();
+
+    const handleSettingsUpdate = (e) => {
+      const updated = e.detail;
+      if (updated?.order_settings?.delivery_fee !== undefined) {
+        const fee = parseFloat(updated.order_settings.delivery_fee);
+        if (!isNaN(fee) && fee >= 0) {
+          setConfiguredDeliveryFee(fee);
+        }
+      }
+    };
+    window.addEventListener("storeSettingsUpdated", handleSettingsUpdate);
+    return () => window.removeEventListener("storeSettingsUpdated", handleSettingsUpdate);
   }, []);
 
   const [loading, setLoading] = useState(false);
