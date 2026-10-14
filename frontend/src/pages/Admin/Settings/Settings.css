@@ -470,6 +470,132 @@
   margin-top: 10px;
 }
 
+/* Tax & VAT Configuration Styles */
+.vat-badge {
+  background: #EBF5FF;
+  color: #1E429F;
+  border-color: #C3DDFD;
+}
+
+.tax-settings-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  max-width: 800px;
+}
+
+.vat-rate-input-wrap {
+  position: relative;
+  max-width: 200px;
+  display: flex;
+  align-items: center;
+}
+
+.vat-rate-input {
+  width: 100%;
+  padding-right: 36px !important;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #3D2415;
+}
+
+.vat-rate-unit {
+  position: absolute;
+  right: 14px;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #8C7B6E;
+  pointer-events: none;
+}
+
+.vat-mode-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 14px;
+  margin-top: 6px;
+}
+
+.vat-mode-card {
+  padding: 16px;
+  border: 2px solid #EADBCC;
+  border-radius: 12px;
+  background: #FFFFFF;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.vat-mode-card:hover {
+  border-color: #8B4513;
+  background: #FDFAF7;
+}
+
+.vat-mode-card.selected {
+  border-color: #8B4513;
+  background: #FAF5EF;
+  box-shadow: 0 3px 12px rgba(139, 69, 19, 0.1);
+}
+
+.vat-mode-radio {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #3D2415;
+  font-size: 0.95rem;
+}
+
+.custom-radio-dot {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2px solid #C4A482;
+  position: relative;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+}
+
+.vat-mode-card.selected .custom-radio-dot {
+  border-color: #8B4513;
+}
+
+.custom-radio-dot.active::after {
+  content: "";
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 8px;
+  height: 8px;
+  background: #8B4513;
+  border-radius: 50%;
+}
+
+.vat-mode-card p {
+  margin: 0;
+  font-size: 0.84rem;
+  color: #665243;
+  line-height: 1.4;
+}
+
+.vat-example-pill {
+  display: inline-block;
+  margin-top: 4px;
+  padding: 6px 10px;
+  background: #FFFFFF;
+  border: 1px solid #E5D5C5;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  color: #4A3525;
+}
+
+.tax-settings-actions-row {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-top: 10px;
+}
+
 /* Responsive */
 
 @media (max-width: 700px) {

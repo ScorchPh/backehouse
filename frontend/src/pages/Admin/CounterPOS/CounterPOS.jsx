@@ -28,6 +28,7 @@ import { useState, useEffect, useRef } from "react";
 import { productService } from "../../../services/productService";
 import { orderService } from "../../../services/orderService";
 import { authService } from "../../../services/authService";
+import { settingsService } from "../../../services/settingsService";
 import { thermalPrinterService } from "../../../services/printerService";
 import "./CounterPOS.css";
 
@@ -61,6 +62,17 @@ export default function CounterPOS() {
   // Receipt Modal State
   const [completedOrder, setCompletedOrder] = useState(null);
   const [showReceiptModal, setShowReceiptModal] = useState(false);
+
+  // Tax / VAT Settings (Configurable from Admin Settings)
+  const [taxSettings, setTaxSettings] = useState(() => {
+    const cached = settingsService.getCachedSettings()?.tax_settings;
+    return cached || {
+      vat_enabled: true,
+      vat_rate: 12.0,
+      vat_type: "exclusive",
+      vat_tin: "000-847-293-000"
+    };
+  });
 
   // Printer Hardware & Setting State (GOOJPRT PT-210, Bluetooth, Serial, Paper Size)
   const [printerConfig, setPrinterConfig] = useState(() => thermalPrinterService.getConfig());
@@ -340,10 +352,28 @@ export default function CounterPOS() {
     } catch (err) {
       console.warn("Failed to load counter sales log:", err);
     }
+
+    try {
+      const settingsRes = await settingsService.getSettings();
+      if (settingsRes?.tax_settings) {
+        setTaxSettings(settingsRes.tax_settings);
+      }
+    } catch (err) {
+      console.warn("Failed to load store tax settings:", err);
+    }
   };
 
   useEffect(() => {
     loadData();
+
+    // Listen for live updates from Admin Settings page
+    const handleSettingsUpdated = (e) => {
+      if (e.detail?.tax_settings) {
+        setTaxSettings(e.detail.tax_settings);
+      }
+    };
+    window.addEventListener("storeSettingsUpdated", handleSettingsUpdated);
+    return () => window.removeEventListener("storeSettingsUpdated", handleSettingsUpdated);
   }, []);
 
   // Filter Products
@@ -464,9 +494,33 @@ export default function CounterPOS() {
 
   // Financial Calculations
   const subtotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
-  const totalDue = subtotal;
-  const vatAmount = (totalDue / 1.12) * 0.12; // 12% VAT standard Philippines retail breakdown
-  const vatableSales = totalDue - vatAmount;
+
+  const vatEnabled = taxSettings.vat_enabled !== false;
+  const vatRate = vatEnabled ? (parseFloat(taxSettings.vat_rate) || 0) : 0;
+  const isVatExclusive = taxSettings.vat_type === "exclusive"; // Add to purchase
+
+  let vatAmount = 0;
+  let vatableSales = 0;
+  let totalDue = subtotal;
+
+  if (vatEnabled && vatRate > 0) {
+    if (isVatExclusive) {
+      // Add to purchase: Subtotal + VAT = Total Due
+      vatableSales = subtotal;
+      vatAmount = subtotal * (vatRate / 100);
+      totalDue = subtotal + vatAmount;
+    } else {
+      // Included in menu prices: Total Due = Subtotal
+      totalDue = subtotal;
+      vatableSales = totalDue / (1 + (vatRate / 100));
+      vatAmount = totalDue - vatableSales;
+    }
+  } else {
+    // Non-VAT / Exempt
+    vatableSales = subtotal;
+    vatAmount = 0;
+    totalDue = subtotal;
+  }
 
   // Cash / Change Calculations
   const parsedCash = parseFloat(cashTendered) || 0;
@@ -528,6 +582,9 @@ export default function CounterPOS() {
           discount_amount: 0,
           discount_type: null,
           total: totalDue,
+          vat_rate: vatRate,
+          vat_type: isVatExclusive ? "exclusive" : "inclusive",
+          vat_tin: taxSettings.vat_tin || "000-847-293-000",
           vatable_sales: vatableSales,
           vat_amount: vatAmount,
           payment_method: paymentMethod,
@@ -591,6 +648,9 @@ export default function CounterPOS() {
             discount_amount: 0,
             discount_type: null,
             total: totalDue,
+            vat_rate: vatRate,
+            vat_type: isVatExclusive ? "exclusive" : "inclusive",
+            vat_tin: taxSettings.vat_tin || "000-847-293-000",
             vatable_sales: vatableSales,
             vat_amount: vatAmount,
             payment_method: paymentMethod,
@@ -1046,8 +1106,16 @@ export default function CounterPOS() {
             </div>
 
             <div className="summary-line vat-note">
-              <span>12% VAT (Inclusive)</span>
-              <span>₱{vatAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+              <span>
+                {vatEnabled && vatRate > 0
+                  ? `${vatRate}% VAT (${isVatExclusive ? "Added" : "Inclusive"})`
+                  : "Tax Status"}
+              </span>
+              <span>
+                {vatEnabled && vatRate > 0
+                  ? `₱${vatAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                  : "Non-VAT (₱0.00)"}
+              </span>
             </div>
 
             <div className="summary-line total-highlight">
@@ -1278,7 +1346,7 @@ export default function CounterPOS() {
                 <p className="receipt-sub">Artisan Bakery & Cake Boutique</p>
                 <p>Poblacion, Cordova, Cebu 6017</p>
                 <p>Tel: +63 (032) 496-8888</p>
-                <p>VAT Reg TIN: 000-847-293-000</p>
+                <p>VAT Reg TIN: {completedOrder.vat_tin || taxSettings.vat_tin || "000-847-293-000"}</p>
                 <div className="receipt-divider">================================</div>
                 <h3 className="receipt-doc-title">OFFICIAL SALES INVOICE</h3>
                 <div className="receipt-meta-grid">
@@ -1353,14 +1421,23 @@ export default function CounterPOS() {
 
                 <div className="receipt-divider">--------------------------------</div>
 
-                <div className="receipt-line small">
-                  <span>VATable Sales:</span>
-                  <span>₱{parseFloat(completedOrder.vatable_sales || (completedOrder.total / 1.12)).toFixed(2)}</span>
-                </div>
-                <div className="receipt-line small">
-                  <span>12% VAT:</span>
-                  <span>₱{parseFloat(completedOrder.vat_amount || ((completedOrder.total / 1.12) * 0.12)).toFixed(2)}</span>
-                </div>
+                {parseFloat(completedOrder.vat_amount || 0) > 0 ? (
+                  <>
+                    <div className="receipt-line small">
+                      <span>VATable Sales:</span>
+                      <span>₱{parseFloat(completedOrder.vatable_sales || 0).toFixed(2)}</span>
+                    </div>
+                    <div className="receipt-line small">
+                      <span>{completedOrder.vat_rate ?? (taxSettings.vat_rate || 12)}% VAT ({completedOrder.vat_type === "exclusive" ? "Added" : "Inclusive"}):</span>
+                      <span>₱{parseFloat(completedOrder.vat_amount || 0).toFixed(2)}</span>
+                    </div>
+                  </>
+                ) : (
+                  <div className="receipt-line small">
+                    <span>Tax Status:</span>
+                    <span>Non-VAT / Exempt (₱0.00)</span>
+                  </div>
+                )}
               </div>
 
               {/* Footer & Barcode Simulation */}

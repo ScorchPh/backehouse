@@ -36,6 +36,12 @@ $defaultSettings = [
         'accept_orders'       => true,
         'allow_customization' => true,
         'delivery_fee'        => 30.00
+    ],
+    'tax_settings' => [
+        'vat_enabled' => true,
+        'vat_rate'    => 12.00,
+        'vat_type'    => 'exclusive',
+        'vat_tin'     => '000-847-293-000'
     ]
 ];
 
@@ -53,6 +59,10 @@ if (empty($stored) || !is_array($stored)) {
     $stored['order_settings'] = array_merge(
         $defaultSettings['order_settings'],
         isset($stored['order_settings']) && is_array($stored['order_settings']) ? $stored['order_settings'] : []
+    );
+    $stored['tax_settings'] = array_merge(
+        $defaultSettings['tax_settings'],
+        isset($stored['tax_settings']) && is_array($stored['tax_settings']) ? $stored['tax_settings'] : []
     );
 }
 

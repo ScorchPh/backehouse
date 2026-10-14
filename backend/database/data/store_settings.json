@@ -12,5 +12,11 @@
         "accept_orders": true,
         "allow_customization": true,
         "delivery_fee": 30
+    },
+    "tax_settings": {
+        "vat_enabled": true,
+        "vat_rate": 12.0,
+        "vat_type": "exclusive",
+        "vat_tin": "000-847-293-000"
     }
 }

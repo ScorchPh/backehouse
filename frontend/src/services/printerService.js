@@ -255,8 +255,7 @@ class ThermalPrinterService {
     addBytes([ESC, 0x45, 0x00]); // Bold OFF
     addLine('Artisan Bakery & Boutique');
     addLine('Poblacion, Cordova, Cebu 6017');
-    addLine('Tel: +63 (032) 496-8888');
-    addLine('VAT Reg TIN: 000-847-293-000');
+    addLine(`VAT Reg TIN: ${order.vat_tin || '000-847-293-000'}`);
     addLine(divider('='));
 
     // Document Title
@@ -316,8 +315,10 @@ class ThermalPrinterService {
     const totalDue = parseFloat(order.total || 0).toFixed(2);
     const cash = parseFloat(order.cash_tendered || order.total || 0).toFixed(2);
     const change = parseFloat(order.change_amount || 0).toFixed(2);
-    const vatable = parseFloat(order.vatable_sales || (parseFloat(totalDue) / 1.12)).toFixed(2);
-    const vat = parseFloat(order.vat_amount || (parseFloat(totalDue) - parseFloat(vatable))).toFixed(2);
+    const vatRate = order.vat_rate !== undefined ? order.vat_rate : 12;
+    const vatType = order.vat_type === 'exclusive' ? 'Added' : 'Inclusive';
+    const vatable = parseFloat(order.vatable_sales !== undefined ? order.vatable_sales : (parseFloat(totalDue) / 1.12)).toFixed(2);
+    const vat = parseFloat(order.vat_amount !== undefined ? order.vat_amount : (parseFloat(totalDue) - parseFloat(vatable))).toFixed(2);
 
     addLine(padLine('SUBTOTAL:', `P${subtotal}`, cols));
     
@@ -336,8 +337,12 @@ class ThermalPrinterService {
     }
 
     addLine(divider('-'));
-    addLine(padLine('VATable Sales:', `P${vatable}`, cols));
-    addLine(padLine('12% VAT Amount:', `P${vat}`, cols));
+    if (parseFloat(vat) > 0) {
+      addLine(padLine('VATable Sales:', `P${vatable}`, cols));
+      addLine(padLine(`${vatRate}% VAT (${vatType}):`, `P${vat}`, cols));
+    } else {
+      addLine(padLine('Tax Status:', 'Non-VAT / Exempt', cols));
+    }
     addLine(divider('='));
 
     // Footer
@@ -411,9 +416,10 @@ class ThermalPrinterService {
       const subtotal = parseFloat(order.subtotal || order.total || 0).toFixed(2);
       const totalDue = parseFloat(order.total || 0).toFixed(2);
       const cash = parseFloat(order.cash_tendered || order.total || 0).toFixed(2);
-      const change = parseFloat(order.change_amount || 0).toFixed(2);
-      const vatable = parseFloat(order.vatable_sales || (parseFloat(totalDue) / 1.12)).toFixed(2);
-      const vat = parseFloat(order.vat_amount || (parseFloat(totalDue) - parseFloat(vatable))).toFixed(2);
+      const vatRate = order.vat_rate !== undefined ? order.vat_rate : 12;
+      const vatType = order.vat_type === 'exclusive' ? 'Added' : 'Inclusive';
+      const vatable = parseFloat(order.vatable_sales !== undefined ? order.vatable_sales : (parseFloat(totalDue) / 1.12)).toFixed(2);
+      const vat = parseFloat(order.vat_amount !== undefined ? order.vat_amount : (parseFloat(totalDue) - parseFloat(vatable))).toFixed(2);
 
       // Create temporary iframe
       const iframe = document.createElement('iframe');
@@ -508,7 +514,7 @@ class ThermalPrinterService {
             <div>Artisan Bakery & Boutique</div>
             <div>Poblacion, Cordova, Cebu</div>
             <div>Tel: +63 (032) 496-8888</div>
-            <div>TIN: 000-847-293-000</div>
+            <div>VAT Reg TIN: ${order.vat_tin || '000-847-293-000'}</div>
           </div>
           <div class="double-divider"></div>
           <div class="center bold">OFFICIAL SALES INVOICE</div>
@@ -544,8 +550,12 @@ class ThermalPrinterService {
           ${order.ref_number ? `<div class="meta-line"><span>Ref #:</span><span>${order.ref_number}</span></div>` : ''}
 
           <div class="divider"></div>
-          <div class="meta-line"><small>VATable Sales:</small><small>₱${vatable}</small></div>
-          <div class="meta-line"><small>12% VAT:</small><small>₱${vat}</small></div>
+          ${parseFloat(vat) > 0 ? `
+            <div class="meta-line"><small>VATable Sales:</small><small>₱${vatable}</small></div>
+            <div class="meta-line"><small>${vatRate}% VAT (${vatType}):</small><small>₱${vat}</small></div>
+          ` : `
+            <div class="meta-line"><small>Tax Status:</small><small>Non-VAT / Exempt</small></div>
+          `}
           <div class="double-divider"></div>
 
           <div class="center" style="margin-top: 6px;">

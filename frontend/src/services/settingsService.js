@@ -23,6 +23,12 @@ const DEFAULT_SETTINGS = {
     accept_orders: true,
     allow_customization: true,
     delivery_fee: 30.00
+  },
+  tax_settings: {
+    vat_enabled: true,
+    vat_rate: 12.00,
+    vat_type: 'exclusive', // 'exclusive' (add on top of purchase) or 'inclusive'
+    vat_tin: '000-847-293-000'
   }
 };
 

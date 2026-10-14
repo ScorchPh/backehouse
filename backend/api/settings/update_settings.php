@@ -106,6 +106,26 @@ if (isset($payload['order_settings']) && is_array($payload['order_settings'])) {
     }
 }
 
+// Update tax & VAT settings if provided
+if (isset($payload['tax_settings']) && is_array($payload['tax_settings'])) {
+    if (!isset($current['tax_settings']) || !is_array($current['tax_settings'])) {
+        $current['tax_settings'] = [];
+    }
+    if (isset($payload['tax_settings']['vat_enabled'])) {
+        $current['tax_settings']['vat_enabled'] = (bool)$payload['tax_settings']['vat_enabled'];
+    }
+    if (isset($payload['tax_settings']['vat_rate'])) {
+        $current['tax_settings']['vat_rate'] = max(0, min(100, (float)$payload['tax_settings']['vat_rate']));
+    }
+    if (isset($payload['tax_settings']['vat_type'])) {
+        $type = strtolower(trim((string)$payload['tax_settings']['vat_type']));
+        $current['tax_settings']['vat_type'] = in_array($type, ['exclusive', 'inclusive']) ? $type : 'exclusive';
+    }
+    if (isset($payload['tax_settings']['vat_tin'])) {
+        $current['tax_settings']['vat_tin'] = trim((string)$payload['tax_settings']['vat_tin']);
+    }
+}
+
 // Persist to JSON data store
 writeDataStore('store_settings', $current);
 

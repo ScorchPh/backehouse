@@ -29,6 +29,12 @@ function Settings() {
       accept_orders: true,
       allow_customization: true,
       delivery_fee: 30
+    },
+    tax_settings: {
+      vat_enabled: true,
+      vat_rate: 12,
+      vat_type: "exclusive",
+      vat_tin: "000-847-293-000"
     }
   });
 
@@ -52,6 +58,10 @@ function Settings() {
             order_settings: {
               ...prev.order_settings,
               ...(data.order_settings || {})
+            },
+            tax_settings: {
+              ...prev.tax_settings,
+              ...(data.tax_settings || {})
             }
           }));
         }
@@ -148,6 +158,22 @@ function Settings() {
       triggerFeedback("orders");
     } catch (err) {
       setErrorMessage("Failed to save delivery & order settings: " + err.message);
+    } finally {
+      setSavingSection(null);
+    }
+  };
+
+  // 6. Save Tax & VAT Settings
+  const handleSaveTaxSettings = async (e) => {
+    e.preventDefault();
+    setSavingSection("tax");
+    try {
+      await settingsService.updateSettings({
+        tax_settings: storeSettings.tax_settings
+      });
+      triggerFeedback("tax");
+    } catch (err) {
+      setErrorMessage("Failed to save Tax & VAT settings: " + err.message);
     } finally {
       setSavingSection(null);
     }
@@ -496,6 +522,175 @@ function Settings() {
             </button>
             {savedFeedback === "orders" && (
               <span className="save-success-pill">✓ Delivery fee and order settings updated!</span>
+            )}
+          </div>
+        </form>
+      </div>
+
+      {/* Tax & VAT Configuration */}
+      <div className="settings-section">
+        <div className="section-title-badge-row">
+          <h2>Tax &amp; VAT Configuration</h2>
+          <span className="section-badge vat-badge">Counter POS &amp; Official Receipts</span>
+        </div>
+        <p className="section-description">
+          Configure how Value Added Tax (VAT) is calculated at the counter register and printed on official receipts.
+        </p>
+
+        <form onSubmit={handleSaveTaxSettings} className="tax-settings-form">
+          <div className="setting-option">
+            <div>
+              <strong>Enable Value Added Tax (VAT)</strong>
+              <p>Calculate and display VAT breakdown on POS bills and printed thermal receipts.</p>
+            </div>
+
+            <label className="toggle">
+              <input
+                type="checkbox"
+                checked={storeSettings.tax_settings?.vat_enabled !== false}
+                onChange={(e) =>
+                  setStoreSettings({
+                    ...storeSettings,
+                    tax_settings: {
+                      ...storeSettings.tax_settings,
+                      vat_enabled: e.target.checked
+                    }
+                  })
+                }
+              />
+              <span></span>
+            </label>
+          </div>
+
+          {storeSettings.tax_settings?.vat_enabled !== false && (
+            <>
+              {/* VAT Rate Input */}
+              <div className="form-group">
+                <label>
+                  <strong>VAT Percentage Rate (%)</strong>
+                </label>
+                <div className="vat-rate-input-wrap">
+                  <input
+                    type="number"
+                    min="0"
+                    max="100"
+                    step="0.5"
+                    value={storeSettings.tax_settings?.vat_rate ?? 12}
+                    onChange={(e) =>
+                      setStoreSettings({
+                        ...storeSettings,
+                        tax_settings: {
+                          ...storeSettings.tax_settings,
+                          vat_rate: e.target.value === "" ? "" : Number(e.target.value)
+                        }
+                      })
+                    }
+                    placeholder="12"
+                    className="vat-rate-input"
+                  />
+                  <span className="vat-rate-unit">%</span>
+                </div>
+                <span className="form-field-hint">
+                  Standard Philippine retail VAT is 12%. Set to 0% for Non-VAT registered bakeries.
+                </span>
+              </div>
+
+              {/* VAT Calculation Mode: Exclusive (Add to purchase) vs Inclusive */}
+              <div className="form-group">
+                <label>
+                  <strong>VAT Calculation Method</strong>
+                </label>
+                <div className="vat-mode-grid">
+                  <div
+                    className={`vat-mode-card ${storeSettings.tax_settings?.vat_type === "exclusive" ? "selected" : ""}`}
+                    onClick={() =>
+                      setStoreSettings({
+                        ...storeSettings,
+                        tax_settings: {
+                          ...storeSettings.tax_settings,
+                          vat_type: "exclusive"
+                        }
+                      })
+                    }
+                  >
+                    <div className="vat-mode-radio">
+                      <span className={`custom-radio-dot ${storeSettings.tax_settings?.vat_type === "exclusive" ? "active" : ""}`}></span>
+                      <strong>Add VAT on top of purchase (Exclusive)</strong>
+                    </div>
+                    <p>
+                      Tax is added on top of the items subtotal at checkout:
+                      <br />
+                      <em>Total Due = Subtotal + {storeSettings.tax_settings?.vat_rate ?? 12}% VAT</em>
+                    </p>
+                    <span className="vat-example-pill">
+                      Example: ₱100 item + ₱{((100 * (storeSettings.tax_settings?.vat_rate ?? 12)) / 100).toFixed(2)} VAT = <strong>₱{(100 + (100 * (storeSettings.tax_settings?.vat_rate ?? 12)) / 100).toFixed(2)} Total</strong>
+                    </span>
+                  </div>
+
+                  <div
+                    className={`vat-mode-card ${storeSettings.tax_settings?.vat_type === "inclusive" ? "selected" : ""}`}
+                    onClick={() =>
+                      setStoreSettings({
+                        ...storeSettings,
+                        tax_settings: {
+                          ...storeSettings.tax_settings,
+                          vat_type: "inclusive"
+                        }
+                      })
+                    }
+                  >
+                    <div className="vat-mode-radio">
+                      <span className={`custom-radio-dot ${storeSettings.tax_settings?.vat_type === "inclusive" ? "active" : ""}`}></span>
+                      <strong>Include VAT in menu prices (Inclusive)</strong>
+                    </div>
+                    <p>
+                      Item prices already cover the tax (no extra charge added):
+                      <br />
+                      <em>Total Due = Subtotal (VAT breakdown shown on receipt)</em>
+                    </p>
+                    <span className="vat-example-pill">
+                      Example: ₱100 item = <strong>₱100.00 Total</strong> (₱{(100 - (100 / (1 + (storeSettings.tax_settings?.vat_rate ?? 12) / 100))).toFixed(2)} VAT included)
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* VAT TIN Number for Receipt */}
+              <div className="form-group">
+                <label>
+                  <strong>VAT Registration TIN (Printed on Receipts)</strong>
+                </label>
+                <input
+                  type="text"
+                  placeholder="000-847-293-000"
+                  value={storeSettings.tax_settings?.vat_tin || ""}
+                  onChange={(e) =>
+                    setStoreSettings({
+                      ...storeSettings,
+                      tax_settings: {
+                        ...storeSettings.tax_settings,
+                        vat_tin: e.target.value
+                      }
+                    })
+                  }
+                />
+                <span className="form-field-hint">
+                  This Taxpayer Identification Number will be printed on all Official Receipts &amp; Invoices.
+                </span>
+              </div>
+            </>
+          )}
+
+          <div className="tax-settings-actions-row">
+            <button
+              type="submit"
+              className="save-btn"
+              disabled={savingSection === "tax"}
+            >
+              {savingSection === "tax" ? "Saving..." : "Save Tax & VAT Settings"}
+            </button>
+            {savedFeedback === "tax" && (
+              <span className="save-success-pill">✓ Tax &amp; VAT settings updated! POS register updated live.</span>
             )}
           </div>
         </form>
