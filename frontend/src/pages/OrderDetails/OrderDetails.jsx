@@ -28,23 +28,52 @@ function OrderDetails() {
   const orderId = order?.id || searchParams.get("id");
 
   useEffect(() => {
-    if (!order && orderId) {
-      async function fetchDetails() {
-        try {
+    if (!orderId) return;
+
+    let isMounted = true;
+
+    async function fetchDetails(isBackground = false) {
+      try {
+        if (!isBackground && !order) {
           setLoading(true);
-          const res = await orderService.getOrderDetails(orderId);
-          if (res && res.order) {
-            setOrder(res.order);
-          }
-        } catch (err) {
-          console.error("Failed to load order details:", err);
-        } finally {
+        }
+        const res = await orderService.getOrderDetails(orderId);
+        if (isMounted && res && res.order) {
+          setOrder(res.order);
+        }
+      } catch (err) {
+        console.error("Failed to load order details:", err);
+      } finally {
+        if (isMounted) {
           setLoading(false);
         }
       }
-      fetchDetails();
     }
-  }, [order, orderId]);
+
+    // Refresh immediately on load
+    fetchDetails(!!order);
+
+    // Real-time polling every 3.5 seconds while tracking
+    const pollTimer = setInterval(() => {
+      fetchDetails(true);
+    }, 3500);
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        fetchDetails(true);
+      }
+    };
+
+    window.addEventListener("focus", () => fetchDetails(true));
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      isMounted = false;
+      clearInterval(pollTimer);
+      window.removeEventListener("focus", () => fetchDetails(true));
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [orderId]);
 
   if (loading) {
     return (

@@ -365,7 +365,7 @@ function Checkout() {
               <span className="fulfillment-icon">🚚</span>
               <div>
                 <strong>Door-to-Door Delivery</strong>
-                <p>Delivered directly to your address (₱50.00 fee)</p>
+                <p>Delivered directly to your address (₱{Number(configuredDeliveryFee).toFixed(2)} fee)</p>
               </div>
             </div>
           </label>

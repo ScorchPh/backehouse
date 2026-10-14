@@ -78,14 +78,31 @@ function MyOrders() {
 
     loadCustomerOrders(ordersList.length > 0);
 
+    // Real-time polling every 3.5 seconds so status transitions update live
+    const pollInterval = setInterval(() => {
+      loadCustomerOrders(true);
+    }, 3500);
+
     const handleUpdate = () => {
       loadCustomerOrders(true);
     };
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        loadCustomerOrders(true);
+      }
+    };
+
     window.addEventListener("ordersUpdated", handleUpdate);
+    window.addEventListener("focus", handleUpdate);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
 
     return () => {
       isMounted = false;
+      clearInterval(pollInterval);
       window.removeEventListener("ordersUpdated", handleUpdate);
+      window.removeEventListener("focus", handleUpdate);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
   }, [currentUser?.id]);
 
