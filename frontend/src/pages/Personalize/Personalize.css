@@ -37,11 +37,31 @@
     padding: clamp(18px, 3vw, 25px);
     box-shadow: 0 5px 18px rgba(0, 0, 0, .07);
     border: 1px solid #F3EAE0;
+    position: sticky;
+    top: 96px;
+    max-height: calc(100vh - 115px);
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #E2D7CC transparent;
+    transition: box-shadow 0.2s ease;
+}
+
+.preview-section::-webkit-scrollbar {
+    width: 6px;
+}
+
+.preview-section::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.preview-section::-webkit-scrollbar-thumb {
+    background: #E2D7CC;
+    border-radius: 4px;
 }
 
 .preview-section img {
     width: 100%;
-    max-height: 360px;
+    max-height: 320px;
     object-fit: cover;
     border-radius: 12px;
 }
@@ -175,6 +195,12 @@
 @media (max-width: 880px) {
     .personalize-container {
         flex-direction: column;
+    }
+
+    .preview-section {
+        position: static;
+        max-height: none;
+        overflow-y: visible;
     }
 
     .preview-section,
