@@ -417,13 +417,14 @@ function Settings() {
           Configure standard delivery fee, customer checkout availability, and cake customization.
         </p>
 
-        <form onSubmit={handleSaveOrderSettings} className="settings-form" style={{ marginTop: "1.2rem" }}>
-          <div className="form-group" style={{ maxWidth: "380px" }}>
-            <label>
+        <form onSubmit={handleSaveOrderSettings} className="order-delivery-settings-form">
+          <div className="delivery-fee-card">
+            <div className="delivery-fee-info">
               <strong>Standard Delivery Fee (₱)</strong>
-            </label>
-            <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-              <span style={{ fontSize: "1.25rem", fontWeight: "800", color: "#8B4513" }}>₱</span>
+              <p>Charged automatically for home delivery orders at customer checkout. Store Pickup is always free (₱0).</p>
+            </div>
+            <div className="delivery-fee-input-wrap">
+              <span className="currency-prefix">₱</span>
               <input
                 type="number"
                 min="0"
@@ -439,16 +440,13 @@ function Settings() {
                     }
                   })
                 }
-                style={{ width: "130px", fontWeight: "700", fontSize: "1.05rem", padding: "10px 14px" }}
+                className="delivery-fee-input"
               />
-              <span style={{ fontSize: "0.88rem", color: "#666" }}>PHP per delivery order</span>
+              <span className="fee-unit-tag">PHP</span>
             </div>
-            <span className="form-field-hint">
-              This amount is charged automatically for home delivery orders at checkout. Store Pickup is always free (₱0).
-            </span>
           </div>
 
-          <div className="setting-option" style={{ borderTop: "1px solid #F0E6DC", paddingTop: "14px", marginTop: "14px" }}>
+          <div className="setting-option">
             <div>
               <strong>Accept New Online Orders</strong>
               <p>Allow customers to place new delivery and pickup orders at checkout.</p>
@@ -473,19 +471,7 @@ function Settings() {
             <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
               <Link
                 to="/admin/customizer"
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: "0.4rem",
-                  padding: "0.45rem 0.9rem",
-                  backgroundColor: "var(--color-primary-50, #fdf6ec)",
-                  color: "var(--color-primary-600, #b25e1a)",
-                  border: "1px solid var(--color-primary-200, #f8d7b0)",
-                  borderRadius: "8px",
-                  fontSize: "0.85rem",
-                  fontWeight: "600",
-                  textDecoration: "none"
-                }}
+                className="manage-customizer-btn"
               >
                 🎂 Manage Customizer Options →
               </Link>
@@ -500,7 +486,7 @@ function Settings() {
             </div>
           </div>
 
-          <div style={{ display: "flex", alignItems: "center", gap: "14px", marginTop: "16px" }}>
+          <div className="order-settings-actions-row">
             <button
               type="submit"
               className="save-btn"
