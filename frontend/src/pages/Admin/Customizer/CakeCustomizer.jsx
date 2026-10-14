@@ -20,6 +20,7 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { customizerService } from "../../../services/customizerService";
+import customCakeImage from "../../../assets/images/custom_cake.jpg";
 import "./CakeCustomizer.css";
 
 const DEFAULT_CONFIG = {
@@ -944,7 +945,7 @@ export default function CakeCustomizer() {
             {/* Cake Graphic */}
             <div className="preview-visual-box">
               <img
-                src="https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=500"
+                src={customCakeImage}
                 alt="Cake Preview"
                 className="preview-cake-img"
               />

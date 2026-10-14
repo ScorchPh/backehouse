@@ -21,7 +21,7 @@ import { customizerService } from "../../services/customizerService";
 import AnalogTimePicker from "../../components/AnalogTimePicker/AnalogTimePicker";
 import "./Personalize.css";
 
-import placeholder from "../../assets/images/placeholder.jfif";
+import customCakeImage from "../../assets/images/custom_cake.jpg";
 
 function Personalize() {
   const navigate = useNavigate();
@@ -110,7 +110,7 @@ function Personalize() {
       name: `${occasion} Custom Cake`,
       description: `${size} • ${flavor} • ${shape} • Frosting: ${color} • Needed: ${scheduleDate}`,
       price: totalPrice,
-      image: placeholder,
+      image: customCakeImage,
       scheduled_date: scheduleDate,
       scheduled_time: scheduleTime,
       is_scheduled: true,
@@ -146,8 +146,8 @@ function Personalize() {
           {/* Preview Section */}
           <div className="preview-section">
             <img
-              src="https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=500"
-              alt="Cake Preview"
+              src={customCakeImage}
+              alt="Custom Cake Preview"
             />
 
             <div className="preview-info">

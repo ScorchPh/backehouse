@@ -8,6 +8,8 @@
  */
 
 export const PRODUCT_IMAGE_MAP = {
+  "custom cake": "/custom_cake.jpg",
+  "personalized": "/custom_cake.jpg",
   "spanish bread": "/uploads/productimg/spanish_bread.jpg",
   "cheesecake": "/uploads/productimg/cheesecake.jpg",
   "chocolate cake": "/uploads/productimg/chocolate_cake.jpg",
@@ -25,6 +27,19 @@ export const PRODUCT_IMAGE_MAP = {
 export const resolveProductImage = (itemOrProduct) => {
   const name = (itemOrProduct?.product_name || itemOrProduct?.name || "").trim().toLowerCase();
   const rawImg = itemOrProduct?.image;
+
+  // Custom cake detection
+  if (
+    itemOrProduct?.customization ||
+    itemOrProduct?.is_scheduled ||
+    name.includes("custom cake") ||
+    name.includes("personalized")
+  ) {
+    if (rawImg && !rawImg.includes("placeholder") && !rawImg.includes("cheesecake")) {
+      return rawImg;
+    }
+    return "/custom_cake.jpg";
+  }
 
   // If item has a specific non-placeholder, non-generic chocolate cake image
   if (
@@ -58,6 +73,14 @@ export const resolveProductImage = (itemOrProduct) => {
 
 export const getProductFallbackImage = (itemOrProduct) => {
   const name = (itemOrProduct?.product_name || itemOrProduct?.name || "").trim().toLowerCase();
+  if (
+    itemOrProduct?.customization ||
+    itemOrProduct?.is_scheduled ||
+    name.includes("custom cake") ||
+    name.includes("personalized")
+  ) {
+    return "/custom_cake.jpg";
+  }
   if (name.includes("bread") || name.includes("pandesal")) {
     return "https://images.unsplash.com/photo-1509440159596-0249088772ff?w=500";
   }
