@@ -1338,3 +1338,60 @@
   color: #166534;
   border: 1px solid #BBF7D0;
 }
+
+.order-inspect-chip {
+  background: #54331D;
+  color: #FFFFFF;
+  border: none;
+  font-weight: 700;
+  font-size: 0.74rem;
+  padding: 3px 9px;
+  border-radius: 6px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.15s ease;
+}
+
+.order-inspect-chip:hover {
+  background: #3D2314;
+  transform: translateY(-1px);
+}
+
+.view-order-modal-link {
+  background: none;
+  border: none;
+  color: #8B4513;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 0;
+}
+
+.view-order-modal-link:hover {
+  color: #54331D;
+}
+
+.map-open-link-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 6px;
+  background: #EFF6FF;
+  border: 1px solid #BFDBFE;
+  color: #1D4ED8 !important;
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 5px 10px;
+  border-radius: 6px;
+  text-decoration: none !important;
+  width: fit-content;
+  transition: all 0.15s ease;
+}
+
+.map-open-link-btn:hover {
+  background: #DBEAFE;
+  border-color: #93C5FD;
+}

@@ -69,7 +69,10 @@ if ($pdo) {
             : "'' as cancellation_reason,";
 
         $stmt = $pdo->prepare("
-            SELECT o.id, o.user_id, o.customer_name, o.customer_contact, o.delivery_address,
+            SELECT o.id, o.user_id, o.customer_name, o.customer_contact,
+                   COALESCE(o.fulfillment_type, 'Delivery') as fulfillment_type,
+                   o.delivery_address, o.delivery_coordinates, o.distance_km, o.estimated_delivery_time,
+                   o.scheduled_date, o.scheduled_time, COALESCE(o.is_scheduled, 0) as is_scheduled,
                    o.payment_method, o.subtotal, o.delivery_fee, o.total, o.status, 
                    {$cancellationField}
                    o.created_at,
@@ -92,6 +95,15 @@ if ($pdo) {
         $order['subtotal']     = (float)$order['subtotal'];
         $order['delivery_fee'] = (float)$order['delivery_fee'];
         $order['total']        = (float)$order['total'];
+        if (!empty($order['delivery_coordinates'])) {
+            $order['delivery_coordinates'] = is_string($order['delivery_coordinates']) 
+                ? json_decode($order['delivery_coordinates'], true) 
+                : $order['delivery_coordinates'];
+        } else {
+            $order['delivery_coordinates'] = null;
+        }
+        $order['distance_km'] = isset($order['distance_km']) && $order['distance_km'] !== null ? (float)$order['distance_km'] : null;
+        $order['is_scheduled'] = !empty($order['is_scheduled']) || !empty($order['scheduled_date']);
 
         // Retrieve items from child table order_items and join products to fetch image
         $stmtItems = $pdo->prepare("

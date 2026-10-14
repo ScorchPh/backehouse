@@ -113,6 +113,9 @@ function getDBConnection() {
         }
 
         $pdo = new PDO($dsn, DB_USER, DB_PASS, $options);
+        try {
+            $pdo->exec("SET time_zone = '+08:00'");
+        } catch (Exception $e) {}
 
         // Self-healing schema auto-migration: runs once per deploy, not on every HTTP request!
         $lockFile = sys_get_temp_dir() . '/bakehouse_schema_migrated.lock';
@@ -132,7 +135,13 @@ function getDBConnection() {
                 "ALTER TABLE `users` ADD COLUMN `address` TEXT NULL",
                 "ALTER TABLE `users` MODIFY COLUMN `password` VARCHAR(255) NULL",
                 "ALTER TABLE `orders` ADD COLUMN `cancellation_reason` TEXT NULL",
-                "ALTER TABLE `orders` ADD COLUMN `delivery_coordinates` JSON NULL"
+                "ALTER TABLE `orders` ADD COLUMN `delivery_coordinates` JSON NULL",
+                "ALTER TABLE `orders` ADD COLUMN `fulfillment_type` VARCHAR(50) NULL DEFAULT 'Delivery'",
+                "ALTER TABLE `orders` ADD COLUMN `distance_km` DECIMAL(6, 2) NULL",
+                "ALTER TABLE `orders` ADD COLUMN `estimated_delivery_time` VARCHAR(100) NULL",
+                "ALTER TABLE `orders` ADD COLUMN `scheduled_date` VARCHAR(50) NULL",
+                "ALTER TABLE `orders` ADD COLUMN `scheduled_time` VARCHAR(100) NULL",
+                "ALTER TABLE `orders` ADD COLUMN `is_scheduled` TINYINT(1) DEFAULT 0"
             ];
             foreach ($migrations as $sql) {
                 try {

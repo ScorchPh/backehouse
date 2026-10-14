@@ -126,6 +126,7 @@ function AdminCakeChatModal({ isOpen, onClose }) {
   const [denialPreset, setDenialPreset] = useState(PRESET_DENIAL_REASONS[0]);
   const [customDenialReason, setCustomDenialReason] = useState("");
   const [showScrollBottomBtn, setShowScrollBottomBtn] = useState(false);
+  const [selectedOrderDetails, setSelectedOrderDetails] = useState(null);
 
   const messagesContainerRef = useRef(null);
   const messagesEndRef = useRef(null);
@@ -644,16 +645,30 @@ function AdminCakeChatModal({ isOpen, onClose }) {
                               <div className="cake-spec-card">
                                 <div className="cake-spec-header">
                                   <span className="spec-badge-title">🎂 Custom Cake Placed</span>
-                                  {cakeOrder.orderId && (
-                                    <button
-                                      type="button"
-                                      className="order-id-chip"
-                                      onClick={() => handleCopyOrderId(cakeOrder.orderId)}
-                                      title="Click to copy Order ID"
-                                    >
-                                      {copiedOrderId === cakeOrder.orderId ? "✓ Copied!" : `📋 ${cakeOrder.orderId}`}
-                                    </button>
-                                  )}
+                                  <div style={{ display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap" }}>
+                                    {cakeOrder.orderId && (
+                                      <>
+                                        <button
+                                          type="button"
+                                          className="order-id-chip"
+                                          onClick={() => handleCopyOrderId(cakeOrder.orderId)}
+                                          title="Click to copy Order ID"
+                                        >
+                                          {copiedOrderId === cakeOrder.orderId ? "✓ Copied!" : `📋 ${cakeOrder.orderId}`}
+                                        </button>
+                                        {orderStatuses[cakeOrder.orderId]?.order && (
+                                          <button
+                                            type="button"
+                                            className="order-inspect-chip"
+                                            onClick={() => setSelectedOrderDetails(orderStatuses[cakeOrder.orderId].order)}
+                                            title="Inspect full order details, items and delivery map"
+                                          >
+                                            🔍 Full Details & Map
+                                          </button>
+                                        )}
+                                      </>
+                                    )}
+                                  </div>
                                 </div>
 
                                 <strong className="cake-spec-name">{cakeOrder.cakeName}</strong>
@@ -724,10 +739,40 @@ function AdminCakeChatModal({ isOpen, onClose }) {
 
                                           {/* Delivery Address or Pickup Branch */}
                                           <div className="fulfillment-detail-item full-width">
-                                            <span className="detail-item-label">{isPickup ? "📍 Pickup Location" : "📍 Delivery Address"}</span>
+                                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                                              <span className="detail-item-label">{isPickup ? "📍 Pickup Location" : "📍 Delivery Address & Navigation"}</span>
+                                              {orderDetails && (
+                                                <button
+                                                  type="button"
+                                                  className="view-order-modal-link"
+                                                  onClick={() => setSelectedOrderDetails(orderDetails)}
+                                                >
+                                                  📄 Order Modal
+                                                </button>
+                                              )}
+                                            </div>
                                             <span className="detail-item-value address-text">
                                               {orderDetails?.delivery_address || (isPickup ? "Store Pickup (Poblacion, Cordova Branch)" : "Address provided at checkout")}
                                             </span>
+                                            {!isPickup && (orderDetails?.delivery_coordinates ? (
+                                              <a
+                                                href={`https://www.google.com/maps/search/?api=1&query=${orderDetails.delivery_coordinates.lat},${orderDetails.delivery_coordinates.lng}`}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="map-open-link-btn"
+                                              >
+                                                🗺️ Open Pinned Location in Maps ({orderDetails.distance_km ? `${orderDetails.distance_km} km` : "GPS Pin"})
+                                              </a>
+                                            ) : orderDetails?.delivery_address ? (
+                                              <a
+                                                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(orderDetails.delivery_address)}`}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="map-open-link-btn"
+                                              >
+                                                🗺️ Search Delivery Address on Google Maps
+                                              </a>
+                                            ) : null)}
                                           </div>
 
                                           {/* Customer Contact */}
@@ -1044,6 +1089,104 @@ function AdminCakeChatModal({ isOpen, onClose }) {
           </div>
         )}
       </div>
+
+      {/* Full Order & Delivery Map Modal */ }
+        {selectedOrderDetails && (
+          <div className="admin-modal-overlay" onClick={() => setSelectedOrderDetails(null)} style={{ zIndex: 11000 }}>
+            <div className="order-details-modal-card" onClick={(e) => e.stopPropagation()}>
+              <div className="order-modal-header">
+                <div>
+                  <div className="modal-title-row">
+                    <h2>Order #{selectedOrderDetails.id}</h2>
+                    <span className={`status-pill status-${(selectedOrderDetails.status || "pending").toLowerCase().replace(/\s+/g, "-")}`}>
+                      ● {selectedOrderDetails.status || "Pending"}
+                    </span>
+                  </div>
+                  <p className="order-timestamp">
+                    📅 {selectedOrderDetails.formatted_date || selectedOrderDetails.created_at}
+                  </p>
+                </div>
+                <div className="header-actions">
+                  <button type="button" className="print-slip-btn" onClick={() => window.print()}>
+                    🖨️ Print Slip
+                  </button>
+                  <button className="close-modal-btn" onClick={() => setSelectedOrderDetails(null)}>✕</button>
+                </div>
+              </div>
+
+              <div className="order-modal-body">
+                <div className="modal-info-grid">
+                  <div className="info-box-card">
+                    <div className="info-box-header"><span>👤 Customer Details</span></div>
+                    <strong className="info-primary">{selectedOrderDetails.customer_name}</strong>
+                    <p className="info-sub">📞 {selectedOrderDetails.customer_contact || "N/A"}</p>
+                  </div>
+                  <div className="info-box-card">
+                    <div className="info-box-header"><span>🚚 Fulfillment & Map</span></div>
+                    <strong className="info-primary">{selectedOrderDetails.fulfillment_type || "Delivery"}</strong>
+                    <p className="info-sub">📍 {selectedOrderDetails.delivery_address}</p>
+                    {selectedOrderDetails.delivery_coordinates ? (
+                      <a
+                        href={`https://www.google.com/maps/search/?api=1&query=${selectedOrderDetails.delivery_coordinates.lat},${selectedOrderDetails.delivery_coordinates.lng}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="map-nav-btn"
+                        style={{ marginTop: "8px", display: "inline-flex", alignItems: "center", gap: "4px" }}
+                      >
+                        🗺️ Open Pinned Location in Maps ({selectedOrderDetails.distance_km ? `${selectedOrderDetails.distance_km} km` : "GPS Pin"})
+                      </a>
+                    ) : (selectedOrderDetails.fulfillment_type || "").toLowerCase() !== "pickup" && selectedOrderDetails.delivery_address ? (
+                      <a
+                        href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(selectedOrderDetails.delivery_address)}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="map-nav-btn"
+                        style={{ marginTop: "8px", display: "inline-flex", alignItems: "center", gap: "4px" }}
+                      >
+                        🗺️ Open in Google Maps
+                      </a>
+                    ) : null}
+                  </div>
+                  <div className="info-box-card">
+                    <div className="info-box-header"><span>💳 Payment</span></div>
+                    <strong className="info-primary">₱{parseFloat(selectedOrderDetails.total || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</strong>
+                    <p className="info-sub">{selectedOrderDetails.payment_method || "Cash on Delivery"}</p>
+                  </div>
+                </div>
+
+                <div className="modal-items-section">
+                  <h3>🍰 Order Items & Customizations</h3>
+                  <div className="items-card-list">
+                    {selectedOrderDetails.items && selectedOrderDetails.items.map((it, idx) => (
+                      <div key={idx} className="order-item-detail-card" style={{ background: "#FAF8F5", padding: "12px 14px", borderRadius: "10px", marginBottom: "8px", border: "1px solid #EADBCE" }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontWeight: "700" }}>
+                          <span>{it.quantity}× {it.product_name || it.name}</span>
+                          <span>₱{(parseFloat(it.price || 0) * parseInt(it.quantity || 1)).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                        </div>
+                        {it.customization && (
+                          <div style={{ marginTop: "6px", display: "flex", flexWrap: "wrap", gap: "6px", fontSize: "0.82rem" }}>
+                            {it.customization.size && <span className="spec-chip">Size: {it.customization.size}</span>}
+                            {it.customization.flavor && <span className="spec-chip">Flavor: {it.customization.flavor}</span>}
+                            {it.customization.shape && <span className="spec-chip">Shape: {it.customization.shape}</span>}
+                            {it.customization.color && <span className="spec-chip">Frosting: {it.customization.color}</span>}
+                            {it.customization.message && <div style={{ width: "100%", marginTop: "4px", color: "#92400E", fontStyle: "italic" }}>"{it.customization.message}"</div>}
+                            {it.customization.instructions && <div style={{ width: "100%", marginTop: "2px", color: "#54331D" }}>Special note: {it.customization.instructions}</div>}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className="order-modal-footer" style={{ padding: "14px 24px", background: "#FAF6F0", borderTop: "1px solid #EADBCE", display: "flex", justifyContent: "flex-end" }}>
+                <button type="button" className="close-footer-btn" onClick={() => setSelectedOrderDetails(null)} style={{ background: "#54331D", color: "#fff", border: "none", padding: "8px 20px", borderRadius: "8px", fontWeight: "700", cursor: "pointer" }}>
+                  Close Details
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
     </div>
   );
 }

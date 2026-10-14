@@ -12,7 +12,8 @@
  * This file sets the required response headers to allow seamless API communication.
  * ============================================================================
  */
-
+// Set application timezone to Asia/Manila (UTC+8, Philippines Standard Time)
+date_default_timezone_set('Asia/Manila');
 // Allow requests from any origin during development (or specify frontend URL)
 header("Access-Control-Allow-Origin: *");
 

@@ -187,15 +187,30 @@ if ($pdo) {
 
         // STEP 2: Record the Primary Order Transaction
         $stmtOrder = $pdo->prepare("
-            INSERT INTO orders (id, user_id, customer_name, customer_contact, delivery_address, payment_method, subtotal, delivery_fee, total, status)
-            VALUES (:id, :user_id, :customer_name, :customer_contact, :delivery_address, :payment_method, :subtotal, :delivery_fee, :total, :status)
+            INSERT INTO orders (
+                id, user_id, customer_name, customer_contact, fulfillment_type, delivery_address,
+                delivery_coordinates, distance_km, estimated_delivery_time, scheduled_date, scheduled_time,
+                is_scheduled, payment_method, subtotal, delivery_fee, total, status
+            )
+            VALUES (
+                :id, :user_id, :customer_name, :customer_contact, :fulfillment_type, :delivery_address,
+                :delivery_coordinates, :distance_km, :estimated_delivery_time, :scheduled_date, :scheduled_time,
+                :is_scheduled, :payment_method, :subtotal, :delivery_fee, :total, :status
+            )
         ");
         $stmtOrder->execute([
             'id' => $orderId,
             'user_id' => $userId ?: null,
             'customer_name' => $customerName,
             'customer_contact' => $customerContact,
+            'fulfillment_type' => $fulfillmentType,
             'delivery_address' => $deliveryAddress,
+            'delivery_coordinates' => $deliveryCoordinates ? json_encode($deliveryCoordinates) : null,
+            'distance_km' => $distanceKm,
+            'estimated_delivery_time' => $estimatedDeliveryTime,
+            'scheduled_date' => $scheduledDate ?: null,
+            'scheduled_time' => $scheduledTime ?: null,
+            'is_scheduled' => $isScheduled ? 1 : 0,
             'payment_method' => $paymentMethod,
             'subtotal' => $subtotal,
             'delivery_fee' => $deliveryFee,

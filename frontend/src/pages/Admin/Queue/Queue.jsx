@@ -187,7 +187,12 @@ function Queue() {
    */
   const getElapsedInfo = (createdAt) => {
     if (!createdAt) return null;
-    const created = new Date(createdAt);
+    let s = String(createdAt).trim();
+    // If standard MySQL 'YYYY-MM-DD HH:mm:ss', treat as Philippine Time (UTC+8)
+    if (/^\d{4}-\d{2}-\d{2}\s\d{2}:\d{2}:\d{2}$/.test(s)) {
+      s = s.replace(' ', 'T') + '+08:00';
+    }
+    const created = new Date(s);
     if (isNaN(created.getTime())) return null;
     const diffMins = Math.max(0, Math.floor((Date.now() - created.getTime()) / 60000));
     let urgency = "normal"; // 'normal' (<20m) | 'warning' (20m-45m) | 'urgent' (>45m)
@@ -733,6 +738,27 @@ function Queue() {
                   <div className="info-box-header"><span>🏪 / 🚚 Fulfillment</span></div>
                   <strong className="info-primary">{selectedOrder.fulfillment_type || "Delivery"}</strong>
                   <p className="info-sub">📍 {selectedOrder.delivery_address}</p>
+                  {selectedOrder.delivery_coordinates ? (
+                    <a
+                      href={`https://www.google.com/maps/search/?api=1&query=${selectedOrder.delivery_coordinates.lat},${selectedOrder.delivery_coordinates.lng}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="map-nav-btn"
+                      style={{ marginTop: "8px", display: "inline-flex", alignItems: "center", gap: "4px" }}
+                    >
+                      🗺️ Open Map Location ({selectedOrder.distance_km ? `${selectedOrder.distance_km} km` : "GPS Pin"})
+                    </a>
+                  ) : (selectedOrder.fulfillment_type || "").toLowerCase() !== "pickup" && selectedOrder.delivery_address && (
+                    <a
+                      href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(selectedOrder.delivery_address)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="map-nav-btn"
+                      style={{ marginTop: "8px", display: "inline-flex", alignItems: "center", gap: "4px" }}
+                    >
+                      🗺️ Search on Google Maps
+                    </a>
+                  )}
                 </div>
                 <div className="info-box-card">
                   <div className="info-box-header"><span>💳 Payment</span></div>
