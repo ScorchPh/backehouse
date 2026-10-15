@@ -1,100 +1,38 @@
 <?php
-/**
- * ============================================================================
- * BAKE HOUSE - Delete Product API Endpoint
- * ============================================================================
- * Endpoint: POST or DELETE /api/products/delete_product.php
- * Role: Admin inventory management
- *
- * PURPOSE:
- * Deletes a product from the database (MySQL/TiDB or fallback JSON).
- * ============================================================================
- */
+// Delete product by id
 
-// ----------------------------------------------------------------------------
-// STEP 1: Load Database Configuration & Helpers
-// ----------------------------------------------------------------------------
 require_once __DIR__ . '/../../config/db.php';
 
-
-// ----------------------------------------------------------------------------
-// STEP 2: Enforce HTTP Method Verification
-// ----------------------------------------------------------------------------
 if ($_SERVER['REQUEST_METHOD'] !== 'POST' && $_SERVER['REQUEST_METHOD'] !== 'DELETE') {
-    sendResponse([
-        'success' => false,
-        'message' => 'Method not allowed. Use POST or DELETE.'
-    ], 405);
+    sendResponse(['success' => false, 'message' => 'Method not allowed. Use POST or DELETE.'], 405);
 }
 
-
-// ----------------------------------------------------------------------------
-// STEP 3: Receive and Validate Product ID
-// ----------------------------------------------------------------------------
 $data = getRequestBody();
-$id   = (int)($data['id'] ?? $_GET['id'] ?? 0);
+$id = isset($data['id']) ? (int)$data['id'] : (isset($_GET['id']) ? (int)$_GET['id'] : 0);
 
 if ($id <= 0) {
-    sendResponse([
-        'success' => false,
-        'message' => 'Valid Product ID is required.'
-    ], 400);
+    sendResponse(['success' => false, 'message' => 'Valid Product ID is required'], 400);
 }
 
-
-// ----------------------------------------------------------------------------
-// STEP 4: Delete from Database (Primary: MySQL/TiDB | Fallback: JSON)
-// ----------------------------------------------------------------------------
 $pdo = getDBConnection();
+if (!$pdo) {
+    sendResponse(['success' => false, 'message' => 'Database connection failed'], 500);
+}
 
-if ($pdo) {
-    // ------------------------------------------------------------------------
-    // CASE A: Live MySQL / TiDB Cloud Connection
-    // ------------------------------------------------------------------------
-    try {
-        $stmt = $pdo->prepare("DELETE FROM products WHERE id = :id");
-        $stmt->execute(['id' => $id]);
+try {
+    $stmt = $pdo->prepare("DELETE FROM products WHERE id = :id");
+    $stmt->execute(['id' => $id]);
 
-        if ($stmt->rowCount() === 0) {
-            sendResponse([
-                'success' => false,
-                'message' => 'Product not found.'
-            ], 404);
-        }
-
-        sendResponse([
-            'success' => true,
-            'message' => 'Product deleted successfully.'
-        ], 200);
-
-    } catch (PDOException $e) {
-        sendResponse([
-            'success' => false,
-            'message' => 'Database error: ' . $e->getMessage()
-        ], 500);
+    if ($stmt->rowCount() === 0) {
+        sendResponse(['success' => false, 'message' => 'Product not found or already deleted'], 404);
     }
-
-} else {
-    // ------------------------------------------------------------------------
-    // CASE B: Offline / Fallback Mode (Using JSON file store)
-    // ------------------------------------------------------------------------
-    $products = readDataStore('products');
-    $initialCount = count($products);
-
-    $filtered = array_filter($products, fn($p) => (int)$p['id'] !== $id);
-
-    if (count($filtered) === $initialCount) {
-        sendResponse([
-            'success' => false,
-            'message' => 'Product not found.'
-        ], 404);
-    }
-
-    writeDataStore('products', array_values($filtered));
 
     sendResponse([
         'success' => true,
         'message' => 'Product deleted successfully.'
-    ], 200);
+    ]);
+
+} catch (PDOException $e) {
+    sendResponse(['success' => false, 'message' => 'Database error: ' . $e->getMessage()], 500);
 }
 ?>

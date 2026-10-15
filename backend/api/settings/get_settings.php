@@ -1,25 +1,11 @@
 <?php
-/**
- * ============================================================================
- * BAKE HOUSE - Get Store Settings API Endpoint
- * ============================================================================
- * Endpoint: GET /api/settings/get_settings.php
- *
- * Serves bakery store settings including:
- * - Bakery name, contact phone, email, address
- * - Social media links (Facebook, Instagram, TikTok)
- * - Order options (accept orders, cake customizer enabled)
- * ============================================================================
- */
+// Get store settings from database
 
 require_once __DIR__ . '/../../config/cors.php';
 require_once __DIR__ . '/../../config/db.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
-    sendResponse([
-        'success' => false,
-        'message' => 'Method not allowed. Use GET.'
-    ], 405);
+    sendResponse(['success' => false, 'message' => 'Method not allowed'], 405);
 }
 
 $defaultSettings = [
@@ -45,52 +31,52 @@ $defaultSettings = [
     ]
 ];
 
-$stored = null;
+$pdo = getDBConnection();
+if (!$pdo) {
+    sendResponse(['success' => false, 'message' => 'Database connection failed'], 500);
+}
 
-// 1. Try fetching from MySQL / TiDB database first
 try {
-    $pdo = getDBConnection();
-    if ($pdo) {
-        $stmt = $pdo->prepare("SELECT `setting_value` FROM `store_settings` WHERE `setting_key` = 'store_config' LIMIT 1");
-        $stmt->execute();
-        $row = $stmt->fetch(PDO::FETCH_ASSOC);
-        if ($row && !empty($row['setting_value'])) {
-            $decoded = json_decode($row['setting_value'], true);
-            if (is_array($decoded)) {
-                $stored = $decoded;
-            }
-        }
+    $stmt = $pdo->prepare("SELECT setting_value FROM store_settings WHERE setting_key = 'store_config' LIMIT 1");
+    $stmt->execute();
+    $row = $stmt->fetch();
+
+    $settings = null;
+    if ($row && !empty($row['setting_value'])) {
+        $settings = json_decode($row['setting_value'], true);
     }
-} catch (Exception $e) {
-    // Fall back to JSON file
-}
 
-// 2. Fall back to JSON data store if not found in MySQL
-if (empty($stored) || !is_array($stored)) {
-    $stored = readDataStore('store_settings');
-}
+    // If not found in database yet, initialize with defaults
+    if (empty($settings) || !is_array($settings)) {
+        $settings = $defaultSettings;
+        $insert = $pdo->prepare("
+            INSERT INTO store_settings (setting_key, setting_value)
+            VALUES ('store_config', :val)
+            ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)
+        ");
+        $insert->execute(['val' => json_encode($defaultSettings, JSON_UNESCAPED_SLASHES)]);
+    } else {
+        // Ensure default structure for nested fields
+        $settings['social_links'] = array_merge(
+            $defaultSettings['social_links'],
+            isset($settings['social_links']) && is_array($settings['social_links']) ? $settings['social_links'] : []
+        );
+        $settings['order_settings'] = array_merge(
+            $defaultSettings['order_settings'],
+            isset($settings['order_settings']) && is_array($settings['order_settings']) ? $settings['order_settings'] : []
+        );
+        $settings['tax_settings'] = array_merge(
+            $defaultSettings['tax_settings'],
+            isset($settings['tax_settings']) && is_array($settings['tax_settings']) ? $settings['tax_settings'] : []
+        );
+    }
 
-// 3. Fall back to default settings if completely empty
-if (empty($stored) || !is_array($stored)) {
-    writeDataStore('store_settings', $defaultSettings);
-    $stored = $defaultSettings;
-} else {
-    // Ensure nested fields exist
-    $stored['social_links'] = array_merge(
-        $defaultSettings['social_links'],
-        isset($stored['social_links']) && is_array($stored['social_links']) ? $stored['social_links'] : []
-    );
-    $stored['order_settings'] = array_merge(
-        $defaultSettings['order_settings'],
-        isset($stored['order_settings']) && is_array($stored['order_settings']) ? $stored['order_settings'] : []
-    );
-    $stored['tax_settings'] = array_merge(
-        $defaultSettings['tax_settings'],
-        isset($stored['tax_settings']) && is_array($stored['tax_settings']) ? $stored['tax_settings'] : []
-    );
-}
+    sendResponse([
+        'success'  => true,
+        'settings' => $settings
+    ]);
 
-sendResponse([
-    'success'  => true,
-    'settings' => $stored
-]);
+} catch (PDOException $e) {
+    sendResponse(['success' => false, 'message' => 'Failed to load settings: ' . $e->getMessage()], 500);
+}
+?>

@@ -1,21 +1,16 @@
 <?php
-/**
- * ============================================================================
- * BAKE HOUSE - Database Connection & Abstraction Layer
- * ============================================================================
- * Capstone Project Architecture:
- * 1. Primary Engine: MySQL Database (PDO Prepared Statements)
- * 2. Fallback Engine: JSON Data Store (`backend/database/data/`)
- * ============================================================================
- */
+// Database Connection & Global API Helpers
+//
+// This file handles:
+// 1. Loading environment variables from .env files so database credentials aren't hardcoded.
+// 2. Connecting to MySQL using PDO prepared statements (Singleton pattern to reuse connection).
+// 3. getRequestBody(): Reading JSON payloads sent by React's fetch() API.
+// 4. sendResponse(): Standardizing JSON responses with proper HTTP status codes.
 
 require_once __DIR__ . '/cors.php';
 
-/**
- * Loads key-value pairs from a .env file into getenv(), $_ENV, and $_SERVER
- * @param string $path
- * @return void
- */
+// Reads key-value pairs from a .env file and sets them into getenv(), $_ENV, and $_SERVER.
+// This allows the system to read local configuration without needing third-party Composer packages.
 function loadEnvFile(string $path): void {
     if (!file_exists($path) || !is_readable($path)) {
         return;
@@ -34,7 +29,7 @@ function loadEnvFile(string $path): void {
             $key = trim($key);
             $value = trim($value);
 
-            // Strip surrounding quotes
+            // Remove surrounding single or double quotes
             if (
                 (str_starts_with($value, '"') && str_ends_with($value, '"')) ||
                 (str_starts_with($value, "'") && str_ends_with($value, "'"))
@@ -49,11 +44,11 @@ function loadEnvFile(string $path): void {
     }
 }
 
-// Automatically load backend/.env and backend/.env.local if present
+// Load backend/.env and optional local override backend/.env.local
 loadEnvFile(dirname(__DIR__) . '/.env');
 loadEnvFile(dirname(__DIR__) . '/.env.local');
 
-// MySQL Configuration Settings (reads from backend .env / environment or defaults to local)
+// Database configuration constants (read from environment or default to local development values)
 define('DB_HOST', trim((string)(getenv('DB_HOST') ?: '127.0.0.1')));
 define('DB_PORT', trim((string)(getenv('DB_PORT') ?: '3306')));
 define('DB_NAME', trim((string)(getenv('DB_NAME') ?: 'bakehouse_db')));
@@ -61,15 +56,11 @@ define('DB_USER', trim((string)(getenv('DB_USER') ?: 'root')));
 define('DB_PASS', getenv('DB_PASS') !== false ? (string)getenv('DB_PASS') : 'NewStr0ngP@ss!');
 define('GOOGLE_CLIENT_ID', trim((string)(getenv('GOOGLE_CLIENT_ID') ?: '')));
 
-// File Storage Data Directory (for zero-config fallback)
-define('DATA_DIR', dirname(__DIR__) . '/database/data');
-
 $GLOBALS['last_db_error'] = '';
 
-/**
- * Connects to MySQL using PDO Prepared Statements
- * @return PDO|null
- */
+// Establishes a PDO MySQL database connection.
+// We use a static variable ($pdo) so that multiple calls to getDBConnection() in the same
+// request reuse the existing connection instead of creating unnecessary multiple connections.
 function getDBConnection() {
     static $pdo = null;
     static $attempted = false;
@@ -80,7 +71,7 @@ function getDBConnection() {
 
     $attempted = true;
 
-    // Detect system CA bundle if available
+    // Detect system CA bundle if connecting to a cloud database requiring SSL
     $caPath = '';
     if (file_exists('/etc/ssl/certs/ca-certificates.crt')) {
         $caPath = '/etc/ssl/certs/ca-certificates.crt';
@@ -91,12 +82,12 @@ function getDBConnection() {
     try {
         $dsn = "mysql:host=" . DB_HOST . ";port=" . DB_PORT . ";dbname=" . DB_NAME . ";charset=utf8mb4";
         $options = [
-            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-            PDO::ATTR_EMULATE_PREPARES => false,
+            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, // Throw exceptions on errors so we can catch and handle them
+            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC, // Return rows as associative arrays
+            PDO::ATTR_EMULATE_PREPARES => false, // Use native prepared statements for security against SQL injection
         ];
 
-        // Enable SSL/TLS for TiDB Cloud or cloud databases
+        // Enable SSL/TLS options if connecting to TiDB Cloud or custom cloud ports
         if (strpos(DB_HOST, 'tidbcloud.com') !== false || DB_PORT == 4000) {
             if (!empty($caPath)) {
                 if (defined('Pdo\\Mysql::ATTR_SSL_CA')) {
@@ -113,48 +104,11 @@ function getDBConnection() {
         }
 
         $pdo = new PDO($dsn, DB_USER, DB_PASS, $options);
+        
+        // Ensure database session timezone matches Philippine time
         try {
             $pdo->exec("SET time_zone = '+08:00'");
         } catch (Exception $e) {}
-
-        // Self-healing schema auto-migration: runs once per deploy, not on every HTTP request!
-        $lockFile = sys_get_temp_dir() . '/bakehouse_schema_migrated.lock';
-        $forceMigrate = isset($_GET['migrate']) && ($_GET['migrate'] === '1' || $_GET['migrate'] === 'true');
-        if ($forceMigrate || !file_exists($lockFile)) {
-            @touch($lockFile);
-            $migrations = [
-                "ALTER TABLE `users` ADD COLUMN `google_id` VARCHAR(100) NULL UNIQUE",
-                "ALTER TABLE `users` ADD COLUMN `avatar` VARCHAR(500) NULL",
-                "ALTER TABLE `users` ADD COLUMN `default_street` VARCHAR(255) NULL",
-                "ALTER TABLE `users` ADD COLUMN `default_barangay` VARCHAR(100) NULL",
-                "ALTER TABLE `users` ADD COLUMN `default_city` VARCHAR(100) NULL",
-                "ALTER TABLE `users` ADD COLUMN `default_province` VARCHAR(100) NULL",
-                "ALTER TABLE `users` ADD COLUMN `default_landmark` VARCHAR(255) NULL",
-                "ALTER TABLE `users` ADD COLUMN `default_lat` DECIMAL(10, 7) NULL",
-                "ALTER TABLE `users` ADD COLUMN `default_lng` DECIMAL(10, 7) NULL",
-                "ALTER TABLE `users` ADD COLUMN `address` TEXT NULL",
-                "ALTER TABLE `users` MODIFY COLUMN `password` VARCHAR(255) NULL",
-                "ALTER TABLE `orders` ADD COLUMN `cancellation_reason` TEXT NULL",
-                "ALTER TABLE `orders` ADD COLUMN `delivery_coordinates` JSON NULL",
-                "ALTER TABLE `orders` ADD COLUMN `fulfillment_type` VARCHAR(50) NULL DEFAULT 'Delivery'",
-                "ALTER TABLE `orders` ADD COLUMN `distance_km` DECIMAL(6, 2) NULL",
-                "ALTER TABLE `orders` ADD COLUMN `estimated_delivery_time` VARCHAR(100) NULL",
-                "ALTER TABLE `orders` ADD COLUMN `scheduled_date` VARCHAR(50) NULL",
-                "ALTER TABLE `orders` ADD COLUMN `scheduled_time` VARCHAR(100) NULL",
-                "ALTER TABLE `orders` ADD COLUMN `is_scheduled` TINYINT(1) DEFAULT 0"
-            ];
-            foreach ($migrations as $sql) {
-                try {
-                    $pdo->exec($sql);
-                } catch (Exception $ignored) {}
-            }
-
-            // Ensure demo accounts have valid bcrypt hash for '1234'
-            try {
-                $demoHash = password_hash('1234', PASSWORD_BCRYPT);
-                $pdo->exec("UPDATE `users` SET `password` = '{$demoHash}' WHERE `username` IN ('admin', 'staff', 'customer')");
-            } catch (Exception $ignored) {}
-        }
 
         return $pdo;
     } catch (Exception $e) {
@@ -163,59 +117,17 @@ function getDBConnection() {
     }
 }
 
-/**
- * Ensures data directory and JSON store files exist with seed data
- */
-function initDataStore() {
-    if (!is_dir(DATA_DIR)) {
-        mkdir(DATA_DIR, 0777, true);
-    }
-}
-
-/**
- * Reads a JSON file data store
- * @param string $tableName
- * @return array
- */
-function readDataStore(string $tableName): array {
-    initDataStore();
-    $path = DATA_DIR . '/' . $tableName . '.json';
-    if (!file_exists($path)) {
-        return [];
-    }
-    $content = file_get_contents($path);
-    $decoded = json_decode($content, true);
-    return is_array($decoded) ? $decoded : [];
-}
-
-/**
- * Writes data into JSON file data store
- * @param string $tableName
- * @param mixed $data
- * @return void
- */
-function writeDataStore(string $tableName, mixed $data): void {
-    initDataStore();
-    $path = DATA_DIR . '/' . $tableName . '.json';
-    file_put_contents($path, json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
-}
-
-/**
- * Helper to read JSON request body sent by fetch()
- * @return array
- */
+// Reads incoming JSON payload sent by JavaScript fetch().
+// By default, PHP's $_POST is only populated for multipart/form-data or application/x-www-form-urlencoded.
+// Modern frontend apps send application/json, so we read the raw request stream php://input.
 function getRequestBody(): array {
     $rawInput = file_get_contents('php://input');
     $decoded = json_decode($rawInput, true);
     return is_array($decoded) ? $decoded : [];
 }
 
-/**
- * Helper to send formatted JSON responses
- * @param mixed $data
- * @param int $statusCode
- * @return void
- */
+// Sends a structured JSON response to the client with an HTTP status code,
+// then terminates script execution cleanly.
 function sendResponse(mixed $data, int $statusCode = 200): void {
     http_response_code($statusCode);
     echo json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);

@@ -1,152 +1,65 @@
 <?php
-/**
- * ============================================================================
- * BAKE HOUSE - Sales Reports & Analytics API Endpoint
- * ============================================================================
- * Endpoint: GET /api/admin/reports.php
- * Role: Admin analytics & reporting
- *
- * PURPOSE:
- * Generates aggregated analytical breakdowns for administrative reports and charts:
- * 1. Category Sales Breakdown (Revenue & quantity sold per category: Cakes, Pastries, Bread)
- * 2. Payment Method Distribution (GCash, Cash on Delivery, Maya)
- * 3. Monthly Sales Velocity (6-month historical revenue trend)
- * ============================================================================
- */
+// Sales Reports & Analytics Endpoint
+//
+// Purpose:
+// Generates SQL aggregation queries for admin sales charts and reports:
+// 1. Category breakdown: total sales revenue and items sold per product category (Cake, Pastry, Bread).
+// 2. Payment methods: order counts and totals grouped by payment method (GCash, Cash on Delivery, Maya).
+// 3. Monthly sales velocity: historical monthly revenue trend for the past 6 months.
 
-// ----------------------------------------------------------------------------
-// STEP 1: Load Database Configuration & Helpers
-// ----------------------------------------------------------------------------
 require_once __DIR__ . '/../../config/db.php';
 
-
-// ----------------------------------------------------------------------------
-// STEP 2: Enforce HTTP Method Verification
-// ----------------------------------------------------------------------------
 if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
-    sendResponse([
-        'success' => false,
-        'message' => 'Method not allowed. Use GET.'
-    ], 405);
+    sendResponse(['success' => false, 'message' => 'Method not allowed. Use GET.'], 405);
 }
 
-
-// ----------------------------------------------------------------------------
-// STEP 3: Aggregate Analytics (Primary: MySQL/TiDB | Fallback: JSON)
-// ----------------------------------------------------------------------------
 $pdo = getDBConnection();
+if (!$pdo) {
+    sendResponse(['success' => false, 'message' => 'Database connection failed'], 500);
+}
 
-if ($pdo) {
-    // ------------------------------------------------------------------------
-    // CASE A: Live MySQL / TiDB Cloud Connection
-    // ------------------------------------------------------------------------
-    try {
-        // 1. Sales by Product Category
-        $stmtCat = $pdo->query("
-            SELECT COALESCE(p.category, 'Customized') as category,
-                   COUNT(oi.id) as items_sold,
-                   COALESCE(SUM(oi.price * oi.quantity), 0) as total_sales
-            FROM order_items oi
-            LEFT JOIN products p ON oi.product_id = p.id
-            GROUP BY p.category
-        ");
-        $categorySales = $stmtCat->fetchAll();
+try {
+    // 1. Sales by Product Category
+    $stmtCat = $pdo->query("
+        SELECT COALESCE(p.category, 'Customized') as category,
+               COUNT(oi.id) as items_sold,
+               COALESCE(SUM(oi.price * oi.quantity), 0) as total_sales
+        FROM order_items oi
+        LEFT JOIN products p ON oi.product_id = p.id
+        GROUP BY p.category
+    ");
+    $categorySales = $stmtCat->fetchAll();
 
-        // 2. Sales by Payment Method
-        $stmtPay = $pdo->query("
-            SELECT payment_method,
-                   COUNT(*) as order_count,
-                   COALESCE(SUM(total), 0) as total_amount
-            FROM orders
-            GROUP BY payment_method
-        ");
-        $paymentStats = $stmtPay->fetchAll();
+    // 2. Sales by Payment Method
+    $stmtPay = $pdo->query("
+        SELECT payment_method,
+               COUNT(*) as order_count,
+               COALESCE(SUM(total), 0) as total_amount
+        FROM orders
+        GROUP BY payment_method
+    ");
+    $paymentStats = $stmtPay->fetchAll();
 
-        // 3. Historical Monthly Revenue (Past 6 Months)
-        $stmtMonthly = $pdo->query("
-            SELECT DATE_FORMAT(created_at, '%b %Y') as month_year,
-                   COUNT(*) as total_orders,
-                   COALESCE(SUM(total), 0) as monthly_revenue
-            FROM orders
-            GROUP BY DATE_FORMAT(created_at, '%Y-%m'), DATE_FORMAT(created_at, '%b %Y')
-            ORDER BY DATE_FORMAT(created_at, '%Y-%m') ASC
-            LIMIT 6
-        ");
-        $monthlySales = $stmtMonthly->fetchAll();
-
-        sendResponse([
-            'success'        => true,
-            'category_sales' => $categorySales,
-            'payment_stats'  => $paymentStats,
-            'monthly_sales'  => $monthlySales
-        ], 200);
-
-    } catch (PDOException $e) {
-        sendResponse([
-            'success' => false,
-            'message' => 'Reports error: ' . $e->getMessage()
-        ], 500);
-    }
-
-} else {
-    // ------------------------------------------------------------------------
-    // CASE B: Offline / Fallback Mode (Using JSON file store)
-    // ------------------------------------------------------------------------
-    $orders      = readDataStore('orders');
-    $categoryMap = ['Cakes' => 0.0, 'Pastries' => 0.0, 'Breads' => 0.0, 'Customized' => 0.0];
-    $paymentMap  = ['Cash on Delivery' => 0.0, 'GCash' => 0.0, 'Maya' => 0.0];
-
-    foreach ($orders as $o) {
-        $pm              = $o['payment_method'] ?? 'Cash on Delivery';
-        $paymentMap[$pm] = ($paymentMap[$pm] ?? 0.0) + (float)($o['total'] ?? 0);
-
-        if (isset($o['items']) && is_array($o['items'])) {
-            foreach ($o['items'] as $it) {
-                $pName = strtolower($it['product_name'] ?? '');
-                $sub   = (float)($it['price'] ?? 0) * (int)($it['quantity'] ?? 1);
-
-                if (strpos($pName, 'cake') !== false) {
-                    $categoryMap['Cakes'] += $sub;
-                } elseif (strpos($pName, 'croissant') !== false || strpos($pName, 'roll') !== false || strpos($pName, 'muffin') !== false) {
-                    $categoryMap['Pastries'] += $sub;
-                } elseif (strpos($pName, 'bread') !== false || strpos($pName, 'pandesal') !== false) {
-                    $categoryMap['Breads'] += $sub;
-                } else {
-                    $categoryMap['Customized'] += $sub;
-                }
-            }
-        }
-    }
-
-    $categorySales = [];
-    foreach ($categoryMap as $cat => $tot) {
-        $categorySales[] = [
-            'category'    => $cat,
-            'total_sales' => $tot,
-            'items_sold'  => ceil($tot / 150)
-        ];
-    }
-
-    $paymentStats = [];
-    foreach ($paymentMap as $pm => $tot) {
-        $paymentStats[] = [
-            'payment_method' => $pm,
-            'total_amount'   => $tot,
-            'order_count'    => ceil($tot / 800)
-        ];
-    }
-
-    $monthlySales = [
-        ['month_year' => 'June 2026', 'total_orders' => 45, 'monthly_revenue' => 32400.00],
-        ['month_year' => 'July 2026', 'total_orders' => 68, 'monthly_revenue' => 48200.00],
-        ['month_year' => 'August 2026', 'total_orders' => count($orders), 'monthly_revenue' => array_sum(array_column($orders, 'total'))]
-    ];
+    // 3. Monthly Sales History (past 6 months)
+    $stmtMonthly = $pdo->query("
+        SELECT DATE_FORMAT(created_at, '%b %Y') as month_year,
+               COUNT(*) as total_orders,
+               COALESCE(SUM(total), 0) as monthly_revenue
+        FROM orders
+        GROUP BY DATE_FORMAT(created_at, '%Y-%m'), DATE_FORMAT(created_at, '%b %Y')
+        ORDER BY DATE_FORMAT(created_at, '%Y-%m') ASC
+        LIMIT 6
+    ");
+    $monthlySales = $stmtMonthly->fetchAll();
 
     sendResponse([
         'success'        => true,
         'category_sales' => $categorySales,
         'payment_stats'  => $paymentStats,
         'monthly_sales'  => $monthlySales
-    ], 200);
+    ]);
+
+} catch (PDOException $e) {
+    sendResponse(['success' => false, 'message' => 'Reports error: ' . $e->getMessage()], 500);
 }
 ?>

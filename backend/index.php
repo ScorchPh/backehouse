@@ -1,9 +1,5 @@
 <?php
-/**
- * ============================================================================
- * BAKE HOUSE - Backend API Entry & Server Health Status
- * ============================================================================
- */
+// Backend API entry and health status
 
 require_once __DIR__ . '/config/cors.php';
 
@@ -29,7 +25,8 @@ echo json_encode([
             'get_product' => '/api/products/get_product.php',
             'create_product' => '/api/products/create_product.php',
             'update_product' => '/api/products/update_product.php',
-            'delete_product' => '/api/products/delete_product.php'
+            'delete_product' => '/api/products/delete_product.php',
+            'upload_image' => '/api/products/upload_image.php'
         ],
         'orders' => [
             'create_order' => '/api/orders/create_order.php',
@@ -38,7 +35,10 @@ echo json_encode([
             'update_order_status' => '/api/orders/update_order_status.php'
         ],
         'personalize' => [
-            'submit_custom_cake' => '/api/personalize/submit_custom_cake.php'
+            'get_customizer_options' => '/api/personalize/get_customizer_options.php',
+            'save_customizer_options' => '/api/personalize/save_customizer_options.php',
+            'submit_custom_cake' => '/api/personalize/submit_custom_cake.php',
+            'cake_chat' => '/api/personalize/cake_chat.php'
         ],
         'contact' => [
             'send_message' => '/api/contact/send_message.php',

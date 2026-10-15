@@ -1,36 +1,34 @@
 <?php
-/**
- * ============================================================================
- * BAKE HOUSE - Cross-Origin Resource Sharing (CORS) Middleware
- * ============================================================================
- * Capstone Project Explanation:
- * Browsers enforce the Same-Origin Policy for security. When our React frontend
- * (e.g. running on http://localhost:5173) makes HTTP requests to our PHP API
- * (e.g. running on http://localhost:8000), the browser sends preflight OPTIONS
- * requests and checks CORS headers.
- * 
- * This file sets the required response headers to allow seamless API communication.
- * ============================================================================
- */
-// Set application timezone to Asia/Manila (UTC+8, Philippines Standard Time)
+// CORS (Cross-Origin Resource Sharing) Configuration
+//
+// Why this is needed:
+// Browsers block requests by default when the frontend (React running on port 5173) 
+// calls a backend running on a different port or domain (PHP on port 8000 or Apache).
+// This is part of the browser's Same-Origin Policy.
+//
+// To allow React to communicate with our PHP backend, we must send these CORS headers:
+// - Access-Control-Allow-Origin: allows requests from frontend origins
+// - Access-Control-Allow-Methods: specifies allowed HTTP methods (GET, POST, PUT, DELETE)
+// - Access-Control-Allow-Headers: allows Content-Type (needed for sending JSON) and Authorization
+// - Access-Control-Max-Age: caches the preflight response for 24 hours so the browser doesn't send OPTIONS on every call
+
+// Set Philippine timezone for order timestamps and logs
 date_default_timezone_set('Asia/Manila');
-// Allow requests from any origin during development (or specify frontend URL)
+
+// Ensure REQUEST_METHOD is defined when running through CLI or web server
+if (!isset($_SERVER['REQUEST_METHOD'])) {
+    $_SERVER['REQUEST_METHOD'] = 'GET';
+}
+
 header("Access-Control-Allow-Origin: *");
-
-// Specify allowed HTTP methods for REST API operations
 header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
-
-// Specify allowed headers sent by client (e.g. Content-Type for JSON payloads)
 header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With");
-
-// Cache preflight OPTIONS requests for 24 hours (86400 seconds) so the browser doesn't send OPTIONS on every single fetch
 header("Access-Control-Max-Age: 86400");
-
-// Set default response Content-Type to JSON for API responses
 header("Content-Type: application/json; charset=UTF-8");
 
-// Handle HTTP preflight OPTIONS requests immediately
-if (isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+// Handle browser preflight OPTIONS request
+// Browsers send an OPTIONS request first before POST/PUT/DELETE to check if the server permits the call
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(204);
     exit();
 }

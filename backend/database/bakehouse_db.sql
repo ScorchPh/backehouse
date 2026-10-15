@@ -1,26 +1,16 @@
--- ============================================================================
--- BAKE HOUSE - Complete MySQL Database Schema & Seed Data
--- ============================================================================
--- Project: Bake House Online Bakery & Custom Cake Management System
--- To import in MySQL Workbench:
--- 1. Open MySQL Workbench
--- 2. Click File -> Open SQL Script -> Select this bakehouse_db.sql file
--- 3. Click the ⚡ Execute button (or press Ctrl + Shift + Enter)
--- 4. Right-click the SCHEMAS panel on the left and click "Refresh All"
--- ============================================================================
+-- BAKE HOUSE Database Schema and Seed Data
+-- MySQL / MariaDB
 
-
-
--- ----------------------------------------------------------------------------
--- 1. Table structure for table `users`
--- ----------------------------------------------------------------------------
 DROP TABLE IF EXISTS `order_items`;
+DROP TABLE IF EXISTS `custom_cake_chats`;
 DROP TABLE IF EXISTS `custom_cakes`;
 DROP TABLE IF EXISTS `orders`;
 DROP TABLE IF EXISTS `messages`;
 DROP TABLE IF EXISTS `products`;
 DROP TABLE IF EXISTS `users`;
+DROP TABLE IF EXISTS `store_settings`;
 
+-- Users table
 CREATE TABLE `users` (
     `id` INT AUTO_INCREMENT PRIMARY KEY,
     `username` VARCHAR(50) NOT NULL UNIQUE,
@@ -43,17 +33,13 @@ CREATE TABLE `users` (
     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- ----------------------------------------------------------------------------
--- Dumping data for table `users` (Password: 1234 for all accounts)
--- ----------------------------------------------------------------------------
+-- Default user accounts (password: 1234)
 INSERT INTO `users` (`id`, `username`, `first_name`, `last_name`, `email`, `contact_number`, `password`, `role`, `avatar`) VALUES
 (1, 'admin', 'Store', 'Administrator', 'admin@bakehouse.com', '+63 912 345 6780', '$2y$12$D2OusZUJV7nQttmcIemNfOvoZ6g15cD3uFpzvbxkVjdkbA32E8gVC', 'admin', 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200'),
 (2, 'staff', 'Head', 'Baker', 'staff@bakehouse.com', '+63 912 345 6781', '$2y$12$D2OusZUJV7nQttmcIemNfOvoZ6g15cD3uFpzvbxkVjdkbA32E8gVC', 'staff', 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200'),
 (3, 'customer', 'Juan', 'Dela Cruz', 'customer@bakehouse.com', '+63 912 345 6782', '$2y$12$D2OusZUJV7nQttmcIemNfOvoZ6g15cD3uFpzvbxkVjdkbA32E8gVC', 'customer', 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200');
 
--- ----------------------------------------------------------------------------
--- 2. Table structure for table `products`
--- ----------------------------------------------------------------------------
+-- Products catalog
 CREATE TABLE `products` (
     `id` INT AUTO_INCREMENT PRIMARY KEY,
     `name` VARCHAR(150) NOT NULL,
@@ -67,9 +53,6 @@ CREATE TABLE `products` (
     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- ----------------------------------------------------------------------------
--- Dumping data for table `products`
--- ----------------------------------------------------------------------------
 INSERT INTO `products` (`id`, `name`, `description`, `category`, `price`, `image`, `stock`, `status`, `bestseller`) VALUES
 (1, 'Chocolate Cake', 'Rich chocolate sponge layered with creamy chocolate frosting.', 'Cake', 650.00, '/uploads/productimg/chocolate_cake.jpg', 15, 'Available', 1),
 (2, 'Red Velvet Cake', 'Soft red velvet cake with smooth cream cheese frosting.', 'Cake', 720.00, '/uploads/productimg/red_velvet_cake.jpg', 8, 'Available', 1),
@@ -82,9 +65,7 @@ INSERT INTO `products` (`id`, `name`, `description`, `category`, `price`, `image
 (9, 'Pandesal', 'Freshly baked Filipino breakfast bread rolls with breadcrumbs.', 'Bread', 25.00, '/uploads/productimg/pandesal.jpg', 50, 'Available', 0),
 (10, 'Ube Cake', 'Authentic purple yam chiffon cake with luscious halaya cream.', 'Cake', 900.00, '/uploads/productimg/ube_cake.jpg', 0, 'Out of Stock', 0);
 
--- ----------------------------------------------------------------------------
--- 3. Table structure for table `orders`
--- ----------------------------------------------------------------------------
+-- Orders table
 CREATE TABLE `orders` (
     `id` VARCHAR(50) PRIMARY KEY,
     `user_id` INT NULL,
@@ -98,21 +79,22 @@ CREATE TABLE `orders` (
     `status` VARCHAR(50) NOT NULL DEFAULT 'Pending',
     `cancellation_reason` TEXT NULL,
     `delivery_coordinates` JSON NULL,
+    `fulfillment_type` VARCHAR(50) NULL DEFAULT 'Delivery',
+    `distance_km` DECIMAL(6, 2) NULL,
+    `estimated_delivery_time` VARCHAR(100) NULL,
+    `scheduled_date` VARCHAR(50) NULL,
+    `scheduled_time` VARCHAR(100) NULL,
+    `is_scheduled` TINYINT(1) DEFAULT 0,
     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- ----------------------------------------------------------------------------
--- Dumping data for table `orders`
--- ----------------------------------------------------------------------------
 INSERT INTO `orders` (`id`, `user_id`, `customer_name`, `customer_contact`, `delivery_address`, `payment_method`, `subtotal`, `delivery_fee`, `total`, `status`, `created_at`) VALUES
 ('BH-1008', 3, 'Juan Dela Cruz', '+63 912 345 6782', '123 Rizal St, Poblacion, Cordova, Cebu', 'Cash on Delivery', 850.00, 50.00, 900.00, 'Pending', '2026-08-30 22:45:24'),
 ('BH-1007', NULL, 'Maria Santos', '+63 917 888 1234', '45 Mango Ave, Cebu City', 'GCash', 1200.00, 50.00, 1250.00, 'For Delivery', '2026-08-30 00:45:24'),
 ('BH-1006', NULL, 'Angela Reyes', '+63 920 555 7890', '78 Banilad Rd, Mandaue City', 'Cash on Delivery', 750.00, 50.00, 800.00, 'Completed', '2026-08-29 00:45:24');
 
--- ----------------------------------------------------------------------------
--- 4. Table structure for table `order_items`
--- ----------------------------------------------------------------------------
+-- Line items for orders
 CREATE TABLE `order_items` (
     `id` INT AUTO_INCREMENT PRIMARY KEY,
     `order_id` VARCHAR(50) NOT NULL,
@@ -121,7 +103,8 @@ CREATE TABLE `order_items` (
     `price` DECIMAL(10, 2) NOT NULL,
     `quantity` INT NOT NULL DEFAULT 1,
     `customization` JSON NULL,
-    FOREIGN KEY (`order_id`) REFERENCES `orders`(`id`) ON DELETE CASCADE
+    FOREIGN KEY (`order_id`) REFERENCES `orders`(`id`) ON DELETE CASCADE,
+    FOREIGN KEY (`product_id`) REFERENCES `products`(`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 INSERT INTO `order_items` (`order_id`, `product_id`, `product_name`, `price`, `quantity`, `customization`) VALUES
@@ -130,9 +113,7 @@ INSERT INTO `order_items` (`order_id`, `product_id`, `product_name`, `price`, `q
 ('BH-1007', 2, 'Red Velvet Cake', 720.00, 1, NULL),
 ('BH-1006', 4, 'Butter Croissant', 85.00, 6, NULL);
 
--- ----------------------------------------------------------------------------
--- 5. Table structure for table `custom_cakes`
--- ----------------------------------------------------------------------------
+-- Custom cake customization orders
 CREATE TABLE `custom_cakes` (
     `id` INT AUTO_INCREMENT PRIMARY KEY,
     `user_id` INT NULL,
@@ -149,24 +130,22 @@ CREATE TABLE `custom_cakes` (
     FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- ----------------------------------------------------------------------------
--- 6. Table structure for table `messages`
--- ----------------------------------------------------------------------------
+-- Contact inquiries
 CREATE TABLE `messages` (
     `id` INT AUTO_INCREMENT PRIMARY KEY,
+    `user_id` INT NULL,
     `name` VARCHAR(150) NOT NULL,
     `email` VARCHAR(150) NOT NULL,
     `subject` VARCHAR(255) NOT NULL,
     `message` TEXT NOT NULL,
-    `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 INSERT INTO `messages` (`name`, `email`, `subject`, `message`) VALUES
 ('Ana Gomez', 'ana@example.com', 'Wedding Cake Inquiry', 'Hi! Do you accommodate 3-tier custom wedding cakes for November?');
 
--- ----------------------------------------------------------------------------
--- 7. Table structure for table `custom_cake_chats`
--- ----------------------------------------------------------------------------
+-- Custom cake live consultation chat
 CREATE TABLE `custom_cake_chats` (
     `id` INT AUTO_INCREMENT PRIMARY KEY,
     `session_id` VARCHAR(100) NOT NULL,
@@ -174,6 +153,7 @@ CREATE TABLE `custom_cake_chats` (
     `sender_name` VARCHAR(100) NOT NULL,
     `sender_role` ENUM('customer', 'admin', 'staff') NOT NULL DEFAULT 'customer',
     `message` TEXT NOT NULL,
+    `is_read` TINYINT(1) DEFAULT 0,
     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     INDEX `idx_session` (`session_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -182,3 +162,13 @@ INSERT INTO `custom_cake_chats` (`session_id`, `sender_name`, `sender_role`, `me
 ('demo_session_1', 'Juan Dela Cruz', 'customer', 'Hi! Can you do a 2-tier chocolate cake with fresh strawberries for Saturday?'),
 ('demo_session_1', 'Chef Baker', 'admin', 'Hello Juan! Yes, absolutely! Please select 2-Tier in the customizer and note strawberries in the special instructions.');
 
+-- Store settings and configuration table
+CREATE TABLE `store_settings` (
+    `setting_key` VARCHAR(100) PRIMARY KEY,
+    `setting_value` LONGTEXT NOT NULL,
+    `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+INSERT INTO `store_settings` (`setting_key`, `setting_value`) VALUES
+('store_config', '{"bakery_name":"BAKE HOUSE","email":"info@bakehouse.com","contact_number":"0917-123-4567","address":"Poblacion, Cordova, Cebu, Philippines","social_links":{"facebook":"https://facebook.com","instagram":"https://instagram.com","tiktok":"https://tiktok.com"},"order_settings":{"accept_orders":true,"allow_customization":true,"delivery_fee":30},"tax_settings":{"vat_enabled":true,"vat_rate":12,"vat_type":"exclusive","vat_tin":"000-847-293-000"}}'),
+('customizer_options', '{"base_price":700,"advance_days":1,"sizes":[{"id":"s1","name":"6 inches","price_modifier":0,"description":"Serves 4–6 persons","active":true},{"id":"s2","name":"8 inches","price_modifier":150,"description":"Serves 8–12 persons","active":true},{"id":"s3","name":"10 inches","price_modifier":300,"description":"Serves 15–20 persons","active":true},{"id":"s4","name":"12 inches","price_modifier":500,"description":"Serves 25–30 persons","active":true},{"id":"s5","name":"2-Tier (6\\" + 8\\")","price_modifier":1200,"description":"Serves 30–40 persons","active":true}],"flavors":[{"id":"f1","name":"Chocolate","price_modifier":0,"active":true},{"id":"f2","name":"Vanilla","price_modifier":0,"active":true},{"id":"f3","name":"Red Velvet","price_modifier":50,"active":true},{"id":"f4","name":"Ube","price_modifier":50,"active":true},{"id":"f5","name":"Mocha","price_modifier":30,"active":true},{"id":"f6","name":"Matcha Green Tea","price_modifier":80,"active":true}],"shapes":[{"id":"sh1","name":"Round","price_modifier":0,"active":true},{"id":"sh2","name":"Square","price_modifier":50,"active":true},{"id":"sh3","name":"Heart","price_modifier":100,"active":true},{"id":"sh4","name":"Star","price_modifier":150,"active":true}],"colors":[{"id":"c1","name":"White","hex":"#FFFFFF","border":"#CCCCCC","active":true},{"id":"c2","name":"Pink","hex":"#FF69B4","active":true},{"id":"c3","name":"Blue","hex":"#3B82F6","active":true},{"id":"c4","name":"Chocolate","hex":"#54331D","active":true},{"id":"c5","name":"Lavender","hex":"#C084FC","active":true},{"id":"c6","name":"Golden Yellow","hex":"#FACC15","active":true},{"id":"c7","name":"Mint Green","hex":"#86EFAC","active":true}],"occasions":[{"id":"o1","name":"Birthday","active":true},{"id":"o2","name":"Wedding","active":true},{"id":"o3","name":"Anniversary","active":true},{"id":"o4","name":"Graduation","active":true},{"id":"o5","name":"Baby Shower","active":true},{"id":"o6","name":"Christening","active":true},{"id":"o7","name":"Corporate Event","active":true}]}');

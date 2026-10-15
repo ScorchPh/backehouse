@@ -1,48 +1,22 @@
 <?php
-/**
- * ============================================================================
- * BAKE HOUSE - Save Cake Customizer Options API Endpoint
- * ============================================================================
- * Endpoint: POST /api/personalize/save_customizer_options.php
- * Role: Admin configuration management
- * Accepts: JSON payload { base_price, advance_days, sizes, flavors, shapes, colors, occasions }
- *
- * PURPOSE:
- * Allows store managers to configure cake builder options in the Admin panel:
- * add/remove flavors, tweak tier pricing modifiers, adjust advance notice days, etc.
- * ============================================================================
- */
+// Save customizer builder options to database
 
-// ----------------------------------------------------------------------------
-// STEP 1: Load Database Configuration & Helpers
-// ----------------------------------------------------------------------------
 require_once __DIR__ . '/../../config/db.php';
 
-
-// ----------------------------------------------------------------------------
-// STEP 2: Enforce HTTP Method Verification
-// ----------------------------------------------------------------------------
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    sendResponse([
-        'success' => false,
-        'message' => 'Method not allowed. Use POST.'
-    ], 405);
+    sendResponse(['success' => false, 'message' => 'Method not allowed'], 405);
 }
 
-
-// ----------------------------------------------------------------------------
-// STEP 3: Receive and Validate Configuration Payload
-// ----------------------------------------------------------------------------
 $data = getRequestBody();
-
 if (empty($data) || !is_array($data)) {
-    sendResponse([
-        'success' => false,
-        'message' => 'Invalid or empty configuration payload.'
-    ], 400);
+    sendResponse(['success' => false, 'message' => 'Invalid or empty configuration data'], 400);
 }
 
-// Sanitize scalar settings and arrays
+$pdo = getDBConnection();
+if (!$pdo) {
+    sendResponse(['success' => false, 'message' => 'Database connection failed'], 500);
+}
+
 $basePrice   = isset($data['base_price']) ? max(0, (float)$data['base_price']) : 700;
 $advanceDays = isset($data['advance_days']) ? max(0, (int)$data['advance_days']) : 1;
 $sizes       = is_array($data['sizes'] ?? null) ? $data['sizes'] : [];
@@ -62,19 +36,20 @@ $optionsPayload = [
     'updated_at'   => date('Y-m-d H:i:s')
 ];
 
+try {
+    $stmt = $pdo->prepare("
+        INSERT INTO store_settings (setting_key, setting_value)
+        VALUES ('customizer_options', :val)
+        ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)
+    ");
+    $stmt->execute(['val' => json_encode($optionsPayload, JSON_UNESCAPED_SLASHES)]);
 
-// ----------------------------------------------------------------------------
-// STEP 4: Persist to JSON Store
-// ----------------------------------------------------------------------------
-writeDataStore('customizer_options', $optionsPayload);
-
-
-// ----------------------------------------------------------------------------
-// STEP 5: Return Success Response
-// ----------------------------------------------------------------------------
-sendResponse([
-    'success' => true,
-    'message' => 'Cake Customizer configuration saved successfully!',
-    'options' => $optionsPayload
-], 200);
+    sendResponse([
+        'success' => true,
+        'message' => 'Cake customizer options saved successfully!',
+        'options' => $optionsPayload
+    ]);
+} catch (PDOException $e) {
+    sendResponse(['success' => false, 'message' => 'Failed to save customizer options: ' . $e->getMessage()], 500);
+}
 ?>
