@@ -84,7 +84,7 @@ function getDBConnection() {
         $options = [
             PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, // Throw exceptions on errors so we can catch and handle them
             PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC, // Return rows as associative arrays
-            PDO::ATTR_EMULATE_PREPARES => false, // Use native prepared statements for security against SQL injection
+            PDO::ATTR_EMULATE_PREPARES => true, // Use native prepared statements for security against SQL injection
         ];
 
         // Enable SSL/TLS options if connecting to TiDB Cloud or custom cloud ports

@@ -33,10 +33,10 @@ try {
         SELECT id, username, first_name, last_name, email, contact_number, password, role, avatar, created_at,
                default_street, default_barangay, default_city, default_province, default_landmark, default_lat, default_lng, address
         FROM users 
-        WHERE LOWER(username) = :ident OR LOWER(email) = :ident
+        WHERE LOWER(username) = :uname OR LOWER(email) = :uemail
         LIMIT 1
     ");
-    $stmt->execute(['ident' => $usernameOrEmail]);
+    $stmt->execute(['uname' => $usernameOrEmail, 'uemail' => $usernameOrEmail]);
     $user = $stmt->fetch();
 
     if (!$user) {
