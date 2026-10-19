@@ -73,6 +73,16 @@ export const productService = {
   },
 
   /**
+   * Admin: Confirm product has expired and write off its stock
+   */
+  async confirmExpired(id) {
+    return await apiRequest('/products/confirm_expired.php', {
+      method: 'POST',
+      body: { id },
+    });
+  },
+
+  /**
    * Upload a product image file directly to backend/uploads/productimg/
    */
   async uploadProductImage(file) {

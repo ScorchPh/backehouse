@@ -97,10 +97,18 @@ CREATE TABLE IF NOT EXISTS `products` (
     `image` VARCHAR(500) NULL,
     `stock` INT NOT NULL DEFAULT 20,
     `status` VARCHAR(50) NOT NULL DEFAULT 'Available',
+    `expiration_date` DATE NULL,
     `bestseller` TINYINT(1) NOT NULL DEFAULT 0,
     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 ");
+// Ensure expiration_date exists if products table already existed
+try {
+    $colCheck = $pdo->query("SHOW COLUMNS FROM `products` LIKE 'expiration_date'");
+    if ($colCheck && $colCheck->rowCount() === 0) {
+        $pdo->exec("ALTER TABLE `products` ADD COLUMN `expiration_date` DATE NULL AFTER `stock`");
+    }
+} catch (Exception $e) {}
 echo "<p>Table <strong>products</strong> created/verified.</p>";
 
 // Table 3: orders

@@ -19,6 +19,14 @@ if (!$pdo) {
     sendResponse(['success' => false, 'message' => 'Database connection failed'], 500);
 }
 
+// Ensure expiration_date column exists
+try {
+    $colStmt = $pdo->query("SHOW COLUMNS FROM `products` LIKE 'expiration_date'");
+    if ($colStmt && $colStmt->rowCount() === 0) {
+        $pdo->exec("ALTER TABLE `products` ADD COLUMN `expiration_date` DATE NULL AFTER `stock`");
+    }
+} catch (Throwable $e) {}
+
 try {
     // Check if product exists
     $check = $pdo->prepare("SELECT * FROM products WHERE id = :id LIMIT 1");
@@ -42,6 +50,10 @@ try {
         $status = $stock <= 0 ? 'Out of Stock' : ($stock <= 5 ? 'Low Stock' : 'Available');
     }
 
+    $expirationDate = array_key_exists('expiration_date', $data)
+        ? (!empty($data['expiration_date']) ? trim($data['expiration_date']) : null)
+        : ($existing['expiration_date'] ?? null);
+
     $bestseller = isset($data['bestseller']) ? (!empty($data['bestseller']) ? 1 : 0) : $existing['bestseller'];
 
     $stmt = $pdo->prepare("
@@ -53,35 +65,38 @@ try {
             image = :image,
             stock = :stock,
             status = :status,
+            expiration_date = :expiration_date,
             bestseller = :bestseller
         WHERE id = :id
     ");
 
     $stmt->execute([
-        'name'        => $name,
-        'description' => $description,
-        'category'    => $category,
-        'price'       => $price,
-        'image'       => $image,
-        'stock'       => $stock,
-        'status'      => $status,
-        'bestseller'  => $bestseller,
-        'id'          => $id
+        'name'            => $name,
+        'description'     => $description,
+        'category'        => $category,
+        'price'           => $price,
+        'image'           => $image,
+        'stock'           => $stock,
+        'status'          => $status,
+        'expiration_date' => $expirationDate,
+        'bestseller'      => $bestseller,
+        'id'              => $id
     ]);
 
     sendResponse([
         'success' => true,
         'message' => "Product '{$name}' updated successfully!",
         'product' => [
-            'id'          => $id,
-            'name'        => $name,
-            'description' => $description,
-            'category'    => $category,
-            'price'       => $price,
-            'image'       => $image,
-            'stock'       => $stock,
-            'status'      => $status,
-            'bestseller'  => (bool)$bestseller
+            'id'              => $id,
+            'name'            => $name,
+            'description'     => $description,
+            'category'        => $category,
+            'price'           => $price,
+            'image'           => $image,
+            'stock'           => $stock,
+            'status'          => $status,
+            'expiration_date' => $expirationDate,
+            'bestseller'      => (bool)$bestseller
         ]
     ]);
 

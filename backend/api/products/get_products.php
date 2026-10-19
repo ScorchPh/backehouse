@@ -3,7 +3,7 @@
 //
 // Purpose:
 // Returns the bakery product catalog to the customer store page, product showcase, and admin inventory list.
-// Supports query parameters for category filtering, keyword searching, and bestseller flags.
+// Supports query parameters for category filtering, keyword searching, bestseller flags, and FEFO sorting.
 
 require_once __DIR__ . '/../../config/db.php';
 
@@ -16,15 +16,24 @@ if (!$pdo) {
     sendResponse(['success' => false, 'message' => 'Database connection failed'], 500);
 }
 
+// Ensure expiration_date column exists in products table (self-healing migration)
+try {
+    $colStmt = $pdo->query("SHOW COLUMNS FROM `products` LIKE 'expiration_date'");
+    if ($colStmt && $colStmt->rowCount() === 0) {
+        $pdo->exec("ALTER TABLE `products` ADD COLUMN `expiration_date` DATE NULL AFTER `stock`");
+    }
+} catch (Throwable $e) {}
+
 // Read and sanitize query parameters
 $category   = trim($_GET['category'] ?? 'All');
 $search     = trim($_GET['search'] ?? '');
 $bestseller = isset($_GET['bestseller']) ? (int)$_GET['bestseller'] : null;
+$sortBy     = trim($_GET['sort'] ?? '');
 
 try {
     // Dynamic query building with WHERE 1=1 so we can cleanly append conditional AND clauses
     $sql = "
-        SELECT id, name, description, category, price, image, stock, status, bestseller, created_at 
+        SELECT id, name, description, category, price, image, stock, status, expiration_date, bestseller, created_at 
         FROM products 
         WHERE 1=1
     ";
@@ -48,7 +57,12 @@ try {
         $params['bestseller'] = $bestseller;
     }
 
-    $sql .= " ORDER BY id ASC";
+    if ($sortBy === 'fefo') {
+        // First Expired, First Out
+        $sql .= " ORDER BY (CASE WHEN expiration_date IS NULL THEN 1 ELSE 0 END), expiration_date ASC, id ASC";
+    } else {
+        $sql .= " ORDER BY id ASC";
+    }
 
     $stmt = $pdo->prepare($sql);
     $stmt->execute($params);
@@ -56,10 +70,11 @@ try {
 
     // Cast database strings to proper data types so frontend receives accurate JavaScript numbers and booleans
     foreach ($products as &$p) {
-        $p['id']         = (int)$p['id'];
-        $p['price']      = (float)$p['price'];
-        $p['stock']      = (int)$p['stock'];
-        $p['bestseller'] = (bool)$p['bestseller'];
+        $p['id']              = (int)$p['id'];
+        $p['price']           = (float)$p['price'];
+        $p['stock']           = (int)$p['stock'];
+        $p['bestseller']      = (bool)$p['bestseller'];
+        $p['expiration_date'] = !empty($p['expiration_date']) ? $p['expiration_date'] : null;
     }
 
     sendResponse([
