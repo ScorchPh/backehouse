@@ -259,12 +259,14 @@ function Account() {
               throw new Error("Unable to retrieve Google profile information.");
             }
             const userInfo = await userInfoRes.json();
+            const googleSubId = userInfo.sub || userInfo.id || "";
             const res = await authService.googleLogin({
               email: userInfo.email,
               name: userInfo.name,
               first_name: userInfo.given_name || userInfo.name,
               last_name: userInfo.family_name || "",
-              google_id: userInfo.sub,
+              google_id: googleSubId,
+              sub: googleSubId,
               avatar: userInfo.picture,
             });
 

@@ -33,13 +33,37 @@ function AdminLayout() {
     return s !== "completed" && s !== "denied" && s !== "cancelled";
   }).length;
 
+  const role = (currentUser?.role || "").toLowerCase();
+  const isAuthorized = currentUser && (role === "admin" || role === "staff");
+
   useEffect(() => {
     const handleAuthChange = () => {
-      setCurrentUser(authService.getCurrentUser());
+      const user = authService.getCurrentUser();
+      setCurrentUser(user);
     };
     window.addEventListener("authChange", handleAuthChange);
     return () => window.removeEventListener("authChange", handleAuthChange);
   }, []);
+
+  // Strict route protection: immediately redirect unauthenticated or customer users
+  useEffect(() => {
+    if (!currentUser) {
+      navigate("/account", {
+        replace: true,
+        state: {
+          redirect: location.pathname + location.search,
+          message: "Authentication required. Please sign in with an Administrator or Staff account to access the Admin Portal.",
+        },
+      });
+    } else if (role !== "admin" && role !== "staff") {
+      navigate("/account", {
+        replace: true,
+        state: {
+          message: "Access Denied: Your account does not have Administrator or Staff privileges.",
+        },
+      });
+    }
+  }, [currentUser, role, location.pathname, location.search, navigate]);
 
   // Close mobile drawer on route navigation
   useEffect(() => {
@@ -63,13 +87,16 @@ function AdminLayout() {
     navigate("/account");
   };
 
-  const role = currentUser?.role || "admin";
-
   const isActive = (path) => {
     if (path === "/admin" && location.pathname === "/admin") return true;
     if (path !== "/admin" && location.pathname.startsWith(path)) return true;
     return false;
   };
+
+  // If not authorized yet, return null while redirection triggers
+  if (!isAuthorized) {
+    return null;
+  }
 
   return (
     <div className="bakesmart-admin-layout">
@@ -134,6 +161,14 @@ function AdminLayout() {
                 {activeQueueCount}
               </span>
             )}
+          </Link>
+
+          <Link
+            to="/admin/sales-history"
+            className={`bakesmart-nav-item ${isActive("/admin/sales-history") ? "active" : ""}`}
+          >
+            <span className="nav-icon">🧾</span>
+            <span className="nav-label">Sales History</span>
           </Link>
 
           <Link

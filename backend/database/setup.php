@@ -76,6 +76,13 @@ CREATE TABLE IF NOT EXISTS `users` (
     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 ");
+// Ensure google_id exists if users table already existed
+try {
+    $colCheck = $pdo->query("SHOW COLUMNS FROM `users` LIKE 'google_id'");
+    if ($colCheck && $colCheck->rowCount() === 0) {
+        $pdo->exec("ALTER TABLE `users` ADD COLUMN `google_id` VARCHAR(100) NULL UNIQUE AFTER `role`");
+    }
+} catch (Exception $e) {}
 echo "<p>Table <strong>users</strong> created/verified.</p>";
 
 // Table 2: products

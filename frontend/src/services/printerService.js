@@ -656,3 +656,4 @@ class ThermalPrinterService {
 }
 
 export const thermalPrinterService = new ThermalPrinterService();
+export const printerService = thermalPrinterService;

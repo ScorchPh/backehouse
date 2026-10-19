@@ -4,6 +4,8 @@ import Navbar from "./components/Navbar/Navbar";
 import Footer from "./components/Footer/Footer";
 import CakeChatBox from "./components/CakeChatBox/CakeChatBox";
 
+import ProtectedRoute from "./components/ProtectedRoute/ProtectedRoute";
+import SalesHistory from "./pages/Admin/SalesHistory/SalesHistory";
 import Settings from "./pages/Admin/Settings/Settings";
 import Reports from "./pages/Admin/Reports/Reports";
 import Customers from "./pages/Admin/Customers/Customers";
@@ -49,18 +51,27 @@ function AppContent() {
         <Route path="/my-orders" element={<MyOrders />} />
         <Route path="/order-details" element={<OrderDetails />} />
 
-        {/* Dedicated Admin Portal Routes */}
-        <Route path="/admin" element={<AdminLayout />}>
+        {/* Dedicated Admin Portal Routes Protected for Admin and Staff Only */}
+        <Route
+          path="/admin"
+          element={
+            <ProtectedRoute allowedRoles={["admin", "staff"]}>
+              <AdminLayout />
+            </ProtectedRoute>
+          }
+        >
           <Route index element={<Dashboard />} />
           <Route path="pos" element={<CounterPOS />} />
           <Route path="counter" element={<CounterPOS />} />
           <Route path="queue" element={<Queue />} />
+          <Route path="sales-history" element={<SalesHistory />} />
+          <Route path="sales" element={<SalesHistory />} />
           <Route path="orders" element={<Orders />} />
           <Route path="products" element={<Products />} />
           <Route path="customizer" element={<CakeCustomizer />} />
           <Route path="cake-customizer" element={<CakeCustomizer />} />
           <Route path="customers" element={<Customers />} />
-          <Route path="reports" element={<Dashboard />} />
+          <Route path="reports" element={<Reports />} />
           <Route path="settings" element={<Settings />} />
         </Route>
       </Routes>
