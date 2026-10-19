@@ -6,20 +6,22 @@
  * Displays single product modal with live stock availability, in-cart quantity
  * awareness, quantity selector limits, and Add-to-Cart controls.
  * 
- * Stock & Cart Logic:
- * 1. Checks both catalog total stock and current quantity in the user's cart.
- * 2. remainingStock = Math.max(0, totalStock - inCartQuantity).
- * 3. Prevents user from selecting or adding more than remaining available stock.
- * 4. Shows clear visual feedback if all available items are already in the cart.
+ * Features:
+ * 1. Checks catalog stock and currently carted quantity.
+ * 2. Bounds quantity selector to remaining inventory.
+ * 3. Shows an interactive confirmation modal view with item details and
+ *    quick navigation to Checkout or Continue Shopping.
  * ============================================================================
  */
 
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { useCart } from "../../context/CartContext";
 import "./ProductModal.css";
 import { resolveProductImage, getProductFallbackImage } from "../../utils/productImages";
 
 function ProductModal({ product, onClose }) {
+  const navigate = useNavigate();
   const { cartItems, addToCart } = useCart();
 
   // Find if this item is already in the cart (non-customized catalog item)
@@ -34,6 +36,8 @@ function ProductModal({ product, onClose }) {
   const isMaxInCart = !isOutOfStock && remainingStock <= 0;
 
   const [quantity, setQuantity] = useState(1);
+  const [isAdded, setIsAdded] = useState(false);
+  const [addedQuantity, setAddedQuantity] = useState(1);
 
   // Initialize and bound quantity whenever modal opens or cart changes
   useEffect(() => {
@@ -44,14 +48,118 @@ function ProductModal({ product, onClose }) {
     }
   }, [product, remainingStock, isOutOfStock, isMaxInCart]);
 
+  // Handle escape key
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape") {
+        onClose();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [onClose]);
+
   if (!product) return null;
 
   const handleAddToCart = () => {
     if (isOutOfStock || isMaxInCart || quantity <= 0) return;
     addToCart(product, quantity);
-    onClose();
+    setAddedQuantity(quantity);
+    setIsAdded(true);
   };
 
+  const totalCartCount = cartItems.reduce((acc, item) => acc + (item.quantity || 1), 0);
+  const totalCartAmount = cartItems.reduce(
+    (acc, item) => acc + (parseFloat(item.price || 0) * (item.quantity || 1)),
+    0
+  );
+
+  // ============================================================================
+  // Confirmation Modal View (After clicking Add to Cart)
+  // ============================================================================
+  if (isAdded) {
+    return (
+      <div className="modal-overlay" onClick={onClose}>
+        <div
+          className="modal-content confirmation-modal-content"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <button
+            className="close-btn"
+            onClick={onClose}
+            title="Close modal"
+          >
+            ✕
+          </button>
+
+          <div className="confirm-success-icon-wrap">
+            <div className="confirm-icon-circle">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+            </div>
+          </div>
+
+          <h2 className="confirm-title">Added to Cart!</h2>
+          <p className="confirm-subtitle">
+            Your freshly baked selection has been successfully added to your shopping order.
+          </p>
+
+          <div className="confirm-product-card">
+            <img
+              src={resolveProductImage(product)}
+              alt={product.name}
+              className="confirm-product-img"
+              onError={(e) => {
+                e.target.onerror = null;
+                e.target.src = getProductFallbackImage(product);
+              }}
+            />
+            <div className="confirm-product-info">
+              <span className="confirm-product-cat">{product.category || "Artisanal Bakery"}</span>
+              <h3 className="confirm-product-name">{product.name}</h3>
+              <div className="confirm-qty-price-row">
+                <span className="confirm-qty-badge">{addedQuantity}×</span>
+                <span className="confirm-unit-price">₱{parseFloat(product.price).toLocaleString()}</span>
+                <strong className="confirm-line-total">
+                  ₱{(parseFloat(product.price) * addedQuantity).toLocaleString()}
+                </strong>
+              </div>
+            </div>
+          </div>
+
+          <div className="confirm-cart-status">
+            <span>🛒 Cart Summary ({totalCartCount} item{totalCartCount !== 1 ? "s" : ""})</span>
+            <strong>₱{totalCartAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</strong>
+          </div>
+
+          <div className="confirm-actions-row">
+            <button
+              type="button"
+              className="confirm-btn-continue"
+              onClick={onClose}
+            >
+              Continue Shopping
+            </button>
+            <button
+              type="button"
+              className="confirm-btn-cart"
+              onClick={() => {
+                onClose();
+                navigate("/cart");
+              }}
+            >
+              View Cart &amp; Checkout →
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ============================================================================
+  // Standard Product Inspection Modal View
+  // ============================================================================
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div
