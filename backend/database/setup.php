@@ -111,6 +111,25 @@ try {
 } catch (Exception $e) {}
 echo "<p>Table <strong>products</strong> created/verified.</p>";
 
+// Table 2b: product_batches
+// Tracks individual baking and inventory batches with specific expiration dates (FEFO tracking)
+$pdo->exec("
+CREATE TABLE IF NOT EXISTS `product_batches` (
+    `id` INT AUTO_INCREMENT PRIMARY KEY,
+    `product_id` INT NOT NULL,
+    `batch_number` VARCHAR(50) NOT NULL,
+    `quantity` INT NOT NULL DEFAULT 0,
+    `initial_quantity` INT NOT NULL DEFAULT 0,
+    `expiration_date` DATE NOT NULL,
+    `notes` VARCHAR(255) NULL,
+    `status` ENUM('Active', 'Expired', 'Depleted') NOT NULL DEFAULT 'Active',
+    `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    INDEX `idx_product_expiry` (`product_id`, `expiration_date`),
+    FOREIGN KEY (`product_id`) REFERENCES `products`(`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+");
+echo "<p>Table <strong>product_batches</strong> created/verified.</p>";
+
 // Table 3: orders
 // Stores customer order headers including fulfillment type, payment method, scheduling, and total cost.
 // user_id links to users.id (NULL if guest or deleted user, using ON DELETE SET NULL).

@@ -83,6 +83,34 @@ export const productService = {
   },
 
   /**
+   * Admin: Fetch batches for a product (or all batches)
+   */
+  async getBatches(productId = 0) {
+    const qs = productId ? `?product_id=${productId}` : '';
+    return await apiRequest(`/products/get_batches.php${qs}`, { method: 'GET' });
+  },
+
+  /**
+   * Admin: Log a new bake/inventory batch for a product
+   */
+  async addBatch(batchData) {
+    return await apiRequest('/products/add_batch.php', {
+      method: 'POST',
+      body: batchData,
+    });
+  },
+
+  /**
+   * Admin: Discard a specific expired batch without affecting other batches
+   */
+  async confirmBatchExpired(batchId) {
+    return await apiRequest('/products/confirm_batch_expired.php', {
+      method: 'POST',
+      body: { batch_id: batchId },
+    });
+  },
+
+  /**
    * Upload a product image file directly to backend/uploads/productimg/
    */
   async uploadProductImage(file) {

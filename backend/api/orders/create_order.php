@@ -202,6 +202,56 @@ try {
                 'qty2' => $itemQty,
                 'id'   => $prodId
             ]);
+
+            // Deduct from batches using First-Expired, First-Out (FEFO) if batches exist
+            try {
+                $batchStmt = $pdo->prepare("
+                    SELECT id, quantity 
+                    FROM product_batches 
+                    WHERE product_id = :product_id AND quantity > 0 AND status = 'Active'
+                    ORDER BY expiration_date ASC, id ASC
+                ");
+                $batchStmt->execute(['product_id' => $prodId]);
+                $batches = $batchStmt->fetchAll();
+
+                $remainingToDeduct = $itemQty;
+                foreach ($batches as $b) {
+                    if ($remainingToDeduct <= 0) break;
+                    $bQty = (int)$b['quantity'];
+                    $deductFromThisBatch = min($remainingToDeduct, $bQty);
+                    $newBQty = $bQty - $deductFromThisBatch;
+                    $newBStatus = $newBQty <= 0 ? 'Depleted' : 'Active';
+
+                    $updBatch = $pdo->prepare("
+                        UPDATE product_batches 
+                        SET quantity = :qty, status = :status 
+                        WHERE id = :id
+                    ");
+                    $updBatch->execute([
+                        'qty'    => $newBQty,
+                        'status' => $newBStatus,
+                        'id'     => $b['id']
+                    ]);
+
+                    $remainingToDeduct -= $deductFromThisBatch;
+                }
+
+                // Update product's earliest active expiration date
+                $rollStmt = $pdo->prepare("
+                    SELECT MIN(expiration_date) AS earliest_date 
+                    FROM product_batches 
+                    WHERE product_id = :product_id AND quantity > 0 AND status = 'Active'
+                ");
+                $rollStmt->execute(['product_id' => $prodId]);
+                $earliestDate = $rollStmt->fetchColumn() ?: null;
+
+                if ($earliestDate !== null) {
+                    $updEarliest = $pdo->prepare("UPDATE products SET expiration_date = :exp WHERE id = :id");
+                    $updEarliest->execute(['exp' => $earliestDate, 'id' => $prodId]);
+                }
+            } catch (Throwable $be) {
+                // Ignore batch table if not configured, products.stock was already deducted
+            }
         }
     }
 

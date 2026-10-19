@@ -52,6 +52,18 @@ function Products() {
   const [productToConfirmExpire, setProductToConfirmExpire] = useState(null);
   const [isConfirmingExpire, setIsConfirmingExpire] = useState(false);
 
+  // Batch Tracking Modal state
+  const [batchModalProduct, setBatchModalProduct] = useState(null);
+  const [batches, setBatches] = useState([]);
+  const [loadingBatches, setLoadingBatches] = useState(false);
+  const [batchFormQty, setBatchFormQty] = useState("");
+  const [batchFormExpiry, setBatchFormExpiry] = useState("");
+  const [batchFormNumber, setBatchFormNumber] = useState("");
+  const [batchFormNotes, setBatchFormNotes] = useState("");
+  const [isSubmittingBatch, setIsSubmittingBatch] = useState(false);
+  const [batchToDiscard, setBatchToDiscard] = useState(null);
+  const [isDiscardingBatch, setIsDiscardingBatch] = useState(false);
+
   // --------------------------------------------------------------------------
   // 2. DATA FETCHING (READ OPERATION)
   // --------------------------------------------------------------------------
@@ -269,6 +281,99 @@ function Products() {
       alert("Failed to confirm product expiration: " + err.message);
     } finally {
       setIsConfirmingExpire(false);
+    }
+  };
+
+  // --------------------------------------------------------------------------
+  // 6b. BATCH (FEFO LOT) MANAGEMENT
+  // --------------------------------------------------------------------------
+  const openBatchModal = async (product) => {
+    setBatchModalProduct(product);
+    setBatchFormQty("");
+    setBatchFormExpiry("");
+    setBatchFormNotes("");
+    const todayStr = new Date().toISOString().slice(0, 10).replace(/-/g, "");
+    setBatchFormNumber(`B-${todayStr}-${Math.floor(1000 + Math.random() * 9000)}`);
+    fetchProductBatches(product.id);
+  };
+
+  const fetchProductBatches = async (productId) => {
+    try {
+      setLoadingBatches(true);
+      const res = await productService.getBatches(productId);
+      if (res && res.batches) {
+        setBatches(res.batches);
+      } else {
+        setBatches([]);
+      }
+    } catch (err) {
+      console.error("Failed to load batches:", err);
+      setBatches([]);
+    } finally {
+      setLoadingBatches(false);
+    }
+  };
+
+  const handleAddBatch = async (e) => {
+    e.preventDefault();
+    if (!batchModalProduct) return;
+    const qty = parseInt(batchFormQty, 10);
+    if (!qty || qty <= 0 || !batchFormExpiry) {
+      alert("Please provide a valid quantity (>0) and expiration date for this new batch.");
+      return;
+    }
+
+    try {
+      setIsSubmittingBatch(true);
+      const payload = {
+        product_id: batchModalProduct.id,
+        quantity: qty,
+        expiration_date: batchFormExpiry,
+        batch_number: batchFormNumber.trim(),
+        notes: batchFormNotes.trim(),
+      };
+
+      const res = await productService.addBatch(payload);
+      setFeedback({
+        text: res?.message || `New batch of ${qty} units added successfully!`,
+        isError: false,
+      });
+
+      // Clear batch form inputs
+      setBatchFormQty("");
+      setBatchFormExpiry("");
+      setBatchFormNotes("");
+      const todayStr = new Date().toISOString().slice(0, 10).replace(/-/g, "");
+      setBatchFormNumber(`B-${todayStr}-${Math.floor(1000 + Math.random() * 9000)}`);
+
+      // Refresh batches & parent product catalog
+      fetchProductBatches(batchModalProduct.id);
+      fetchProducts();
+    } catch (err) {
+      alert("Failed to add batch: " + err.message);
+    } finally {
+      setIsSubmittingBatch(false);
+    }
+  };
+
+  const handleConfirmDiscardBatch = async () => {
+    if (!batchToDiscard) return;
+    try {
+      setIsDiscardingBatch(true);
+      const res = await productService.confirmBatchExpired(batchToDiscard.id);
+      setFeedback({
+        text: res?.message || `Expired batch "${batchToDiscard.batch_number}" discarded from inventory.`,
+        isError: false,
+      });
+      setBatchToDiscard(null);
+      if (batchModalProduct) {
+        fetchProductBatches(batchModalProduct.id);
+      }
+      fetchProducts();
+    } catch (err) {
+      alert("Failed to discard batch: " + err.message);
+    } finally {
+      setIsDiscardingBatch(false);
     }
   };
 
@@ -551,6 +656,15 @@ function Products() {
 
                   {/* 7. Action */}
                   <div className="product-actions" style={{ justifyContent: "flex-end" }}>
+                    <button
+                      type="button"
+                      className="batches-btn"
+                      onClick={() => openBatchModal(product)}
+                      title="Manage batches & FEFO expiration lots"
+                    >
+                      📦 Batches
+                    </button>
+
                     {needsExpirationAction && (
                       <button
                         type="button"
@@ -804,6 +918,222 @@ function Products() {
                 disabled={isConfirmingExpire}
               >
                 {isConfirmingExpire ? "Writing Off Stock..." : "Yes, Confirm Expired & Remove Stock"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* --------------------------------------------------------------------
+          BATCHES & FEFO MULTI-LOT MANAGEMENT MODAL
+      -------------------------------------------------------------------- */}
+      {batchModalProduct && (
+        <div className="product-modal-backdrop" onClick={() => setBatchModalProduct(null)}>
+          <div className="batch-modal-card" onClick={(e) => e.stopPropagation()}>
+            <div className="product-modal-header">
+              <div>
+                <h2>📦 Batch Inventory &amp; FEFO Tracking</h2>
+                <p>Manage multiple production batches for <strong>{batchModalProduct.name}</strong></p>
+              </div>
+              <button className="product-modal-close" onClick={() => setBatchModalProduct(null)}>
+                ✕
+              </button>
+            </div>
+
+            {/* Product Summary Mini Card */}
+            <div className="batch-product-header">
+              <img
+                src={batchModalProduct.image || "/uploads/productimg/chocolate_cake.jpg"}
+                alt={batchModalProduct.name}
+                className="batch-product-thumb"
+                onError={(e) => {
+                  e.target.onerror = null;
+                  e.target.src = "https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=500";
+                }}
+              />
+              <div className="batch-product-meta">
+                <h3>{batchModalProduct.name}</h3>
+                <div className="batch-product-pills">
+                  <span>Category: <strong>{batchModalProduct.category}</strong></span>
+                  <span>Total Available Stock: <strong>{batchModalProduct.stock} units</strong></span>
+                  <span>Next Expiring (FEFO): <strong>{batchModalProduct.expiration_date || "None"}</strong></span>
+                </div>
+              </div>
+            </div>
+
+            {/* Add New Batch Form */}
+            <form onSubmit={handleAddBatch} className="batch-add-form-box">
+              <h4>➕ Log New Baking / Delivery Batch</h4>
+              <p className="batch-form-desc">
+                Log a newly baked or restocked batch with its specific shelf life. Customers will automatically receive earlier batches first (FEFO).
+              </p>
+              <div className="batch-form-grid">
+                <div className="form-group">
+                  <label>Batch / Lot #</label>
+                  <input
+                    type="text"
+                    value={batchFormNumber}
+                    onChange={(e) => setBatchFormNumber(e.target.value)}
+                    placeholder="e.g. B-20261019-01"
+                    required
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label>Quantity Baked / Added</label>
+                  <input
+                    type="number"
+                    min="1"
+                    step="1"
+                    value={batchFormQty}
+                    onChange={(e) => setBatchFormQty(e.target.value)}
+                    placeholder="e.g. 15"
+                    required
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label>Expiration Date</label>
+                  <input
+                    type="date"
+                    value={batchFormExpiry}
+                    onChange={(e) => setBatchFormExpiry(e.target.value)}
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="form-group" style={{ marginTop: "10px" }}>
+                <label>Baking Notes / Oven Slot (Optional)</label>
+                <input
+                  type="text"
+                  value={batchFormNotes}
+                  onChange={(e) => setBatchFormNotes(e.target.value)}
+                  placeholder="e.g. Morning 6 AM bake, deck oven #2"
+                />
+              </div>
+
+              <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "14px" }}>
+                <button type="submit" className="batch-save-btn" disabled={isSubmittingBatch}>
+                  {isSubmittingBatch ? "Saving Batch..." : "+ Add Batch to Inventory"}
+                </button>
+              </div>
+            </form>
+
+            {/* Active Batches Table */}
+            <div className="batches-table-section">
+              <h4>Active Batches on Shelf (Sorted by Earliest Expiry - FEFO)</h4>
+              {loadingBatches ? (
+                <p style={{ textAlign: "center", color: "#888", padding: "20px" }}>Loading batches...</p>
+              ) : batches.length === 0 ? (
+                <div className="batches-empty-box">
+                  <p>No active individual batches logged yet for this product.</p>
+                  <span>(Overall product stock is currently {batchModalProduct.stock} units. You can log new batches above.)</span>
+                </div>
+              ) : (
+                <div className="batches-list">
+                  <div className="batch-list-header">
+                    <span>Batch #</span>
+                    <span>Remaining Qty</span>
+                    <span>Expiration Date (FEFO)</span>
+                    <span>Status</span>
+                    <span style={{ textAlign: "right" }}>Action</span>
+                  </div>
+
+                  {batches.map((b) => {
+                    const bExpiry = getExpiryInfo({ expiration_date: b.expiration_date });
+                    const isBatchExpired = bExpiry.isExpired;
+
+                    return (
+                      <div className="batch-list-row" key={b.id}>
+                        <div>
+                          <strong>{b.batch_number}</strong>
+                          {b.notes && <small style={{ display: "block", color: "#8C8074" }}>{b.notes}</small>}
+                        </div>
+
+                        <div>
+                          <strong>{b.quantity}</strong> / {b.initial_quantity || b.quantity} units
+                        </div>
+
+                        <div>
+                          <span>{b.expiration_date}</span>
+                          <span className={`expiry-badge ${bExpiry.status}`} style={{ marginLeft: "8px" }}>
+                            {bExpiry.label}
+                          </span>
+                        </div>
+
+                        <div>
+                          <span className={`batch-status-badge ${isBatchExpired ? "expired" : "active"}`}>
+                            {isBatchExpired ? "Expired" : "On Shelf"}
+                          </span>
+                        </div>
+
+                        <div style={{ textAlign: "right" }}>
+                          {isBatchExpired ? (
+                            <button
+                              type="button"
+                              className="discard-expired-btn"
+                              onClick={() => setBatchToDiscard(b)}
+                              title="Discard this expired batch only"
+                            >
+                              ⚠️ Discard Batch
+                            </button>
+                          ) : (
+                            <button
+                              type="button"
+                              className="btn-batch-remove-early"
+                              onClick={() => setBatchToDiscard(b)}
+                              title="Write off or remove this batch early"
+                            >
+                              Remove Batch
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* --------------------------------------------------------------------
+          CONFIRM SINGLE BATCH EXPIRATION MODAL
+      -------------------------------------------------------------------- */}
+      {batchToDiscard && (
+        <div className="product-modal-backdrop" onClick={() => setBatchToDiscard(null)} style={{ zIndex: 10001 }}>
+          <div className="confirm-expire-dialog" onClick={(e) => e.stopPropagation()}>
+            <div className="confirm-expire-icon-circle">
+              <span style={{ fontSize: "28px" }}>⚠️</span>
+            </div>
+
+            <h2>Discard Batch {batchToDiscard.batch_number}?</h2>
+            <p className="confirm-expire-desc">
+              Are you sure you want to discard <strong>{batchToDiscard.quantity} units</strong> from batch <strong>{batchToDiscard.batch_number}</strong>?
+            </p>
+
+            <div className="confirm-expire-warning-note">
+              🚨 <strong>FEFO Protection:</strong> Only the <strong>{batchToDiscard.quantity} units</strong> in this specific batch will be written off. Newer batches will remain active and untouched, and the product's next earliest expiration date will automatically roll over!
+            </div>
+
+            <div className="confirm-expire-actions">
+              <button
+                type="button"
+                className="btn-cancel-expire"
+                onClick={() => setBatchToDiscard(null)}
+                disabled={isDiscardingBatch}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="btn-confirm-discard"
+                onClick={handleConfirmDiscardBatch}
+                disabled={isDiscardingBatch}
+              >
+                {isDiscardingBatch ? "Discarding Batch..." : "Yes, Discard This Batch"}
               </button>
             </div>
           </div>
