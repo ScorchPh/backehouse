@@ -14,7 +14,7 @@ export default function SalesHistory() {
   const [customStartDate, setCustomStartDate] = useState("");
   const [customEndDate, setCustomEndDate] = useState("");
 
-  // Modal state
+  // Modal & Toast states
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [printingOrderId, setPrintingOrderId] = useState(null);
   const [toastMessage, setToastMessage] = useState(null);
@@ -52,7 +52,6 @@ export default function SalesHistory() {
     return () => window.removeEventListener("ordersUpdated", handleUpdate);
   }, []);
 
-  // Format Helper
   const formatCurrency = (amount) => {
     return "₱" + parseFloat(amount || 0).toLocaleString(undefined, {
       minimumFractionDigits: 2,
@@ -61,23 +60,29 @@ export default function SalesHistory() {
   };
 
   const formatDateTime = (dateString) => {
-    if (!dateString) return "N/A";
+    if (!dateString) return { date: "N/A", time: "" };
     const d = new Date(dateString.replace(/-/g, "/"));
-    if (isNaN(d.getTime())) return dateString;
-    return d.toLocaleString("en-US", {
+    if (isNaN(d.getTime())) return { date: dateString, time: "" };
+
+    const date = d.toLocaleDateString("en-US", {
       month: "short",
       day: "numeric",
       year: "numeric",
+    });
+
+    const time = d.toLocaleTimeString("en-US", {
       hour: "numeric",
       minute: "2-digit",
       hour12: true,
     });
+
+    return { date, time };
   };
 
   // Filtered orders logic
   const filteredOrders = useMemo(() => {
     return orders.filter((order) => {
-      // 1. Search filter (ID, Customer name, phone, item names)
+      // 1. Search filter
       if (searchTerm.trim()) {
         const query = searchTerm.toLowerCase();
         const matchesId = String(order.id || "").toLowerCase().includes(query);
@@ -168,7 +173,7 @@ export default function SalesHistory() {
     });
   }, [orders, searchTerm, statusFilter, channelFilter, paymentFilter, dateFilter, customStartDate, customEndDate]);
 
-  // Aggregate stats
+  // Metrics
   const metrics = useMemo(() => {
     let totalRevenue = 0;
     let completedCount = 0;
@@ -178,7 +183,6 @@ export default function SalesHistory() {
       const isCompleted = String(o.status || "").toLowerCase() === "completed";
       const orderTotal = parseFloat(o.total || 0);
 
-      // We include all non-cancelled orders in revenue or completed specifically
       if (String(o.status || "").toLowerCase() !== "denied" && String(o.status || "").toLowerCase() !== "cancelled") {
         totalRevenue += orderTotal;
       }
@@ -204,12 +208,11 @@ export default function SalesHistory() {
     };
   }, [filteredOrders]);
 
-  // Handle Receipt Reprinting
+  // Receipt Reprinting
   const handlePrintReceipt = async (order, paperSize = null) => {
     try {
       setPrintingOrderId(order.id);
 
-      // Normalize order items for printer service
       const normalizedItems = (order.items || []).map((it) => ({
         id: it.product_id || it.id,
         name: it.product_name || it.name || "Bakery Item",
@@ -248,15 +251,14 @@ export default function SalesHistory() {
     }
   };
 
-  // Helper badge class
   const getStatusBadgeClass = (status) => {
     const s = String(status || "").toLowerCase().trim();
-    if (s === "completed") return "badge-completed";
-    if (s === "pending") return "badge-pending";
-    if (s.includes("prep") || s.includes("confirm")) return "badge-preparing";
-    if (s.includes("delivery") || s.includes("ready")) return "badge-delivery";
-    if (s === "denied" || s === "cancelled") return "badge-cancelled";
-    return "badge-default";
+    if (s === "completed") return "status-completed";
+    if (s === "pending") return "status-pending";
+    if (s.includes("prep") || s.includes("confirm")) return "status-preparing";
+    if (s.includes("delivery") || s.includes("ready")) return "status-delivery";
+    if (s === "denied" || s === "cancelled") return "status-denied";
+    return "status-default";
   };
 
   return (
@@ -270,20 +272,17 @@ export default function SalesHistory() {
 
       {/* Page Header */}
       <div className="sales-history-header">
-        <div className="header-text">
-          <div className="header-badge">
-            <span>🧾 POS &amp; STORE ARCHIVE</span>
-          </div>
+        <div className="header-text-block">
           <h1>Sales History &amp; Receipts</h1>
           <p>
-            Complete historical audit ledger of all counter POS transactions and online orders. Inspect individual line items, customer details, and reprint receipts instantly.
+            Complete historical audit ledger of all counter POS transactions and online orders. Inspect individual line items, customer details, and reprint official receipts.
           </p>
         </div>
 
-        <div className="header-actions">
+        <div className="header-actions-block">
           <button
             type="button"
-            className="action-btn btn-secondary"
+            className="sales-btn btn-refresh"
             onClick={fetchSales}
             disabled={loading}
             title="Refresh latest sales records"
@@ -292,7 +291,7 @@ export default function SalesHistory() {
           </button>
           <button
             type="button"
-            className="action-btn btn-primary"
+            className="sales-btn btn-print-summary"
             onClick={() => window.print()}
             title="Print entire sales report summary"
           >
@@ -302,22 +301,22 @@ export default function SalesHistory() {
       </div>
 
       {/* KPI Overview Cards */}
-      <div className="sales-metrics-grid">
-        <div className="metric-card gold">
-          <div className="metric-icon">💰</div>
-          <div className="metric-content">
-            <span className="metric-label">Total Gross Sales</span>
-            <strong className="metric-value">{formatCurrency(metrics.totalRevenue)}</strong>
-            <span className="metric-sub">{metrics.totalOrders} total recorded orders</span>
+      <div className="sales-kpi-grid">
+        <div className="sales-kpi-card">
+          <div className="kpi-icon-box gold">💰</div>
+          <div className="kpi-details">
+            <span className="kpi-title">TOTAL GROSS SALES</span>
+            <strong className="kpi-value">{formatCurrency(metrics.totalRevenue)}</strong>
+            <span className="kpi-hint">{metrics.totalOrders} total recorded orders</span>
           </div>
         </div>
 
-        <div className="metric-card green">
-          <div className="metric-icon">✅</div>
-          <div className="metric-content">
-            <span className="metric-label">Completed Sales</span>
-            <strong className="metric-value">{metrics.completedCount}</strong>
-            <span className="metric-sub">
+        <div className="sales-kpi-card">
+          <div className="kpi-icon-box green">✅</div>
+          <div className="kpi-details">
+            <span className="kpi-title">COMPLETED SALES</span>
+            <strong className="kpi-value">{metrics.completedCount}</strong>
+            <span className="kpi-hint">
               {metrics.totalOrders > 0
                 ? `${((metrics.completedCount / metrics.totalOrders) * 100).toFixed(1)}% fulfillment rate`
                 : "0% fulfillment"}
@@ -325,30 +324,31 @@ export default function SalesHistory() {
           </div>
         </div>
 
-        <div className="metric-card blue">
-          <div className="metric-icon">🥖</div>
-          <div className="metric-content">
-            <span className="metric-label">Items Sold</span>
-            <strong className="metric-value">{metrics.totalUnitsSold.toLocaleString()}</strong>
-            <span className="metric-sub">Total bakery units purchased</span>
+        <div className="sales-kpi-card">
+          <div className="kpi-icon-box blue">🥖</div>
+          <div className="kpi-details">
+            <span className="kpi-title">ITEMS SOLD</span>
+            <strong className="kpi-value">{metrics.totalUnitsSold.toLocaleString()}</strong>
+            <span className="kpi-hint">Total bakery units purchased</span>
           </div>
         </div>
 
-        <div className="metric-card brown">
-          <div className="metric-icon">📊</div>
-          <div className="metric-content">
-            <span className="metric-label">Average Order Value</span>
-            <strong className="metric-value">{formatCurrency(metrics.averageOrder)}</strong>
-            <span className="metric-sub">Average ticket size</span>
+        <div className="sales-kpi-card">
+          <div className="kpi-icon-box brown">📊</div>
+          <div className="kpi-details">
+            <span className="kpi-title">AVERAGE ORDER VALUE</span>
+            <strong className="kpi-value">{formatCurrency(metrics.averageOrder)}</strong>
+            <span className="kpi-hint">Average ticket size</span>
           </div>
         </div>
       </div>
 
-      {/* Filters Toolbar */}
-      <div className="sales-filter-card">
-        <div className="filter-row top-filter-row">
-          <div className="search-box">
-            <span className="search-icon">🔍</span>
+      {/* Main Ledger Panel */}
+      <div className="sales-ledger-panel">
+        {/* Filters Bar */}
+        <div className="sales-filters-bar">
+          <div className="sales-search-wrapper">
+            <span className="search-symbol">🔍</span>
             <input
               type="text"
               placeholder="Search by Order ID, customer, phone, product name..."
@@ -366,55 +366,59 @@ export default function SalesHistory() {
             )}
           </div>
 
-          <div className="date-pill-group">
-            <button
-              type="button"
-              className={`date-pill ${dateFilter === "all" ? "active" : ""}`}
-              onClick={() => setDateFilter("all")}
+          <div className="sales-dropdown-group">
+            <select
+              value={dateFilter}
+              onChange={(e) => setDateFilter(e.target.value)}
+              className="sales-styled-select"
             >
-              All Time
-            </button>
-            <button
-              type="button"
-              className={`date-pill ${dateFilter === "today" ? "active" : ""}`}
-              onClick={() => setDateFilter("today")}
+              <option value="all">📅 All Time</option>
+              <option value="today">Today</option>
+              <option value="yesterday">Yesterday</option>
+              <option value="week">Last 7 Days</option>
+              <option value="month">This Month</option>
+              <option value="custom">Custom Date Range...</option>
+            </select>
+
+            <select
+              value={channelFilter}
+              onChange={(e) => setChannelFilter(e.target.value)}
+              className="sales-styled-select"
             >
-              Today
-            </button>
-            <button
-              type="button"
-              className={`date-pill ${dateFilter === "yesterday" ? "active" : ""}`}
-              onClick={() => setDateFilter("yesterday")}
+              <option value="all">Fulfillment: All</option>
+              <option value="pos">🏪 In-store POS (Pickup)</option>
+              <option value="delivery">🚚 Online Delivery</option>
+            </select>
+
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="sales-styled-select"
             >
-              Yesterday
-            </button>
-            <button
-              type="button"
-              className={`date-pill ${dateFilter === "week" ? "active" : ""}`}
-              onClick={() => setDateFilter("week")}
+              <option value="all">Status: All</option>
+              <option value="completed">🟢 Completed</option>
+              <option value="pending">🟡 Pending</option>
+              <option value="preparation">🟣 In Preparation</option>
+              <option value="delivery">🔵 For Delivery</option>
+              <option value="cancelled">🔴 Cancelled</option>
+            </select>
+
+            <select
+              value={paymentFilter}
+              onChange={(e) => setPaymentFilter(e.target.value)}
+              className="sales-styled-select"
             >
-              Last 7 Days
-            </button>
-            <button
-              type="button"
-              className={`date-pill ${dateFilter === "month" ? "active" : ""}`}
-              onClick={() => setDateFilter("month")}
-            >
-              This Month
-            </button>
-            <button
-              type="button"
-              className={`date-pill ${dateFilter === "custom" ? "active" : ""}`}
-              onClick={() => setDateFilter("custom")}
-            >
-              Custom Date
-            </button>
+              <option value="all">Payment: All</option>
+              <option value="cash">💵 Cash / COD</option>
+              <option value="gcash">📱 GCash</option>
+              <option value="card">💳 Card</option>
+            </select>
           </div>
         </div>
 
         {dateFilter === "custom" && (
-          <div className="custom-date-row">
-            <div className="date-input-group">
+          <div className="sales-custom-date-box">
+            <div className="date-field">
               <label>From:</label>
               <input
                 type="date"
@@ -422,7 +426,7 @@ export default function SalesHistory() {
                 onChange={(e) => setCustomStartDate(e.target.value)}
               />
             </div>
-            <div className="date-input-group">
+            <div className="date-field">
               <label>To:</label>
               <input
                 type="date"
@@ -433,329 +437,271 @@ export default function SalesHistory() {
           </div>
         )}
 
-        <div className="filter-row dropdown-filter-row">
-          <div className="filter-select-item">
-            <label>Fulfillment Channel:</label>
-            <select
-              value={channelFilter}
-              onChange={(e) => setChannelFilter(e.target.value)}
-            >
-              <option value="all">All Channels</option>
-              <option value="pos">🏪 In-store POS / Walk-in Pickup</option>
-              <option value="delivery">🚚 Online Delivery</option>
-            </select>
-          </div>
-
-          <div className="filter-select-item">
-            <label>Order Status:</label>
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-            >
-              <option value="all">All Statuses</option>
-              <option value="completed">Completed</option>
-              <option value="pending">Pending</option>
-              <option value="preparation">In Preparation</option>
-              <option value="delivery">For Delivery / Ready</option>
-              <option value="cancelled">Cancelled / Denied</option>
-            </select>
-          </div>
-
-          <div className="filter-select-item">
-            <label>Payment Method:</label>
-            <select
-              value={paymentFilter}
-              onChange={(e) => setPaymentFilter(e.target.value)}
-            >
-              <option value="all">All Payment Methods</option>
-              <option value="cash">💵 Cash / COD</option>
-              <option value="gcash">📱 GCash</option>
-              <option value="card">💳 Credit / Debit Card</option>
-            </select>
-          </div>
-
-          <div className="results-counter">
-            Showing <strong>{filteredOrders.length}</strong> of <strong>{orders.length}</strong> sales transactions
-          </div>
+        <div className="sales-results-indicator">
+          Showing <strong>{filteredOrders.length}</strong> of <strong>{orders.length}</strong> recorded sales transactions
         </div>
-      </div>
 
-      {/* Main Ledger Table */}
-      <div className="sales-table-container">
-        {loading ? (
-          <div className="sales-loading-state">
-            <div className="loading-spinner"></div>
-            <p>Loading sales history and transactions archive...</p>
+        {/* Master Ledger Grid Table */}
+        <div className="sales-table-scroll-container">
+          {/* Header Row */}
+          <div className="sales-grid-header">
+            <span>ORDER ID</span>
+            <span>DATE &amp; TIME</span>
+            <span>CUSTOMER</span>
+            <span>PRODUCTS SOLD</span>
+            <span>PAYMENT</span>
+            <span>STATUS</span>
+            <span>AMOUNT</span>
+            <span style={{ textAlign: "right" }}>ACTIONS</span>
           </div>
-        ) : filteredOrders.length === 0 ? (
-          <div className="sales-empty-state">
-            <div className="empty-icon">📂</div>
-            <h3>No Sales Records Found</h3>
-            <p>No transactions match your current search terms and filter criteria.</p>
-            <button
-              type="button"
-              className="reset-filters-btn"
-              onClick={() => {
-                setSearchTerm("");
-                setStatusFilter("all");
-                setChannelFilter("all");
-                setPaymentFilter("all");
-                setDateFilter("all");
-                setCustomStartDate("");
-                setCustomEndDate("");
-              }}
-            >
-              Reset All Filters
-            </button>
-          </div>
-        ) : (
-          <div className="table-responsive">
-            <table className="sales-table">
-              <thead>
-                <tr>
-                  <th>Order ID</th>
-                  <th>Date &amp; Time</th>
-                  <th>Customer</th>
-                  <th>Products Sold</th>
-                  <th>Payment</th>
-                  <th>Status</th>
-                  <th>Amount</th>
-                  <th style={{ textAlign: "right" }}>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredOrders.map((order) => {
-                  const items = Array.isArray(order.items) ? order.items : [];
-                  const totalItemsCount = items.reduce((sum, it) => sum + parseInt(it.quantity || 1, 10), 0);
-                  const isPickup = String(order.fulfillment_type || "").toLowerCase().includes("pickup");
 
-                  return (
-                    <tr key={order.id} className="sales-row">
-                      {/* 1. Order ID & Channel */}
-                      <td className="cell-order-id">
-                        <div className="order-id-group">
-                          <strong className="id-text">{order.id}</strong>
-                          <span className={`channel-pill ${isPickup ? "pickup" : "delivery"}`}>
-                            {isPickup ? "🏪 In-Store POS" : "🚚 Delivery"}
-                          </span>
-                        </div>
-                      </td>
+          {/* Table Body Content */}
+          {loading ? (
+            <div className="sales-table-loading">
+              <div className="sales-spinner"></div>
+              <p>Loading sales records from bakery database...</p>
+            </div>
+          ) : filteredOrders.length === 0 ? (
+            <div className="sales-table-empty">
+              <span className="empty-symbol">🍰</span>
+              <h4>No Sales Transactions Found</h4>
+              <p>No transactions match your current search terms and filter criteria.</p>
+              <button
+                type="button"
+                className="sales-reset-btn"
+                onClick={() => {
+                  setSearchTerm("");
+                  setStatusFilter("all");
+                  setChannelFilter("all");
+                  setPaymentFilter("all");
+                  setDateFilter("all");
+                  setCustomStartDate("");
+                  setCustomEndDate("");
+                }}
+              >
+                Reset All Filters
+              </button>
+            </div>
+          ) : (
+            <div className="sales-grid-body">
+              {filteredOrders.map((order) => {
+                const items = Array.isArray(order.items) ? order.items : [];
+                const totalUnits = items.reduce((sum, it) => sum + parseInt(it.quantity || 1, 10), 0);
+                const isPickup = String(order.fulfillment_type || "").toLowerCase().includes("pickup");
+                const dt = formatDateTime(order.created_at);
 
-                      {/* 2. Date & Time */}
-                      <td className="cell-date">
-                        <div className="date-group">
-                          <span className="date-main">{formatDateTime(order.created_at)}</span>
-                          <span className="date-raw">{order.formatted_date || ""}</span>
-                        </div>
-                      </td>
+                return (
+                  <div key={order.id} className="sales-grid-row">
+                    {/* 1. ORDER ID & CHANNEL */}
+                    <div className="col-cell col-id">
+                      <strong className="order-id-num">{order.id}</strong>
+                      <span className={`channel-badge ${isPickup ? "pickup" : "delivery"}`}>
+                        {isPickup ? "🏪 In-Store POS" : "🚚 Delivery"}
+                      </span>
+                    </div>
 
-                      {/* 3. Customer */}
-                      <td className="cell-customer">
-                        <div className="customer-group">
-                          <span className="customer-name">
-                            {order.customer_name || "Walk-in Guest"}
-                          </span>
-                          {order.customer_contact ? (
-                            <span className="customer-contact">📞 {order.customer_contact}</span>
-                          ) : (
-                            <span className="customer-contact faint">Counter Order</span>
-                          )}
-                        </div>
-                      </td>
+                    {/* 2. DATE & TIME */}
+                    <div className="col-cell col-date">
+                      <strong className="date-text">{dt.date}</strong>
+                      <span className="time-sub">{dt.time}</span>
+                    </div>
 
-                      {/* 4. Products */}
-                      <td className="cell-products">
-                        <div className="products-summary-box">
-                          {items.length === 0 ? (
-                            <span className="no-items-text">General Bakery Item</span>
-                          ) : (
-                            <ul className="items-mini-list">
-                              {items.slice(0, 2).map((item, idx) => (
-                                <li key={idx} className="item-mini-row">
-                                  <span className="qty-tag">{item.quantity}×</span>
-                                  <span className="item-name" title={item.product_name || item.name}>
-                                    {item.product_name || item.name}
-                                  </span>
-                                  {item.customization && (
-                                    <span className="custom-indicator" title="Custom Cake Specification">🎂</span>
-                                  )}
-                                </li>
-                              ))}
-                              {items.length > 2 && (
-                                <li className="items-more-tag">
-                                  +{items.length - 2} more item{items.length - 2 > 1 ? "s" : ""} ({totalItemsCount} total)
-                                </li>
+                    {/* 3. CUSTOMER */}
+                    <div className="col-cell col-cust">
+                      <strong className="customer-full-name">
+                        {order.customer_name || "Walk-in Guest"}
+                      </strong>
+                      <span className="customer-phone">
+                        {order.customer_contact ? `📞 ${order.customer_contact}` : "Walk-in Counter"}
+                      </span>
+                    </div>
+
+                    {/* 4. PRODUCTS SOLD */}
+                    <div className="col-cell col-items">
+                      {items.length === 0 ? (
+                        <span className="no-items">General Bakery Item</span>
+                      ) : (
+                        <div className="items-chip-list">
+                          {items.slice(0, 2).map((it, idx) => (
+                            <div key={idx} className="item-chip-row">
+                              <span className="item-qty-tag">{it.quantity}×</span>
+                              <span className="item-label" title={it.product_name || it.name}>
+                                {it.product_name || it.name}
+                              </span>
+                              {it.customization && (
+                                <span className="custom-indicator" title="Custom Cake Configuration">🎂</span>
                               )}
-                            </ul>
+                            </div>
+                          ))}
+                          {items.length > 2 && (
+                            <span className="more-items-chip">
+                              +{items.length - 2} more ({totalUnits} total units)
+                            </span>
                           )}
                         </div>
-                      </td>
+                      )}
+                    </div>
 
-                      {/* 5. Payment Method */}
-                      <td className="cell-payment">
-                        <span className="payment-method-tag">
-                          {order.payment_method || "Cash"}
-                        </span>
-                      </td>
+                    {/* 5. PAYMENT */}
+                    <div className="col-cell col-pay">
+                      <span className="payment-pill">
+                        {order.payment_method || "Cash"}
+                      </span>
+                    </div>
 
-                      {/* 6. Status */}
-                      <td className="cell-status">
-                        <span className={`status-badge ${getStatusBadgeClass(order.status)}`}>
-                          {order.status || "Pending"}
-                        </span>
-                      </td>
+                    {/* 6. STATUS */}
+                    <div className="col-cell col-status">
+                      <span className={`status-pill ${getStatusBadgeClass(order.status)}`}>
+                        ● {order.status || "Pending"}
+                      </span>
+                    </div>
 
-                      {/* 7. Total Amount */}
-                      <td className="cell-amount">
-                        <div className="amount-group">
-                          <strong className="total-amount">{formatCurrency(order.total)}</strong>
-                          {parseFloat(order.delivery_fee || 0) > 0 && (
-                            <small className="fee-sub">incl. fee {formatCurrency(order.delivery_fee)}</small>
-                          )}
-                        </div>
-                      </td>
+                    {/* 7. AMOUNT */}
+                    <div className="col-cell col-amount">
+                      <strong className="amount-gold">{formatCurrency(order.total)}</strong>
+                      {parseFloat(order.delivery_fee || 0) > 0 && (
+                        <small className="fee-text">incl. fee {formatCurrency(order.delivery_fee)}</small>
+                      )}
+                    </div>
 
-                      {/* 8. Actions */}
-                      <td className="cell-actions" style={{ textAlign: "right" }}>
-                        <div className="table-action-buttons">
-                          <button
-                            type="button"
-                            className="btn-print-receipt"
-                            onClick={() => handlePrintReceipt(order)}
-                            disabled={printingOrderId === order.id}
-                            title="Print / Reprint receipt directly"
-                          >
-                            <span className={printingOrderId === order.id ? "spin-icon" : ""}>🖨️</span>
-                            <span>{printingOrderId === order.id ? "Printing..." : "Print Receipt"}</span>
-                          </button>
+                    {/* 8. ACTIONS */}
+                    <div className="col-cell col-actions">
+                      <button
+                        type="button"
+                        className="btn-action-print"
+                        onClick={() => handlePrintReceipt(order)}
+                        disabled={printingOrderId === order.id}
+                        title="Instant Thermal Print Receipt"
+                      >
+                        <span className={printingOrderId === order.id ? "spin-icon" : ""}>🖨️</span>
+                        <span>{printingOrderId === order.id ? "Printing..." : "Print"}</span>
+                      </button>
 
-                          <button
-                            type="button"
-                            className="btn-view-details"
-                            onClick={() => setSelectedOrder(order)}
-                            title="Inspect full details & receipt preview"
-                          >
-                            👁️ View
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        )}
+                      <button
+                        type="button"
+                        className="btn-action-view"
+                        onClick={() => setSelectedOrder(order)}
+                        title="View Official Receipt"
+                      >
+                        👁️ View
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* DETAIL & RECEIPT MODAL */}
       {selectedOrder && (
         <div className="sales-modal-backdrop" onClick={() => setSelectedOrder(null)}>
-          <div className="sales-modal-dialog" onClick={(e) => e.stopPropagation()}>
-            {/* Modal Header */}
-            <div className="sales-modal-header">
-              <div className="modal-title-area">
-                <span className="modal-subtitle">Official Transaction Receipt</span>
+          <div className="sales-modal-card" onClick={(e) => e.stopPropagation()}>
+            {/* Header */}
+            <div className="modal-top-bar">
+              <div>
+                <span className="receipt-subtitle">OFFICIAL RECEIPT ARCHIVE</span>
                 <h2>Order #{selectedOrder.id}</h2>
               </div>
               <button
                 type="button"
-                className="modal-close-btn"
+                className="modal-x-btn"
                 onClick={() => setSelectedOrder(null)}
               >
                 ✕
               </button>
             </div>
 
-            {/* Modal Body / Thermal Receipt Style */}
-            <div className="sales-modal-body">
-              <div className="receipt-paper-card">
-                {/* Serrated edge styling in CSS */}
-                <div className="receipt-brand-header">
+            {/* Receipt Body */}
+            <div className="modal-receipt-scroll">
+              <div className="paper-receipt-container">
+                <div className="paper-receipt-header">
                   <h3>BAKE HOUSE</h3>
                   <p>Artisan Bakery &amp; Boutique</p>
                   <p>Poblacion, Cordova, Cebu, Philippines</p>
                   <p>Tel: +63 (032) 496-8888 | TIN: 000-847-293-000</p>
                   <div className="receipt-divider dashed"></div>
-                  <div className="receipt-meta-grid">
-                    <div>
-                      <strong>Date:</strong> {formatDateTime(selectedOrder.created_at)}
+                  <div className="receipt-meta-lines">
+                    <div className="meta-line">
+                      <span>Date:</span>
+                      <strong>{formatDateTime(selectedOrder.created_at).date} {formatDateTime(selectedOrder.created_at).time}</strong>
                     </div>
-                    <div>
-                      <strong>Channel:</strong> {selectedOrder.fulfillment_type || "Store POS"}
+                    <div className="meta-line">
+                      <span>Channel:</span>
+                      <strong>{selectedOrder.fulfillment_type || "Store POS"}</strong>
                     </div>
-                    <div>
-                      <strong>Customer:</strong> {selectedOrder.customer_name || "Walk-in Guest"}
+                    <div className="meta-line">
+                      <span>Customer:</span>
+                      <strong>{selectedOrder.customer_name || "Walk-in Guest"}</strong>
                     </div>
-                    <div>
-                      <strong>Contact:</strong> {selectedOrder.customer_contact || "N/A"}
+                    <div className="meta-line">
+                      <span>Contact:</span>
+                      <strong>{selectedOrder.customer_contact || "N/A"}</strong>
                     </div>
                     {selectedOrder.delivery_address && (
-                      <div className="full-width-meta">
-                        <strong>Address:</strong> {selectedOrder.delivery_address}
+                      <div className="meta-line full">
+                        <span>Address:</span>
+                        <strong>{selectedOrder.delivery_address}</strong>
                       </div>
                     )}
                   </div>
                   <div className="receipt-divider dashed"></div>
                 </div>
 
-                {/* Items Table in Receipt */}
-                <table className="receipt-items-table">
-                  <thead>
-                    <tr>
-                      <th style={{ textAlign: "left" }}>Item &amp; Details</th>
-                      <th style={{ textAlign: "center" }}>Qty</th>
-                      <th style={{ textAlign: "right" }}>Price</th>
-                      <th style={{ textAlign: "right" }}>Total</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {(selectedOrder.items || []).map((it, idx) => {
-                      const qty = parseInt(it.quantity || 1, 10);
-                      const unitPrice = parseFloat(it.price || 0);
-                      const lineTotal = qty * unitPrice;
+                {/* Items in receipt */}
+                <div className="paper-receipt-items">
+                  <div className="items-head-row">
+                    <span style={{ flex: 1 }}>Item</span>
+                    <span style={{ width: "45px", textAlign: "center" }}>Qty</span>
+                    <span style={{ width: "70px", textAlign: "right" }}>Price</span>
+                    <span style={{ width: "75px", textAlign: "right" }}>Total</span>
+                  </div>
+                  {(selectedOrder.items || []).map((it, idx) => {
+                    const qty = parseInt(it.quantity || 1, 10);
+                    const unitPrice = parseFloat(it.price || 0);
+                    const lineTotal = qty * unitPrice;
 
-                      return (
-                        <tr key={idx}>
-                          <td style={{ textAlign: "left" }}>
-                            <strong>{it.product_name || it.name}</strong>
-                            {it.customization && (
-                              <div className="receipt-custom-spec">
-                                {it.customization.size && <span>Size: {it.customization.size} | </span>}
-                                {it.customization.flavor && <span>Flavor: {it.customization.flavor} | </span>}
-                                {it.customization.color && <span>Frosting: {it.customization.color}</span>}
-                                {it.customization.message && (
-                                  <div className="receipt-custom-msg">
-                                    <em>"{it.customization.message}"</em>
-                                  </div>
-                                )}
-                              </div>
-                            )}
-                          </td>
-                          <td style={{ textAlign: "center" }}>{qty}</td>
-                          <td style={{ textAlign: "right" }}>{formatCurrency(unitPrice)}</td>
-                          <td style={{ textAlign: "right" }}>{formatCurrency(lineTotal)}</td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
+                    return (
+                      <div key={idx} className="items-body-row">
+                        <div className="item-name-col">
+                          <strong>{it.product_name || it.name}</strong>
+                          {it.customization && (
+                            <div className="item-specs">
+                              {it.customization.size && <span>Size: {it.customization.size} | </span>}
+                              {it.customization.flavor && <span>Flavor: {it.customization.flavor} | </span>}
+                              {it.customization.color && <span>Frosting: {it.customization.color}</span>}
+                              {it.customization.message && (
+                                <div className="item-custom-msg">
+                                  <em>"{it.customization.message}"</em>
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                        <span style={{ width: "45px", textAlign: "center" }}>{qty}</span>
+                        <span style={{ width: "70px", textAlign: "right" }}>{formatCurrency(unitPrice)}</span>
+                        <span style={{ width: "75px", textAlign: "right" }}>{formatCurrency(lineTotal)}</span>
+                      </div>
+                    );
+                  })}
+                </div>
 
                 <div className="receipt-divider dashed"></div>
 
-                {/* Totals Breakdown */}
-                <div className="receipt-totals-list">
-                  <div className="receipt-total-line">
+                {/* Totals */}
+                <div className="paper-receipt-totals">
+                  <div className="totals-line">
                     <span>Subtotal:</span>
                     <span>{formatCurrency(selectedOrder.subtotal || selectedOrder.total)}</span>
                   </div>
                   {parseFloat(selectedOrder.delivery_fee || 0) > 0 && (
-                    <div className="receipt-total-line">
+                    <div className="totals-line">
                       <span>Delivery / Fulfillment Fee:</span>
                       <span>{formatCurrency(selectedOrder.delivery_fee)}</span>
                     </div>
                   )}
-                  <div className="receipt-total-line">
+                  <div className="totals-line">
                     <span>12% VAT (Included):</span>
                     <span>
                       {formatCurrency(
@@ -764,24 +710,24 @@ export default function SalesHistory() {
                     </span>
                   </div>
                   <div className="receipt-divider double"></div>
-                  <div className="receipt-total-line grand-total">
+                  <div className="totals-line grand">
                     <span>TOTAL AMOUNT DUE:</span>
                     <span>{formatCurrency(selectedOrder.total)}</span>
                   </div>
                   <div className="receipt-divider double"></div>
-                  <div className="receipt-total-line">
+                  <div className="totals-line">
                     <span>Payment Method:</span>
                     <strong>{selectedOrder.payment_method || "Cash"}</strong>
                   </div>
-                  <div className="receipt-total-line">
-                    <span>Fulfillment Status:</span>
-                    <strong className={`status-text ${getStatusBadgeClass(selectedOrder.status)}`}>
-                      {selectedOrder.status || "Completed"}
+                  <div className="totals-line">
+                    <span>Status:</span>
+                    <strong className={`status-pill ${getStatusBadgeClass(selectedOrder.status)}`}>
+                      ● {selectedOrder.status || "Completed"}
                     </strong>
                   </div>
                 </div>
 
-                <div className="receipt-footer-notes">
+                <div className="paper-receipt-footer">
                   <p>Maraming Salamat po sa inyong pagtangkilik!</p>
                   <p>Thank you for choosing BAKE HOUSE!</p>
                 </div>
@@ -789,19 +735,19 @@ export default function SalesHistory() {
             </div>
 
             {/* Modal Actions */}
-            <div className="sales-modal-footer">
-              <div className="print-options-group">
+            <div className="modal-bottom-actions">
+              <div className="print-btns-wrapper">
                 <button
                   type="button"
-                  className="modal-print-btn btn-pos-58"
+                  className="modal-btn-print 58"
                   onClick={() => handlePrintReceipt(selectedOrder, "58mm")}
                   disabled={printingOrderId === selectedOrder.id}
                 >
-                  🖨️ Print 58mm Thermal Receipt
+                  🖨️ Print 58mm Thermal
                 </button>
                 <button
                   type="button"
-                  className="modal-print-btn btn-pos-80"
+                  className="modal-btn-print 80"
                   onClick={() => handlePrintReceipt(selectedOrder, "80mm")}
                   disabled={printingOrderId === selectedOrder.id}
                 >
@@ -811,7 +757,7 @@ export default function SalesHistory() {
 
               <button
                 type="button"
-                className="modal-close-action"
+                className="modal-btn-close"
                 onClick={() => setSelectedOrder(null)}
               >
                 Close Preview
