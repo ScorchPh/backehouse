@@ -86,7 +86,9 @@
 }
 
 @keyframes spin {
-  100% { transform: rotate(360deg); }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 /* KPI Cards Grid */
@@ -125,10 +127,21 @@
   flex-shrink: 0;
 }
 
-.kpi-icon-box.gold { background: #FFF4E5; }
-.kpi-icon-box.green { background: #E8F5E9; }
-.kpi-icon-box.blue { background: #E0F2FE; }
-.kpi-icon-box.brown { background: #F3E5F5; }
+.kpi-icon-box.gold {
+  background: #FFF4E5;
+}
+
+.kpi-icon-box.green {
+  background: #E8F5E9;
+}
+
+.kpi-icon-box.blue {
+  background: #E0F2FE;
+}
+
+.kpi-icon-box.brown {
+  background: #F3E5F5;
+}
 
 .kpi-details {
   display: flex;
@@ -658,8 +671,15 @@
 }
 
 @keyframes slideInToast {
-  from { transform: translateY(-20px); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
+  from {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
 }
 
 /* ============================================================================
@@ -669,6 +689,7 @@
   position: fixed;
   inset: 0;
   background: rgba(30, 20, 15, 0.6);
+  -webkit-backdrop-filter: blur(4px);
   backdrop-filter: blur(4px);
   z-index: 9999;
   display: flex;
@@ -679,8 +700,13 @@
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 .sales-modal-card {
@@ -698,8 +724,15 @@
 }
 
 @keyframes scaleUp {
-  from { transform: scale(0.95); opacity: 0; }
-  to { transform: scale(1); opacity: 1; }
+  from {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
 
 .modal-top-bar {

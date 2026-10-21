@@ -33,7 +33,12 @@ export default function SalesHistory() {
       setLoading(true);
       const res = await orderService.getOrders();
       if (res && res.orders) {
-        setOrders(res.orders);
+        // Exclude Denied and Cancelled orders completely from Sales History
+        const validSales = res.orders.filter((o) => {
+          const s = String(o.status || "").toLowerCase().trim();
+          return s !== "denied" && s !== "cancelled";
+        });
+        setOrders(validSales);
       } else {
         setOrders([]);
       }
@@ -94,14 +99,16 @@ export default function SalesHistory() {
         if (!matchesId && !matchesName && !matchesPhone && !matchesItems) return false;
       }
 
+      // Exclude Denied and Cancelled orders
+      const s = String(order.status || "").toLowerCase().trim();
+      if (s === "denied" || s === "cancelled") return false;
+
       // 2. Status filter
       if (statusFilter !== "all") {
-        const s = String(order.status || "").toLowerCase().trim();
         if (statusFilter === "completed" && s !== "completed") return false;
         if (statusFilter === "pending" && s !== "pending") return false;
         if (statusFilter === "preparation" && !s.includes("prep") && !s.includes("confirm")) return false;
         if (statusFilter === "delivery" && !s.includes("delivery") && !s.includes("ready")) return false;
-        if (statusFilter === "cancelled" && s !== "denied" && s !== "cancelled") return false;
       }
 
       // 3. Channel filter
@@ -183,9 +190,7 @@ export default function SalesHistory() {
       const isCompleted = String(o.status || "").toLowerCase() === "completed";
       const orderTotal = parseFloat(o.total || 0);
 
-      if (String(o.status || "").toLowerCase() !== "denied" && String(o.status || "").toLowerCase() !== "cancelled") {
-        totalRevenue += orderTotal;
-      }
+      totalRevenue += orderTotal;
       if (isCompleted) {
         completedCount++;
       }
@@ -400,7 +405,6 @@ export default function SalesHistory() {
               <option value="pending">🟡 Pending</option>
               <option value="preparation">🟣 In Preparation</option>
               <option value="delivery">🔵 For Delivery</option>
-              <option value="cancelled">🔴 Cancelled</option>
             </select>
 
             <select
@@ -487,17 +491,13 @@ export default function SalesHistory() {
               {filteredOrders.map((order) => {
                 const items = Array.isArray(order.items) ? order.items : [];
                 const totalUnits = items.reduce((sum, it) => sum + parseInt(it.quantity || 1, 10), 0);
-                const isPickup = String(order.fulfillment_type || "").toLowerCase().includes("pickup");
                 const dt = formatDateTime(order.created_at);
 
                 return (
                   <div key={order.id} className="sales-grid-row">
-                    {/* 1. ORDER ID & CHANNEL */}
+                    {/* 1. ORDER ID */}
                     <div className="col-cell col-id">
                       <strong className="order-id-num">{order.id}</strong>
-                      <span className={`channel-badge ${isPickup ? "pickup" : "delivery"}`}>
-                        {isPickup ? "🏪 In-Store POS" : "🚚 Delivery"}
-                      </span>
                     </div>
 
                     {/* 2. DATE & TIME */}
