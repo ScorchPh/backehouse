@@ -17,7 +17,7 @@ if (!$pdo) {
     sendResponse(['success' => false, 'message' => 'Database connection failed'], 500);
 }
 
-$data = getJsonPayload();
+$data = getRequestBody();
 if (empty($data) && !empty($_POST)) {
     $data = $_POST;
 }

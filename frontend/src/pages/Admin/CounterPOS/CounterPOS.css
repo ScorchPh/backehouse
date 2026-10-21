@@ -1753,23 +1753,18 @@
  * 5. PRINT STYLESHEET (@media print) FOR THERMAL RECEIPT
  * ============================================================================ */
 @media print {
-  @page {
-    size: 58mm auto;
-    margin: 0;
-  }
-
-  html, body {
+  body:has(.printable-receipt-paper) {
     margin: 0 !important;
     padding: 0 !important;
     background: #FFF !important;
   }
 
-  body * {
+  body:has(.printable-receipt-paper) * {
     visibility: hidden;
   }
 
-  .printable-receipt-paper,
-  .printable-receipt-paper * {
+  body:has(.printable-receipt-paper) .printable-receipt-paper,
+  body:has(.printable-receipt-paper) .printable-receipt-paper * {
     visibility: visible;
   }
 

@@ -126,6 +126,11 @@ function getRequestBody(): array {
     return is_array($decoded) ? $decoded : [];
 }
 
+// Alias for getRequestBody to prevent unexpected token errors
+function getJsonPayload(): array {
+    return getRequestBody();
+}
+
 // Sends a structured JSON response to the client with an HTTP status code,
 // then terminates script execution cleanly.
 function sendResponse(mixed $data, int $statusCode = 200): void {

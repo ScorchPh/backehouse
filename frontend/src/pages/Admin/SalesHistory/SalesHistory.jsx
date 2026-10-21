@@ -7,10 +7,18 @@ export default function SalesHistory() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
   const [channelFilter, setChannelFilter] = useState("all");
   const [paymentFilter, setPaymentFilter] = useState("all");
-  const [dateFilter, setDateFilter] = useState("all");
+  const [dateFilter, setDateFilter] = useState("all"); // 'all' | 'day' | 'month' | 'year' | 'custom'
+  const [selectedDay, setSelectedDay] = useState(() => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  });
+  const [selectedMonth, setSelectedMonth] = useState(() => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+  });
+  const [selectedYear, setSelectedYear] = useState(() => String(new Date().getFullYear()));
   const [customStartDate, setCustomStartDate] = useState("");
   const [customEndDate, setCustomEndDate] = useState("");
 
@@ -56,6 +64,20 @@ export default function SalesHistory() {
     window.addEventListener("ordersUpdated", handleUpdate);
     return () => window.removeEventListener("ordersUpdated", handleUpdate);
   }, []);
+
+  // Compute available recorded years from orders
+  const availableYears = useMemo(() => {
+    const years = new Set([new Date().getFullYear()]);
+    orders.forEach((o) => {
+      if (o.created_at) {
+        const d = new Date(o.created_at.replace(/-/g, "/"));
+        if (!isNaN(d.getFullYear())) {
+          years.add(d.getFullYear());
+        }
+      }
+    });
+    return Array.from(years).sort((a, b) => b - a);
+  }, [orders]);
 
   const formatCurrency = (amount) => {
     return "₱" + parseFloat(amount || 0).toLocaleString(undefined, {
@@ -103,15 +125,7 @@ export default function SalesHistory() {
       const s = String(order.status || "").toLowerCase().trim();
       if (s === "denied" || s === "cancelled") return false;
 
-      // 2. Status filter
-      if (statusFilter !== "all") {
-        if (statusFilter === "completed" && s !== "completed") return false;
-        if (statusFilter === "pending" && s !== "pending") return false;
-        if (statusFilter === "preparation" && !s.includes("prep") && !s.includes("confirm")) return false;
-        if (statusFilter === "delivery" && !s.includes("delivery") && !s.includes("ready")) return false;
-      }
-
-      // 3. Channel filter
+      // 2. Channel filter
       if (channelFilter !== "all") {
         const fulfillment = String(order.fulfillment_type || "").toLowerCase();
         if (channelFilter === "pos" && !fulfillment.includes("pickup") && !fulfillment.includes("pos") && !fulfillment.includes("counter")) {
@@ -130,39 +144,38 @@ export default function SalesHistory() {
         if (paymentFilter === "card" && !pMethod.includes("card") && !pMethod.includes("stripe")) return false;
       }
 
-      // 5. Date filter
+      // 3. Date filter (All / Day / Month / Year / Custom)
       if (dateFilter !== "all" && order.created_at) {
         const orderDate = new Date(order.created_at.replace(/-/g, "/"));
-        const now = new Date();
+        if (isNaN(orderDate.getTime())) return true;
 
-        if (dateFilter === "today") {
-          if (
-            orderDate.getFullYear() !== now.getFullYear() ||
-            orderDate.getMonth() !== now.getMonth() ||
-            orderDate.getDate() !== now.getDate()
-          ) {
-            return false;
+        if (dateFilter === "day") {
+          if (selectedDay) {
+            const [y, m, d] = selectedDay.split("-").map(Number);
+            if (
+              orderDate.getFullYear() !== y ||
+              orderDate.getMonth() + 1 !== m ||
+              orderDate.getDate() !== d
+            ) {
+              return false;
+            }
           }
-        } else if (dateFilter === "yesterday") {
-          const yesterday = new Date();
-          yesterday.setDate(now.getDate() - 1);
-          if (
-            orderDate.getFullYear() !== yesterday.getFullYear() ||
-            orderDate.getMonth() !== yesterday.getMonth() ||
-            orderDate.getDate() !== yesterday.getDate()
-          ) {
-            return false;
-          }
-        } else if (dateFilter === "week") {
-          const sevenDaysAgo = new Date();
-          sevenDaysAgo.setDate(now.getDate() - 7);
-          if (orderDate < sevenDaysAgo) return false;
         } else if (dateFilter === "month") {
-          if (
-            orderDate.getFullYear() !== now.getFullYear() ||
-            orderDate.getMonth() !== now.getMonth()
-          ) {
-            return false;
+          if (selectedMonth) {
+            const [y, m] = selectedMonth.split("-").map(Number);
+            if (
+              orderDate.getFullYear() !== y ||
+              orderDate.getMonth() + 1 !== m
+            ) {
+              return false;
+            }
+          }
+        } else if (dateFilter === "year") {
+          if (selectedYear) {
+            const y = Number(selectedYear);
+            if (orderDate.getFullYear() !== y) {
+              return false;
+            }
           }
         } else if (dateFilter === "custom") {
           if (customStartDate) {
@@ -178,22 +191,27 @@ export default function SalesHistory() {
 
       return true;
     });
-  }, [orders, searchTerm, statusFilter, channelFilter, paymentFilter, dateFilter, customStartDate, customEndDate]);
+  }, [
+    orders,
+    searchTerm,
+    channelFilter,
+    paymentFilter,
+    dateFilter,
+    selectedDay,
+    selectedMonth,
+    selectedYear,
+    customStartDate,
+    customEndDate,
+  ]);
 
   // Metrics
   const metrics = useMemo(() => {
     let totalRevenue = 0;
-    let completedCount = 0;
     let totalUnitsSold = 0;
 
     filteredOrders.forEach((o) => {
-      const isCompleted = String(o.status || "").toLowerCase() === "completed";
       const orderTotal = parseFloat(o.total || 0);
-
       totalRevenue += orderTotal;
-      if (isCompleted) {
-        completedCount++;
-      }
 
       if (Array.isArray(o.items)) {
         o.items.forEach((it) => {
@@ -207,7 +225,6 @@ export default function SalesHistory() {
     return {
       totalRevenue,
       totalOrders: filteredOrders.length,
-      completedCount,
       totalUnitsSold,
       averageOrder,
     };
@@ -256,6 +273,242 @@ export default function SalesHistory() {
     }
   };
 
+  // Print Sales Summary Report via clean isolated iframe
+  const handlePrintSummary = () => {
+    try {
+      const iframe = document.createElement("iframe");
+      iframe.style.position = "fixed";
+      iframe.style.right = "0";
+      iframe.style.bottom = "0";
+      iframe.style.width = "0";
+      iframe.style.height = "0";
+      iframe.style.border = "0";
+      document.body.appendChild(iframe);
+
+      let filterLabel = "All Time";
+      if (dateFilter === "day") {
+        filterLabel = `Specific Date: ${selectedDay}`;
+      } else if (dateFilter === "month") {
+        filterLabel = `Month: ${selectedMonth}`;
+      } else if (dateFilter === "year") {
+        filterLabel = `Year: ${selectedYear}`;
+      } else if (dateFilter === "custom") {
+        filterLabel = `Range: ${customStartDate || "Start"} to ${customEndDate || "End"}`;
+      }
+
+      const rowsHtml = filteredOrders
+        .map((o) => {
+          const dt = formatDateTime(o.created_at);
+          const itemsText = (o.items || [])
+            .map((it) => `${it.quantity || 1}x ${it.product_name || it.name || "Item"}`)
+            .join(", ");
+          return `
+            <tr>
+              <td style="font-family: monospace; font-weight: bold; white-space: nowrap;">${o.id}</td>
+              <td style="white-space: nowrap;">${dt.date}<br><small style="color: #666;">${dt.time}</small></td>
+              <td><strong>${o.customer_name || "Walk-in Guest"}</strong><br><small style="color: #666;">${o.customer_contact || ""}</small></td>
+              <td>${itemsText || "Bakery Items"}</td>
+              <td>${o.payment_method || "Cash"}</td>
+              <td style="text-align: right; font-weight: bold; white-space: nowrap;">${formatCurrency(o.total)}</td>
+            </tr>
+          `;
+        })
+        .join("");
+
+      const reportHtml = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>BAKE HOUSE - Sales Summary Report</title>
+          <style>
+            @page {
+              size: A4 portrait;
+              margin: 12mm 15mm;
+            }
+            * { box-sizing: border-box; }
+            body {
+              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+              color: #2D2016;
+              margin: 0;
+              padding: 0;
+              font-size: 10pt;
+              line-height: 1.4;
+              background: #FFF;
+            }
+            .report-header {
+              border-bottom: 2px solid #54331D;
+              padding-bottom: 12px;
+              margin-bottom: 16px;
+              display: flex;
+              justify-content: space-between;
+              align-items: flex-end;
+            }
+            .brand h1 {
+              margin: 0;
+              font-size: 20pt;
+              color: #54331D;
+              letter-spacing: -0.5px;
+            }
+            .brand p {
+              margin: 3px 0 0;
+              font-size: 10pt;
+              color: #7A695B;
+            }
+            .meta-info {
+              text-align: right;
+              font-size: 9pt;
+              color: #555;
+            }
+            .meta-info strong {
+              color: #2D2016;
+            }
+            .kpi-row {
+              display: flex;
+              gap: 12px;
+              margin-bottom: 18px;
+            }
+            .kpi-box {
+              flex: 1;
+              background: #FAF6F0;
+              border: 1px solid #EADBCE;
+              border-radius: 8px;
+              padding: 10px 14px;
+            }
+            .kpi-title {
+              font-size: 8pt;
+              font-weight: 800;
+              color: #8C7B70;
+              text-transform: uppercase;
+              letter-spacing: 0.5px;
+            }
+            .kpi-val {
+              font-size: 14pt;
+              font-weight: 800;
+              color: #54331D;
+              margin: 4px 0 0;
+            }
+            .kpi-sub {
+              font-size: 8pt;
+              color: #7A695B;
+              margin-top: 2px;
+            }
+            table {
+              width: 100%;
+              border-collapse: collapse;
+              margin-bottom: 20px;
+              font-size: 9pt;
+            }
+            th {
+              background: #54331D;
+              color: #FFF;
+              text-align: left;
+              padding: 8px 10px;
+              font-size: 8pt;
+              font-weight: 700;
+              letter-spacing: 0.5px;
+            }
+            th:last-child {
+              text-align: right;
+            }
+            td {
+              padding: 8px 10px;
+              border-bottom: 1px solid #EADBCE;
+              vertical-align: top;
+            }
+            tr:nth-child(even) td {
+              background: #FCFAF7;
+            }
+            .report-footer {
+              margin-top: 25px;
+              padding-top: 12px;
+              border-top: 1px dashed #CCC;
+              display: flex;
+              justify-content: space-between;
+              font-size: 8.5pt;
+              color: #777;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="report-header">
+            <div class="brand">
+              <h1>BAKE HOUSE</h1>
+              <p>Official Sales &amp; Revenue Summary Report</p>
+            </div>
+            <div class="meta-info">
+              <div><strong>Generated:</strong> ${new Date().toLocaleString()}</div>
+              <div><strong>Date Scope:</strong> ${filterLabel}</div>
+              <div><strong>Transactions:</strong> ${filteredOrders.length} orders</div>
+            </div>
+          </div>
+
+          <div class="kpi-row">
+            <div class="kpi-box">
+              <div class="kpi-title">Total Gross Sales</div>
+              <div class="kpi-val">${formatCurrency(metrics.totalRevenue)}</div>
+              <div class="kpi-sub">${metrics.totalOrders} recorded orders</div>
+            </div>
+            <div class="kpi-box">
+              <div class="kpi-title">Items Sold</div>
+              <div class="kpi-val">${metrics.totalUnitsSold.toLocaleString()}</div>
+              <div class="kpi-sub">Total bakery units</div>
+            </div>
+            <div class="kpi-box">
+              <div class="kpi-title">Average Order Value</div>
+              <div class="kpi-val">${formatCurrency(metrics.averageOrder)}</div>
+              <div class="kpi-sub">Per transaction</div>
+            </div>
+          </div>
+
+          <table>
+            <thead>
+              <tr>
+                <th style="width: 16%;">ORDER ID</th>
+                <th style="width: 16%;">DATE &amp; TIME</th>
+                <th style="width: 20%;">CUSTOMER</th>
+                <th style="width: 28%;">ITEMS PURCHASED</th>
+                <th style="width: 10%;">PAYMENT</th>
+                <th style="width: 10%;">AMOUNT</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${rowsHtml || '<tr><td colspan="6" style="text-align: center; padding: 20px;">No sales transactions found.</td></tr>'}
+            </tbody>
+          </table>
+
+          <div class="report-footer">
+            <div>BAKE HOUSE Artisan Bakery Management System</div>
+            <div>Authorized Signature: ___________________________</div>
+          </div>
+        </body>
+        </html>
+      `;
+
+      iframe.contentWindow.document.open();
+      iframe.contentWindow.document.write(reportHtml);
+      iframe.contentWindow.document.close();
+
+      setTimeout(() => {
+        try {
+          iframe.contentWindow.focus();
+          iframe.contentWindow.print();
+        } catch (err) {
+          console.error("Print error:", err);
+          showToast("⚠️ Could not open printer dialog.");
+        } finally {
+          setTimeout(() => {
+            if (document.body.contains(iframe)) {
+              document.body.removeChild(iframe);
+            }
+          }, 1500);
+        }
+      }, 300);
+    } catch (err) {
+      console.error("Print summary error:", err);
+      showToast("⚠️ Could not generate print summary.");
+    }
+  };
+
   const getStatusBadgeClass = (status) => {
     const s = String(status || "").toLowerCase().trim();
     if (s === "completed") return "status-completed";
@@ -297,7 +550,7 @@ export default function SalesHistory() {
           <button
             type="button"
             className="sales-btn btn-print-summary"
-            onClick={() => window.print()}
+            onClick={handlePrintSummary}
             title="Print entire sales report summary"
           >
             🖨️ Print Summary
@@ -313,19 +566,6 @@ export default function SalesHistory() {
             <span className="kpi-title">TOTAL GROSS SALES</span>
             <strong className="kpi-value">{formatCurrency(metrics.totalRevenue)}</strong>
             <span className="kpi-hint">{metrics.totalOrders} total recorded orders</span>
-          </div>
-        </div>
-
-        <div className="sales-kpi-card">
-          <div className="kpi-icon-box green">✅</div>
-          <div className="kpi-details">
-            <span className="kpi-title">COMPLETED SALES</span>
-            <strong className="kpi-value">{metrics.completedCount}</strong>
-            <span className="kpi-hint">
-              {metrics.totalOrders > 0
-                ? `${((metrics.completedCount / metrics.totalOrders) * 100).toFixed(1)}% fulfillment rate`
-                : "0% fulfillment"}
-            </span>
           </div>
         </div>
 
@@ -378,11 +618,10 @@ export default function SalesHistory() {
               className="sales-styled-select"
             >
               <option value="all">📅 All Time</option>
-              <option value="today">Today</option>
-              <option value="yesterday">Yesterday</option>
-              <option value="week">Last 7 Days</option>
-              <option value="month">This Month</option>
-              <option value="custom">Custom Date Range...</option>
+              <option value="day">☀️ By Day</option>
+              <option value="month">🗓️ By Month</option>
+              <option value="year">📆 By Year</option>
+              <option value="custom">⏱️ Custom Range</option>
             </select>
 
             <select
@@ -393,18 +632,6 @@ export default function SalesHistory() {
               <option value="all">Fulfillment: All</option>
               <option value="pos">🏪 In-store POS (Pickup)</option>
               <option value="delivery">🚚 Online Delivery</option>
-            </select>
-
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="sales-styled-select"
-            >
-              <option value="all">Status: All</option>
-              <option value="completed">🟢 Completed</option>
-              <option value="pending">🟡 Pending</option>
-              <option value="preparation">🟣 In Preparation</option>
-              <option value="delivery">🔵 For Delivery</option>
             </select>
 
             <select
@@ -420,6 +647,96 @@ export default function SalesHistory() {
           </div>
         </div>
 
+        {/* Sub-selector for Day Filter */}
+        {dateFilter === "day" && (
+          <div className="sales-custom-date-box">
+            <div className="date-field">
+              <label>Select Date:</label>
+              <input
+                type="date"
+                value={selectedDay}
+                onChange={(e) => setSelectedDay(e.target.value)}
+              />
+            </div>
+            <button
+              type="button"
+              className="date-preset-btn"
+              onClick={() => {
+                const d = new Date();
+                setSelectedDay(
+                  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`
+                );
+              }}
+            >
+              Today
+            </button>
+            <button
+              type="button"
+              className="date-preset-btn"
+              onClick={() => {
+                const d = new Date();
+                d.setDate(d.getDate() - 1);
+                setSelectedDay(
+                  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`
+                );
+              }}
+            >
+              Yesterday
+            </button>
+          </div>
+        )}
+
+        {/* Sub-selector for Month Filter */}
+        {dateFilter === "month" && (
+          <div className="sales-custom-date-box">
+            <div className="date-field">
+              <label>Select Month:</label>
+              <input
+                type="month"
+                value={selectedMonth}
+                onChange={(e) => setSelectedMonth(e.target.value)}
+              />
+            </div>
+            <button
+              type="button"
+              className="date-preset-btn"
+              onClick={() => {
+                const d = new Date();
+                setSelectedMonth(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`);
+              }}
+            >
+              This Month
+            </button>
+          </div>
+        )}
+
+        {/* Sub-selector for Year Filter */}
+        {dateFilter === "year" && (
+          <div className="sales-custom-date-box">
+            <div className="date-field">
+              <label>Select Year:</label>
+              <select
+                value={selectedYear}
+                onChange={(e) => setSelectedYear(e.target.value)}
+              >
+                {availableYears.map((yr) => (
+                  <option key={yr} value={yr}>
+                    Year {yr}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <button
+              type="button"
+              className="date-preset-btn"
+              onClick={() => setSelectedYear(String(new Date().getFullYear()))}
+            >
+              Current Year
+            </button>
+          </div>
+        )}
+
+        {/* Sub-selector for Custom Range */}
         {dateFilter === "custom" && (
           <div className="sales-custom-date-box">
             <div className="date-field">
@@ -475,7 +792,6 @@ export default function SalesHistory() {
                 className="sales-reset-btn"
                 onClick={() => {
                   setSearchTerm("");
-                  setStatusFilter("all");
                   setChannelFilter("all");
                   setPaymentFilter("all");
                   setDateFilter("all");

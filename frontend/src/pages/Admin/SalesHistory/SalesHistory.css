@@ -284,13 +284,34 @@
   color: #54331D;
 }
 
-.date-field input[type="date"] {
+.date-field input[type="date"],
+.date-field input[type="month"],
+.date-field select {
   padding: 7px 12px;
   border-radius: 8px;
   border: 1px solid #DFD5C6;
   background: #FFFFFF;
   font-size: 0.85rem;
+  font-family: inherit;
   color: #3D2314;
+}
+
+.date-preset-btn {
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid #DFD5C6;
+  background: #FFFFFF;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #54331D;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.date-preset-btn:hover {
+  background: #54331D;
+  color: #FFFFFF;
+  border-color: #54331D;
 }
 
 .sales-results-indicator {

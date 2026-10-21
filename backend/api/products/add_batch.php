@@ -33,9 +33,15 @@ try {
         FOREIGN KEY (`product_id`) REFERENCES `products`(`id`) ON DELETE CASCADE
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
     ");
+
+    // Ensure expiration_date column exists on products table
+    $colCheck = $pdo->query("SHOW COLUMNS FROM `products` LIKE 'expiration_date'");
+    if ($colCheck->rowCount() === 0) {
+        $pdo->exec("ALTER TABLE `products` ADD COLUMN `expiration_date` DATE NULL AFTER `stock`");
+    }
 } catch (Throwable $e) {}
 
-$data = getJsonPayload();
+$data = getRequestBody();
 if (empty($data) && !empty($_POST)) {
     $data = $_POST;
 }
