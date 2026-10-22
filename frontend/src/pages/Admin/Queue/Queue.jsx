@@ -18,6 +18,8 @@ import "./Queue.css";
 import { orderService } from "../../../services/orderService";
 
 const PRESET_DENIAL_REASONS = [
+  "🚫 Customer refused order upon delivery / Handover rejected",
+  "🏠 Customer unavailable at delivery location / No response",
   "📍 Out of delivery coverage / unreachable address",
   "🧁 Requested flavor or ingredient temporarily out of stock",
   "📞 Customer cannot be reached via call / SMS",
@@ -138,6 +140,11 @@ function Queue() {
   };
 
   const openDenyModal = (order) => {
+    const s = (order.status || "").toLowerCase();
+    if (s.includes("delivery") || s.includes("ready") || s === "completed") {
+      alert("Dispatched orders cannot be denied once out for delivery or ready for pickup.");
+      return;
+    }
     setDenyModalOrder(order);
     setSelectedReasonPreset(PRESET_DENIAL_REASONS[0]);
     setCustomReasonText("");
@@ -456,6 +463,12 @@ function Queue() {
               const isCOD =
                 (order.payment_method || "").toLowerCase().includes("cash") ||
                 (order.payment_method || "").toLowerCase().includes("cod");
+              const isDispatched =
+                order.status === "For Delivery" ||
+                order.status === "Ready for Pickup" ||
+                order.status === "Completed" ||
+                (order.status || "").toLowerCase().includes("delivery") ||
+                (order.status || "").toLowerCase().includes("ready");
 
               return (
                 <div className={`queue-card status-border-${(order.status || "pending").toLowerCase().replace(/\s+/g, "-")}`} key={order.id}>
@@ -617,14 +630,16 @@ function Queue() {
                         🖨️ Ticket
                       </button>
 
-                      <button
-                        type="button"
-                        className="deny-btn-sm"
-                        onClick={() => openDenyModal(order)}
-                        title="Deny with reason"
-                      >
-                        ✕ Deny
-                      </button>
+                      {order.status !== "Completed" && order.status !== "Denied" && order.status !== "Cancelled" && (
+                        <button
+                          type="button"
+                          className="deny-btn-sm"
+                          onClick={() => openDenyModal(order)}
+                          title={isDispatched ? "Deny / Customer refused handover" : "Deny with reason"}
+                        >
+                          ✕ {isDispatched ? "Deny / Return" : "Deny"}
+                        </button>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -795,6 +810,20 @@ function Queue() {
             </div>
 
             <div className="order-modal-footer">
+              {selectedOrder.status !== "Completed" && selectedOrder.status !== "Denied" && selectedOrder.status !== "Cancelled" && (
+                <button
+                  type="button"
+                  className="deny-btn-sm"
+                  style={{ marginRight: "auto" }}
+                  onClick={() => {
+                    const target = selectedOrder;
+                    setSelectedOrder(null);
+                    openDenyModal(target);
+                  }}
+                >
+                  ✕ Deny / Reject Handover
+                </button>
+              )}
               <button type="button" className="close-footer-btn" onClick={() => setSelectedOrder(null)}>
                 Close
               </button>

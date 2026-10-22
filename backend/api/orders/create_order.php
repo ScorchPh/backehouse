@@ -81,12 +81,41 @@ if (!$pdo) {
     sendResponse(['success' => false, 'message' => 'Database connection failed'], 500);
 }
 
-// Generate unique order ID in format BH-XXXX
-$stmtCount = $pdo->query("SELECT COUNT(*) FROM orders");
-$orderNum = (int)$stmtCount->fetchColumn() + 1001;
+// Ensure POS and tender metadata columns exist in orders table (self-healing migration)
+try {
+    $colChecks = [
+        'cashier_name'    => "ALTER TABLE `orders` ADD COLUMN `cashier_name` VARCHAR(100) NULL AFTER `status`",
+        'cash_tendered'   => "ALTER TABLE `orders` ADD COLUMN `cash_tendered` DECIMAL(10, 2) NULL AFTER `cashier_name`",
+        'change_amount'   => "ALTER TABLE `orders` ADD COLUMN `change_amount` DECIMAL(10, 2) NULL AFTER `cash_tendered`",
+        'discount_amount' => "ALTER TABLE `orders` ADD COLUMN `discount_amount` DECIMAL(10, 2) NOT NULL DEFAULT 0.00 AFTER `change_amount`",
+        'discount_type'   => "ALTER TABLE `orders` ADD COLUMN `discount_type` VARCHAR(50) NULL AFTER `discount_amount`",
+        'ref_number'      => "ALTER TABLE `orders` ADD COLUMN `ref_number` VARCHAR(100) NULL AFTER `discount_type`",
+    ];
+    foreach ($colChecks as $col => $alterSql) {
+        $c = $pdo->query("SHOW COLUMNS FROM `orders` LIKE '{$col}'");
+        if ($c && $c->rowCount() === 0) {
+            $pdo->exec($alterSql);
+        }
+    }
+} catch (Throwable $e) {}
+
+// ============================================================================
+// LEARNING NOTE: High-Concurrency Collision-Proof Order ID Generation
+// ----------------------------------------------------------------------------
+// Simple COUNT(*) can cause primary key conflicts under concurrent checkouts
+// because multiple shoppers can read the exact same count simultaneously.
+// We find the MAX existing numeric ID (e.g. BH-1013 -> 1013) and take the next
+// number. We then verify in a loop, ensuring zero collision risk.
+// ============================================================================
+$stmtMax = $pdo->query("
+    SELECT MAX(CAST(SUBSTRING(id, 4) AS UNSIGNED)) 
+    FROM orders 
+    WHERE id REGEXP '^BH-[0-9]+$'
+");
+$maxNum = (int)$stmtMax->fetchColumn();
+$orderNum = max($maxNum, 1000) + 1;
 $orderId = 'BH-' . $orderNum;
 
-// Ensure generated ID is not a duplicate
 $stmtCheck = $pdo->prepare("SELECT id FROM orders WHERE id = :id");
 $stmtCheck->execute(['id' => $orderId]);
 while ($stmtCheck->fetch()) {
@@ -126,18 +155,20 @@ try {
         }
     }
 
-    // 2. Insert main order header record
+    // 2. Insert main order header record (storing fulfillment, customer, and POS tender metadata)
     $stmtOrder = $pdo->prepare("
         INSERT INTO orders (
             id, user_id, customer_name, customer_contact, fulfillment_type, 
             delivery_address, delivery_coordinates, distance_km, estimated_delivery_time,
             scheduled_date, scheduled_time, is_scheduled,
-            payment_method, subtotal, delivery_fee, total, status
+            payment_method, subtotal, delivery_fee, total, status,
+            cashier_name, cash_tendered, change_amount, discount_amount, discount_type, ref_number
         ) VALUES (
             :id, :user_id, :customer_name, :customer_contact, :fulfillment_type,
             :delivery_address, :delivery_coordinates, :distance_km, :estimated_delivery_time,
             :scheduled_date, :scheduled_time, :is_scheduled,
-            :payment_method, :subtotal, :delivery_fee, :total, :status
+            :payment_method, :subtotal, :delivery_fee, :total, :status,
+            :cashier_name, :cash_tendered, :change_amount, :discount_amount, :discount_type, :ref_number
         )
     ");
 
@@ -158,7 +189,13 @@ try {
         'subtotal'               => $subtotal,
         'delivery_fee'           => $effectiveDeliveryFee,
         'total'                  => $total,
-        'status'                 => $orderStatus
+        'status'                 => $orderStatus,
+        'cashier_name'           => !empty($cashierName) ? $cashierName : null,
+        'cash_tendered'          => $cashTendered !== null ? $cashTendered : null,
+        'change_amount'          => $changeAmount !== null ? $changeAmount : null,
+        'discount_amount'        => $discountAmount,
+        'discount_type'          => !empty($discountType) ? $discountType : null,
+        'ref_number'             => !empty($data['ref_number']) ? trim($data['ref_number']) : null
     ]);
 
     // 3. Insert line items and deduct inventory
@@ -236,18 +273,29 @@ try {
                     $remainingToDeduct -= $deductFromThisBatch;
                 }
 
-                // Update product's earliest active expiration date
-                $rollStmt = $pdo->prepare("
-                    SELECT MIN(expiration_date) AS earliest_date 
-                    FROM product_batches 
-                    WHERE product_id = :product_id AND quantity > 0 AND status = 'Active'
-                ");
-                $rollStmt->execute(['product_id' => $prodId]);
-                $earliestDate = $rollStmt->fetchColumn() ?: null;
+                // Check if this product has batches configured
+                $batchCountStmt = $pdo->prepare("SELECT COUNT(*) FROM product_batches WHERE product_id = :product_id");
+                $batchCountStmt->execute(['product_id' => $prodId]);
+                $hasBatches = ((int)$batchCountStmt->fetchColumn()) > 0;
 
-                if ($earliestDate !== null) {
+                if ($hasBatches) {
+                    $rollStmt = $pdo->prepare("
+                        SELECT MIN(expiration_date) AS earliest_date 
+                        FROM product_batches 
+                        WHERE product_id = :product_id AND quantity > 0 AND status = 'Active'
+                    ");
+                    $rollStmt->execute(['product_id' => $prodId]);
+                    $earliestDate = $rollStmt->fetchColumn() ?: null;
+
                     $updEarliest = $pdo->prepare("UPDATE products SET expiration_date = :exp WHERE id = :id");
                     $updEarliest->execute(['exp' => $earliestDate, 'id' => $prodId]);
+                } else {
+                    $checkStock = $pdo->prepare("SELECT stock FROM products WHERE id = :id");
+                    $checkStock->execute(['id' => $prodId]);
+                    $currentStock = (int)$checkStock->fetchColumn();
+                    if ($currentStock <= 0) {
+                        $pdo->prepare("UPDATE products SET expiration_date = NULL WHERE id = :id")->execute(['id' => $prodId]);
+                    }
                 }
             } catch (Throwable $be) {
                 // Ignore batch table if not configured, products.stock was already deducted

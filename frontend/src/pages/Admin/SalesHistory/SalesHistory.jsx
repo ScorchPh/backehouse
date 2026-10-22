@@ -254,9 +254,13 @@ export default function SalesHistory() {
         subtotal: parseFloat(order.subtotal || order.total || 0),
         delivery_fee: parseFloat(order.delivery_fee || 0),
         total: parseFloat(order.total || 0),
+        discount_amount: parseFloat(order.discount_amount || 0),
+        cashier: order.cashier_name || "BAKE HOUSE Register",
+        cash_tendered: order.cash_tendered !== null && order.cash_tendered !== undefined ? parseFloat(order.cash_tendered) : undefined,
+        change_amount: order.change_amount !== null && order.change_amount !== undefined ? parseFloat(order.change_amount) : undefined,
+        ref_number: order.ref_number || undefined,
         items: normalizedItems,
         created_at: order.created_at || new Date().toISOString(),
-        cashier: "BAKE HOUSE Register",
       };
 
       const result = await printerService.printReceipt(printableOrder, paperSize);

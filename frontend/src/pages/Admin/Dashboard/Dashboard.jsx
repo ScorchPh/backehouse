@@ -209,8 +209,13 @@ function Dashboard() {
           </div>
 
           <div className="status-report-item">
-            <span>Low Stock Items</span>
-            <strong style={{ color: "#EF4444" }}>{statsData?.stats?.low_stock_products || 0}</strong>
+            <span>Cancelled</span>
+            <strong style={{ color: "#6B7280" }}>{statsData?.stats?.cancelled_orders || 0}</strong>
+          </div>
+
+          <div className="status-report-item">
+            <span>Denied / Rejected</span>
+            <strong style={{ color: "#EF4444" }}>{statsData?.stats?.denied_orders || 0}</strong>
           </div>
         </div>
       </div>

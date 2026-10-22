@@ -90,6 +90,57 @@ try {
                 ]);
             }
         }
+
+        // ====================================================================
+        // LEARNING NOTE: Inventory & FEFO Batch Replenishment on Rejection
+        // --------------------------------------------------------------------
+        // When an order is denied (including after a delivery attempt where the
+        // customer refuses the handover), the unaccepted units return to stock.
+        // If product batches are tracked, we replenish the batch and recalculate
+        // the earliest active expiration date so inventory and batch records
+        // stay synchronized.
+        // ====================================================================
+        try {
+            foreach ($items as $item) {
+                if (empty($item['product_id'])) continue;
+                $prodId = (int)$item['product_id'];
+                $qtyToRestore = (int)$item['quantity'];
+
+                // Check if this product has batches configured
+                $batchCheck = $pdo->prepare("
+                    SELECT id FROM product_batches 
+                    WHERE product_id = :pid 
+                    ORDER BY expiration_date DESC, id DESC 
+                    LIMIT 1
+                ");
+                $batchCheck->execute(['pid' => $prodId]);
+                $lastBatch = $batchCheck->fetch();
+
+                if ($lastBatch) {
+                    $pdo->prepare("
+                        UPDATE product_batches 
+                        SET quantity = quantity + :qty, status = 'Active' 
+                        WHERE id = :bid
+                    ")->execute(['qty' => $qtyToRestore, 'bid' => $lastBatch['id']]);
+
+                    // Roll earliest active batch date back to the products table
+                    $rollStmt = $pdo->prepare("
+                        SELECT MIN(expiration_date) AS earliest_date 
+                        FROM product_batches 
+                        WHERE product_id = :product_id AND quantity > 0 AND status = 'Active'
+                    ");
+                    $rollStmt->execute(['product_id' => $prodId]);
+                    $earliestDate = $rollStmt->fetchColumn() ?: null;
+
+                    if ($earliestDate !== null) {
+                        $pdo->prepare("UPDATE products SET expiration_date = :exp WHERE id = :id")
+                            ->execute(['exp' => $earliestDate, 'id' => $prodId]);
+                    }
+                }
+            }
+        } catch (Throwable $be) {
+            // Safe fallback if product_batches table is not used
+        }
     }
 
     $pdo->commit();

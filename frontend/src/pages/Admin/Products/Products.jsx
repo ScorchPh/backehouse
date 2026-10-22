@@ -103,6 +103,9 @@ function Products() {
   // 3. EXCLUSIVITY & EXPIRATION (FEFO) LOGIC
   // --------------------------------------------------------------------------
   const getExpiryInfo = (product) => {
+    if (product.stock !== undefined && parseInt(product.stock, 10) <= 0) {
+      return { status: "sold-out", label: "Out of Stock", days: null };
+    }
     if (!product.expiration_date) {
       return { status: "no-date", label: "No Date Set", days: null };
     }
@@ -477,55 +480,117 @@ function Products() {
       </div>
 
       {/* FEFO Expiration Alert Notification Banner for Admin */}
+      {/* FEFO Expiration Alert Notification Banner for Admin */}
       {totalExpirationAlerts > 0 && (
         <div className="fefo-expiration-alert-banner">
           <div className="alert-left">
             <span className="alert-icon">⚠️</span>
             <div className="alert-text">
-              <strong>FEFO Expiration Alert: {expiredItemsWithStock.length > 0 ? `${expiredItemsWithStock.length} product(s) expired` : ""} {expiredItemsWithStock.length > 0 && expiringSoonItemsWithStock.length > 0 ? " and " : ""} {expiringSoonItemsWithStock.length > 0 ? `${expiringSoonItemsWithStock.length} expiring soon` : ""}</strong>
-              <p>Items currently in active stock have passed or are nearing their shelf life. Confirm expiration to write off stock and keep store catalog fresh.</p>
+              <strong>
+                FEFO Expiration Alert:{" "}
+                {expiredItemsWithStock.length > 0 && (
+                  <span style={{ color: "#DC2626" }}>{expiredItemsWithStock.length} Expired</span>
+                )}
+                {expiredItemsWithStock.length > 0 && expiringSoonItemsWithStock.length > 0 && " | "}
+                {expiringSoonItemsWithStock.length > 0 && (
+                  <span style={{ color: "#D97706" }}>{expiringSoonItemsWithStock.length} Near Expiry</span>
+                )}
+              </strong>
+              <p>
+                {expiredItemsWithStock.length > 0
+                  ? "Items currently have expired stock. Discard expired items to maintain store quality."
+                  : "Items are reaching expiration within 3 days. Prioritize sales (FEFO) to prevent waste."}
+              </p>
             </div>
           </div>
-          <button
-            type="button"
-            className="alert-action-btn"
-            onClick={() => setStatusFilter(expiredItemsWithStock.length > 0 ? "expired" : "expiring-soon")}
-          >
-            Review Expired Items →
-          </button>
+          <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+            {expiredItemsWithStock.length > 0 && (
+              <button
+                type="button"
+                className="alert-action-btn"
+                style={{ background: "#DC2626" }}
+                onClick={() => setStatusFilter("expired")}
+              >
+                Review Expired ({expiredItemsWithStock.length}) →
+              </button>
+            )}
+            {expiringSoonItemsWithStock.length > 0 && (
+              <button
+                type="button"
+                className="alert-action-btn"
+                style={{ background: "#D97706" }}
+                onClick={() => setStatusFilter("expiring-soon")}
+              >
+                Review Near Expiry ({expiringSoonItemsWithStock.length}) →
+              </button>
+            )}
+          </div>
         </div>
       )}
 
       {/* KPI Summary Cards */}
       <div className="product-summary">
-        <div className="product-summary-card">
+        {/* 1. Total Products */}
+        <div
+          className={`product-summary-card ${statusFilter === "all" ? "active-kpi-filter" : ""}`}
+          onClick={() => setStatusFilter("all")}
+          title="Click to show all products"
+        >
           <span>Total Products</span>
           <strong>{totalProducts}</strong>
         </div>
 
-        <div className="product-summary-card">
+        {/* 2. Available */}
+        <div
+          className={`product-summary-card ${statusFilter === "available" ? "active-kpi-filter active-available" : ""}`}
+          onClick={() => setStatusFilter(statusFilter === "available" ? "all" : "available")}
+          title="Click to filter Available products"
+        >
           <span>Available</span>
           <strong style={{ color: "#10B981" }}>{availableCount}</strong>
         </div>
 
-        <div className="product-summary-card">
+        {/* 3. Low Stock */}
+        <div
+          className={`product-summary-card ${statusFilter === "low-stock" ? "active-kpi-filter active-low-stock" : ""}`}
+          onClick={() => setStatusFilter(statusFilter === "low-stock" ? "all" : "low-stock")}
+          title="Click to filter Low Stock products"
+        >
           <span>Low Stock</span>
           <strong style={{ color: "#F59E0B" }}>{lowStockCount}</strong>
         </div>
 
-        <div className="product-summary-card">
+        {/* 4. Out of Stock */}
+        <div
+          className={`product-summary-card ${statusFilter === "out-of-stock" ? "active-kpi-filter active-out-of-stock" : ""}`}
+          onClick={() => setStatusFilter(statusFilter === "out-of-stock" ? "all" : "out-of-stock")}
+          title="Click to filter Out of Stock products"
+        >
           <span>Out of Stock</span>
           <strong style={{ color: "#EF4444" }}>{outOfStockCount}</strong>
         </div>
 
+        {/* 5. Near Expiry (Expiring Soon - within 3 days) */}
         <div
-          className={`product-summary-card expiry-kpi ${totalExpirationAlerts > 0 ? "has-alerts" : ""}`}
-          onClick={() => setStatusFilter(expiredItemsWithStock.length > 0 ? "expired" : "expiring-soon")}
-          title="Filter products needing expiration review"
+          className={`product-summary-card expiry-kpi near-expiry ${statusFilter === "expiring-soon" ? "active-kpi-filter active-near-expiry" : ""} ${expiringSoonItemsWithStock.length > 0 ? "has-near-alerts" : ""}`}
+          onClick={() => setStatusFilter(statusFilter === "expiring-soon" ? "all" : "expiring-soon")}
+          title="Click to view products expiring within 3 days"
         >
-          <span>Expired / Near Expiry</span>
-          <strong style={{ color: totalExpirationAlerts > 0 ? "#DC2626" : "#6B5E54" }}>
-            {totalExpirationAlerts}
+          <span>Near Expiry (≤3d)</span>
+          <strong style={{ color: expiringSoonItemsWithStock.length > 0 ? "#D97706" : "#6B5E54" }}>
+            {expiringSoonItemsWithStock.length}
+          </strong>
+        </div>
+
+        {/* 6. Past Expiration (Expired items with stock) */}
+        <div
+          className={`product-summary-card expiry-kpi expired ${statusFilter === "expired" ? "active-kpi-filter active-expired" : ""} ${expiredItemsWithStock.length > 0 ? "has-expired-alerts" : ""}`}
+          onClick={() => setStatusFilter(statusFilter === "expired" ? "all" : "expired")}
+          title="Click to view expired products needing stock write-off"
+        >
+          <span>Expired Goods</span>
+          <strong style={{ color: expiredItemsWithStock.length > 0 ? "#DC2626" : "#6B5E54" }}>
+            {expiredItemsWithStock.length}
           </strong>
         </div>
       </div>
@@ -559,8 +624,8 @@ function Products() {
             <option value="available">Available</option>
             <option value="low-stock">Low Stock</option>
             <option value="out-of-stock">Out of Stock</option>
+            <option value="expiring-soon">🟡 Near Expiry (≤3 Days)</option>
             <option value="expired">🔴 Expired Goods</option>
-            <option value="expiring-soon">🟡 Expiring Soon (3d)</option>
           </select>
 
           <select
@@ -639,12 +704,20 @@ function Products() {
 
                   {/* 5. Expiration (FEFO) */}
                   <div className="product-expiry-col">
-                    <span className="expiry-date-label">
-                      {product.expiration_date || "No Date"}
-                    </span>
-                    <span className={`expiry-badge ${expiry.status}`}>
-                      {expiry.label}
-                    </span>
+                    {parseInt(product.stock, 10) <= 0 ? (
+                      <span className="expiry-badge sold-out">
+                        Out of Stock
+                      </span>
+                    ) : (
+                      <>
+                        <span className="expiry-date-label">
+                          {product.expiration_date || "No Date"}
+                        </span>
+                        <span className={`expiry-badge ${expiry.status}`}>
+                          {expiry.label}
+                        </span>
+                      </>
+                    )}
                   </div>
 
                   {/* 6. Status */}
@@ -1063,8 +1136,8 @@ function Products() {
                         </div>
 
                         <div>
-                          <span className={`batch-status-badge ${isBatchExpired ? "expired" : "active"}`}>
-                            {isBatchExpired ? "Expired" : "On Shelf"}
+                          <span className={`batch-status-badge ${parseInt(b.quantity, 10) <= 0 || b.status === "Depleted" ? "depleted" : isBatchExpired ? "expired" : "active"}`}>
+                            {parseInt(b.quantity, 10) <= 0 || b.status === "Depleted" ? "Depleted" : isBatchExpired ? "Expired" : "On Shelf"}
                           </span>
                         </div>
 

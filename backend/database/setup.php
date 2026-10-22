@@ -152,11 +152,33 @@ CREATE TABLE IF NOT EXISTS `orders` (
     `estimated_delivery_time` VARCHAR(100) NULL,
     `scheduled_date` VARCHAR(50) NULL,
     `scheduled_time` VARCHAR(100) NULL,
-    `is_scheduled` TINYINT(1) DEFAULT 0,
+    `cashier_name` VARCHAR(100) NULL,
+    `cash_tendered` DECIMAL(10, 2) NULL,
+    `change_amount` DECIMAL(10, 2) NULL,
+    `discount_amount` DECIMAL(10, 2) NOT NULL DEFAULT 0.00,
+    `discount_type` VARCHAR(50) NULL,
+    `ref_number` VARCHAR(100) NULL,
     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 ");
+// Ensure POS metadata columns exist if table already exists
+try {
+    $colChecks = [
+        'cashier_name'    => "ALTER TABLE `orders` ADD COLUMN `cashier_name` VARCHAR(100) NULL AFTER `status`",
+        'cash_tendered'   => "ALTER TABLE `orders` ADD COLUMN `cash_tendered` DECIMAL(10, 2) NULL AFTER `cashier_name`",
+        'change_amount'   => "ALTER TABLE `orders` ADD COLUMN `change_amount` DECIMAL(10, 2) NULL AFTER `cash_tendered`",
+        'discount_amount' => "ALTER TABLE `orders` ADD COLUMN `discount_amount` DECIMAL(10, 2) NOT NULL DEFAULT 0.00 AFTER `change_amount`",
+        'discount_type'   => "ALTER TABLE `orders` ADD COLUMN `discount_type` VARCHAR(50) NULL AFTER `discount_amount`",
+        'ref_number'      => "ALTER TABLE `orders` ADD COLUMN `ref_number` VARCHAR(100) NULL AFTER `discount_type`",
+    ];
+    foreach ($colChecks as $col => $alterSql) {
+        $c = $pdo->query("SHOW COLUMNS FROM `orders` LIKE '{$col}'");
+        if ($c && $c->rowCount() === 0) {
+            $pdo->exec($alterSql);
+        }
+    }
+} catch (Exception $e) {}
 echo "<p>Table <strong>orders</strong> created/verified.</p>";
 
 // Table 4: order_items

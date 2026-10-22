@@ -22,8 +22,6 @@
     max-width: 420px;
     max-height: 92vh;
     overflow-y: auto;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
     border-radius: 20px;
     padding: 22px 24px;
     position: relative;

@@ -25,6 +25,8 @@ try {
                o.scheduled_date, o.scheduled_time, COALESCE(o.is_scheduled, 0) as is_scheduled,
                o.payment_method, o.subtotal, o.delivery_fee, o.total, o.status, 
                COALESCE(o.cancellation_reason, '') as cancellation_reason,
+               COALESCE(o.cashier_name, '') as cashier_name,
+               o.cash_tendered, o.change_amount, o.discount_amount, o.discount_type, o.ref_number,
                o.created_at,
                DATE_FORMAT(o.created_at, '%M %d, %Y - %h:%i %p') as formatted_date
         FROM orders o
@@ -38,9 +40,12 @@ try {
         sendResponse(['success' => false, 'message' => 'Order not found'], 404);
     }
 
-    $order['subtotal']     = (float)$order['subtotal'];
-    $order['delivery_fee'] = (float)$order['delivery_fee'];
-    $order['total']        = (float)$order['total'];
+    $order['subtotal']        = (float)$order['subtotal'];
+    $order['delivery_fee']    = (float)$order['delivery_fee'];
+    $order['total']           = (float)$order['total'];
+    $order['discount_amount'] = (float)($order['discount_amount'] ?? 0);
+    $order['cash_tendered']   = isset($order['cash_tendered']) && $order['cash_tendered'] !== null ? (float)$order['cash_tendered'] : null;
+    $order['change_amount']   = isset($order['change_amount']) && $order['change_amount'] !== null ? (float)$order['change_amount'] : null;
 
     if (!empty($order['delivery_coordinates'])) {
         $order['delivery_coordinates'] = is_string($order['delivery_coordinates']) 

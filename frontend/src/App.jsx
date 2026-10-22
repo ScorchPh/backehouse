@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation, Navigate } from "react-router-dom";
 
 import Navbar from "./components/Navbar/Navbar";
 import Footer from "./components/Footer/Footer";
@@ -7,7 +7,6 @@ import CakeChatBox from "./components/CakeChatBox/CakeChatBox";
 import ProtectedRoute from "./components/ProtectedRoute/ProtectedRoute";
 import SalesHistory from "./pages/Admin/SalesHistory/SalesHistory";
 import Settings from "./pages/Admin/Settings/Settings";
-import Reports from "./pages/Admin/Reports/Reports";
 import Customers from "./pages/Admin/Customers/Customers";
 import Products from "./pages/Admin/Products/Products";
 import Orders from "./pages/Admin/Orders/Orders";
@@ -71,7 +70,7 @@ function AppContent() {
           <Route path="customizer" element={<CakeCustomizer />} />
           <Route path="cake-customizer" element={<CakeCustomizer />} />
           <Route path="customers" element={<Customers />} />
-          <Route path="reports" element={<Reports />} />
+          <Route path="reports" element={<Navigate to="/admin" replace />} />
           <Route path="settings" element={<Settings />} />
         </Route>
       </Routes>

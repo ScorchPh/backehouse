@@ -36,22 +36,41 @@ function Customers() {
     fetchCustomerList();
   }, []);
 
+  // ============================================================================
+  // LEARNING NOTE: Resilient Client-Side Search & Case-Insensitive Filtering
+  // ----------------------------------------------------------------------------
+  // 1. When querying contact numbers, customers may type partial digits (e.g. '0917').
+  //    Including contact_number in client-side search makes lookup instant.
+  // 2. Database strings may have inconsistent casing (e.g. 'Customer' vs 'customer').
+  //    Always use .toLowerCase() on both sides of role checks to avoid missing records.
+  // ============================================================================
   const filteredCustomers = customers.filter((c) => {
+    const q = searchTerm.toLowerCase().trim();
     const fullName = `${c.first_name || ""} ${c.last_name || ""}`.toLowerCase();
-    const matchesSearch =
-      fullName.includes(searchTerm.toLowerCase()) ||
-      c.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      c.username.toLowerCase().includes(searchTerm.toLowerCase());
+    const contact = (c.contact_number || "").toLowerCase();
+    const email = (c.email || "").toLowerCase();
+    const username = (c.username || "").toLowerCase();
 
+    const matchesSearch =
+      !q ||
+      fullName.includes(q) ||
+      email.includes(q) ||
+      username.includes(q) ||
+      contact.includes(q);
+
+    const userRole = (c.role || "").toLowerCase();
     const matchesRole =
-      roleFilter === "all" || (c.role && c.role.toLowerCase() === roleFilter.toLowerCase());
+      roleFilter === "all" || userRole === roleFilter.toLowerCase();
 
     return matchesSearch && matchesRole;
   });
 
   const totalCount = customers.length;
-  const customerRoleCount = customers.filter((c) => c.role === "customer").length;
-  const staffRoleCount = customers.filter((c) => c.role === "staff" || c.role === "admin").length;
+  const customerRoleCount = customers.filter((c) => (c.role || "").toLowerCase() === "customer").length;
+  const staffRoleCount = customers.filter((c) => {
+    const r = (c.role || "").toLowerCase();
+    return r === "staff" || r === "admin";
+  }).length;
 
   return (
     <div className="customers-page">
@@ -87,7 +106,7 @@ function Customers() {
         <div className="customers-tools">
           <input
             type="text"
-            placeholder="Search by name, email, or username..."
+            placeholder="Search by name, email, phone, or username..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />

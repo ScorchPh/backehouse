@@ -86,17 +86,62 @@
 /* KPI Summary Cards */
 .product-summary {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 20px;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 16px;
   margin-bottom: 25px;
 }
 
 .product-summary-card {
   background: #FFFFFF;
-  padding: 20px 24px;
+  padding: 18px 20px;
   border-radius: 14px;
-  border: 1px solid #ECE6DE;
+  border: 1.5px solid #ECE6DE;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+  transition: all 0.2s ease;
+  cursor: pointer;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  position: relative;
+}
+
+.product-summary-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+  border-color: #D4A373;
+}
+
+/* Active Selected Filter State */
+.product-summary-card.active-kpi-filter {
+  box-shadow: 0 4px 14px rgba(107, 66, 38, 0.15);
+  border-color: #6B4226;
+  background: #FAF6F0;
+}
+
+.product-summary-card.active-available {
+  border-color: #10B981;
+  background: #F0FDF4;
+}
+
+.product-summary-card.active-low-stock {
+  border-color: #F59E0B;
+  background: #FFFBEB;
+}
+
+.product-summary-card.active-out-of-stock {
+  border-color: #EF4444;
+  background: #FEF2F2;
+}
+
+.product-summary-card.active-near-expiry {
+  border-color: #D97706;
+  background: #FFFDF5;
+}
+
+.product-summary-card.active-expired {
+  border-color: #DC2626;
+  background: #FFF5F5;
 }
 
 .product-summary-card span {
@@ -710,6 +755,16 @@
   background: #FFFBFB;
 }
 
+.product-summary-card.expiry-kpi.near-expiry.has-near-alerts {
+  border-color: #FDE68A;
+  background: #FFFDF5;
+}
+
+.product-summary-card.expiry-kpi.expired.has-expired-alerts {
+  border-color: #FECDD3;
+  background: #FFF5F5;
+}
+
 /* Expiration Table Column & Badges */
 .product-expiry-col {
   display: flex;
@@ -760,6 +815,12 @@
 .expiry-badge.no-date {
   background: #F3EFEA;
   color: #8C8074;
+}
+
+.expiry-badge.sold-out {
+  background: #F3F4F6;
+  color: #9CA3AF;
+  border: 1px solid #E5E7EB;
 }
 
 /* Discard Expired Action Button */
@@ -1157,6 +1218,11 @@
   color: #DC2626;
 }
 
+.batch-status-badge.depleted {
+  background: #F3F4F6;
+  color: #9CA3AF;
+}
+
 .btn-batch-remove-early {
   background: none;
   border: 1px solid #E2DBD2;
@@ -1176,13 +1242,13 @@
 }
 
 /* Responsive */
-@media (max-width: 1100px) {
+@media (max-width: 1250px) {
   .product-summary {
     grid-template-columns: repeat(3, 1fr);
   }
 }
 
-@media (max-width: 900px) {
+@media (max-width: 800px) {
   .product-summary {
     grid-template-columns: repeat(2, 1fr);
   }
