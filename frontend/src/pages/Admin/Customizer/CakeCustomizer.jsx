@@ -129,6 +129,40 @@ export default function CakeCustomizer() {
     loadOptions();
   }, []);
 
+  // Delete Confirmation Modal state
+  const [itemToDelete, setItemToDelete] = useState(null);
+
+  // Close confirmation modal on Escape key
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape" && itemToDelete) {
+        setItemToDelete(null);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [itemToDelete]);
+
+  const confirmDeleteItem = () => {
+    if (!itemToDelete) return;
+    const { type, id, name } = itemToDelete;
+
+    if (type === "size") {
+      setConfig((prev) => ({ ...prev, sizes: prev.sizes.filter((s) => s.id !== id) }));
+    } else if (type === "flavor") {
+      setConfig((prev) => ({ ...prev, flavors: prev.flavors.filter((f) => f.id !== id) }));
+    } else if (type === "shape") {
+      setConfig((prev) => ({ ...prev, shapes: prev.shapes.filter((s) => s.id !== id) }));
+    } else if (type === "color") {
+      setConfig((prev) => ({ ...prev, colors: prev.colors.filter((c) => c.id !== id) }));
+    } else if (type === "occasion") {
+      setConfig((prev) => ({ ...prev, occasions: prev.occasions.filter((o) => o.id !== id) }));
+    }
+
+    showToast(`🗑️ Removed "${name}". Remember to click "Save Changes" to publish.`);
+    setItemToDelete(null);
+  };
+
   const showToast = (msg) => {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(null), 3500);
@@ -545,7 +579,17 @@ export default function CakeCustomizer() {
                                 <button
                                   type="button"
                                   className="delete-item-btn"
-                                  onClick={() => handleDeleteSize(size.id)}
+                                  onClick={() =>
+                                    setItemToDelete({
+                                      type: "size",
+                                      id: size.id,
+                                      name: size.name,
+                                      categoryLabel: "Cake Size",
+                                      detail: size.description
+                                        ? `${size.description} • Price added: +₱${size.price_modifier}`
+                                        : `Price added: +₱${size.price_modifier}`,
+                                    })
+                                  }
                                   title="Delete option"
                                 >
                                   🗑️ Delete
@@ -636,7 +680,15 @@ export default function CakeCustomizer() {
                                 <button
                                   type="button"
                                   className="delete-item-btn"
-                                  onClick={() => handleDeleteFlavor(flavor.id)}
+                                  onClick={() =>
+                                    setItemToDelete({
+                                      type: "flavor",
+                                      id: flavor.id,
+                                      name: flavor.name,
+                                      categoryLabel: "Cake Flavor",
+                                      detail: `Extra fee: +₱${flavor.price_modifier}`,
+                                    })
+                                  }
                                   title="Delete flavor"
                                 >
                                   🗑️ Delete
@@ -726,7 +778,15 @@ export default function CakeCustomizer() {
                                 <button
                                   type="button"
                                   className="delete-item-btn"
-                                  onClick={() => handleDeleteShape(shape.id)}
+                                  onClick={() =>
+                                    setItemToDelete({
+                                      type: "shape",
+                                      id: shape.id,
+                                      name: shape.name,
+                                      categoryLabel: "Cake Shape",
+                                      detail: `Extra fee: +₱${shape.price_modifier}`,
+                                    })
+                                  }
                                   title="Delete shape"
                                 >
                                   🗑️ Delete
@@ -812,7 +872,16 @@ export default function CakeCustomizer() {
                             <button
                               type="button"
                               className="delete-icon-btn"
-                              onClick={() => handleDeleteColor(color.id)}
+                              onClick={() =>
+                                setItemToDelete({
+                                  type: "color",
+                                  id: color.id,
+                                  name: color.name,
+                                  categoryLabel: "Frosting Color",
+                                  detail: `Hex: ${color.hex}`,
+                                  hex: color.hex,
+                                })
+                              }
                               title="Delete color"
                             >
                               🗑️
@@ -866,7 +935,14 @@ export default function CakeCustomizer() {
                             </button>
                             <button
                               type="button"
-                              onClick={() => handleDeleteOccasion(occ.id)}
+                              onClick={() =>
+                                setItemToDelete({
+                                  type: "occasion",
+                                  id: occ.id,
+                                  name: occ.name,
+                                  categoryLabel: "Occasion / Event",
+                                })
+                              }
                               title="Delete occasion"
                             >
                               ✕
@@ -1046,6 +1122,59 @@ export default function CakeCustomizer() {
           </div>
         </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {itemToDelete && (
+        <div className="customizer-modal-backdrop" onClick={() => setItemToDelete(null)}>
+          <div className="customizer-confirm-dialog" onClick={(e) => e.stopPropagation()}>
+            <div className="customizer-confirm-icon-circle">
+              🗑️
+            </div>
+            <h2>Delete Option?</h2>
+            <p className="customizer-confirm-desc">
+              Are you sure you want to remove this option from your cake customizer?
+            </p>
+
+            <div className="customizer-confirm-item-box">
+              {itemToDelete.type === "color" && itemToDelete.hex && (
+                <div
+                  className="customizer-confirm-color-swatch"
+                  style={{
+                    backgroundColor: itemToDelete.hex,
+                    border: itemToDelete.hex.toLowerCase() === "#ffffff" ? "2px solid #CCC" : "1.5px solid rgba(0,0,0,0.15)"
+                  }}
+                />
+              )}
+              <div className="customizer-confirm-item-info">
+                <span className="customizer-confirm-item-badge">{itemToDelete.categoryLabel}</span>
+                <h3>{itemToDelete.name}</h3>
+                {itemToDelete.detail && <p>{itemToDelete.detail}</p>}
+              </div>
+            </div>
+
+            <div className="customizer-confirm-warning-note">
+              ⚠️ <strong>Notice:</strong> This will delete the option from the list. Remember to click <strong>"Save Changes"</strong> to apply it live to the storefront.
+            </div>
+
+            <div className="customizer-confirm-actions">
+              <button
+                type="button"
+                className="btn-customizer-cancel"
+                onClick={() => setItemToDelete(null)}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="btn-customizer-delete"
+                onClick={confirmDeleteItem}
+              >
+                Yes, Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

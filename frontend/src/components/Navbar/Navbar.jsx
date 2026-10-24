@@ -14,6 +14,7 @@ import "./Navbar.css";
 import { NavLink, Link, useNavigate } from "react-router-dom";
 import { useCart } from "../../context/CartContext";
 import { authService } from "../../services/authService";
+import UserAvatar from "../UserAvatar/UserAvatar";
 
 function Navbar() {
   const { cartItems } = useCart();
@@ -136,7 +137,8 @@ function Navbar() {
           {currentUser ? (
             <div className="user-nav-box">
               <NavLink to="/account" onClick={closeMenu} className={({ isActive }) => (isActive ? "user-greeting active" : "user-greeting")}>
-                👤 {currentUser.first_name || currentUser.username}
+                <UserAvatar user={currentUser} className="nav-avatar-circle" />
+                <span>{currentUser.first_name || currentUser.username}</span>
                 <span className={`role-pill ${currentUser.role}`}>{currentUser.role}</span>
               </NavLink>
               <button onClick={handleLogout} className="nav-logout-btn" title="Logout">

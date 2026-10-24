@@ -11,6 +11,7 @@
 import { useState, useEffect } from "react";
 import "./Customers.css";
 import { authService } from "../../../services/authService";
+import UserAvatar from "../../../components/UserAvatar/UserAvatar";
 
 function Customers() {
   const [customers, setCustomers] = useState([]);
@@ -144,9 +145,7 @@ function Customers() {
             filteredCustomers.map((customer) => (
               <div className="customers-table-row" key={customer.id}>
                 <div className="customer-info">
-                  <div className="customer-avatar">
-                    {customer.first_name ? customer.first_name.charAt(0) : "U"}
-                  </div>
+                  <UserAvatar user={customer} className="customer-avatar" size={42} />
 
                   <div>
                     <strong>{customer.first_name} {customer.last_name}</strong>

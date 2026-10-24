@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, Link, useSearchParams, useLocation } from "react-router-dom";
 import { authService } from "../../services/authService";
 import DeliveryMapPicker, { POPULAR_AREAS } from "../../components/DeliveryMapPicker/DeliveryMapPicker";
+import UserAvatar from "../../components/UserAvatar/UserAvatar";
 import catPastries from "../../assets/images/cat_pastries.jpg";
 import catSourdough from "../../assets/images/cat_sourdough.jpg";
 import heroBg from "../../assets/images/bakesmart_hero.jpg";
@@ -398,10 +399,10 @@ function Account() {
         <div className="account-dashboard-layout">
           <aside className="dashboard-sidebar">
             <div className="sidebar-profile-card">
-              <img
-                src={currentUser.avatar || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200"}
-                alt="Profile Avatar"
+              <UserAvatar
+                user={currentUser}
                 className="sidebar-avatar"
+                alt="Profile Avatar"
               />
               <h2 className="sidebar-name">{currentUser.first_name} {currentUser.last_name}</h2>
               <span className="sidebar-username">@{currentUser.username}</span>

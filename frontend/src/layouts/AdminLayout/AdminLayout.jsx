@@ -16,6 +16,7 @@ import { Link, Outlet, useNavigate, useLocation } from "react-router-dom";
 import { authService } from "../../services/authService";
 import { useOrders } from "../../context/OrderContext";
 import AdminCakeChatModal from "../../components/AdminCakeChatModal/AdminCakeChatModal";
+import UserAvatar from "../../components/UserAvatar/UserAvatar";
 import "./AdminLayout.css";
 
 function AdminLayout() {
@@ -279,12 +280,13 @@ function AdminLayout() {
               🔔
             </button>
 
-            <div className="header-profile-avatar" title={currentUser?.email || "Profile"}>
-              <img
-                src={currentUser?.avatar || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100"}
-                alt="User"
-              />
-            </div>
+            <Link
+              to="/account"
+              className="header-profile-avatar"
+              title={currentUser?.email ? `${currentUser.first_name || ""} (${currentUser.email})` : "View Profile"}
+            >
+              <UserAvatar user={currentUser} className="header-avatar-rendered" alt="Profile" />
+            </Link>
           </div>
         </header>
 
